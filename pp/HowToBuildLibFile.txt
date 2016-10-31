@@ -1,0 +1,11 @@
+Pour pouvoir utiliser une dll compilee avec Mingw dans MSVC (Visual C++)
+	1 - generer la dll avec l'option:
+		g++ -Wl,--add-stdcall-alias,--output-def,nom.def,--out-implib,libnom.a -shared -o nom.dll xxx.cpp -I...
+			-Wl : permet de passer des options au linker.
+			--add-stdcall-alias : exporte les symboles avec et sans les @.
+			--output-def,nom.def : genere un fichier .def pour la dll construite.
+			--out-implib,libnom.a : genere une librairie d'importation.
+	2 - la librairie d'importation est utilisable avec Mingw. Pour qu'elle soit compatible avec MSVC, il faut utiliser l'utilitaire "Microsoft LIB tool" avec le .def genere precedemment.
+		C:\monRep>"C:\Program Files\Microsoft Visual Studio 9.0\VC\bin\lib" /machine:i386 /def:nom.def
+	3 - le .lib ainsi genere peut etre utilise dans MSVC pour l'edition de lien.
+		
