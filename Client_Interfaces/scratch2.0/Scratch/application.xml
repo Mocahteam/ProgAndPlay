@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" ?> 
+<application xmlns="http://ns.adobe.com/air/application/19.0">
+	
+	<id>Scratch</id> 
+	<versionNumber>1.0</versionNumber> 
+	<filename>Scratch</filename> 
+	
+	<name>Scratch</name> 
+	<description></description> 
+	<copyright></copyright> 
+	
+	<initialWindow> 
+		<title>Scratch</title> 
+		<content>Scratch.swf</content> 
+		<systemChrome>standard</systemChrome> 
+		<transparent>false</transparent> 
+		<visible>true</visible> 
+		<minimizable>true</minimizable> 
+		<maximizable>true</maximizable> 
+		<resizable>true</resizable> 
+	</initialWindow> 
+	
+	<extensions>
+		<extensionID>ProgAndPlayExtension</extensionID>
+	</extensions>
+	
+	<supportedProfiles>extendedDesktop</supportedProfiles>
+	
+	<!-- 
+	More options:
+	http://livedocs.adobe.com/flex/3/html/File_formats_1.html#1043413
+	-->
+</application>
