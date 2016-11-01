@@ -1,0 +1,16 @@
+importer jeu, listeConstantesKP41, entréeSortie;
+
+programme exemple
+glossaire
+    pos <Position>;
+    unité <Unité>;
+début
+    ouvrirJeu;
+    pos.x <- 1020.0;
+    pos.y <- 1020.0;
+    -- récupération de la ième unité
+    unité <- ièmeUnité(MOI, 1);
+    -- donner l'ordre de déplacament
+    réaliserActionSurPosition(unité, MOVE, pos);
+    fermerJeu;
+fin

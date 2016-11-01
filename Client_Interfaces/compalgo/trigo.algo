@@ -1,0 +1,127 @@
+importer trigo;
+
+fonction réelVersEntier (entrée r <Réel>) retourne <Entier>
+glossaire
+    pasF <Réel>;
+    xF <Réel>;
+    pasI <Entier>;
+    xI <Entier>;
+début
+    si r >= 0.0 alors
+        pasF <- 1024.0;
+        pasI <- 1024;
+    sinon
+        pasF <- -1024.0;
+        pasI <- -1024;
+    fin si;
+    
+    xF <- 0.0;
+    xI <- 0;
+    tantque xF + 1 <= r faire
+        si xF+pasF > r alors
+            pasF <- pasF/2;
+            pasI <- pasI div 2;
+        fin si;
+        tantque xF+pasF <= r faire
+            xF <- xF + pasF;
+            xI <- xI + pasI;
+        fin tantque;
+    fin tantque;
+    retourner xI;
+fin
+
+fonction factrl(entrée n <Entier>) retourne <Entier>
+glossaire
+    la <Entier>;
+    i <Entier>;
+début
+    la <- 1;
+    i <- 2;
+    tantque i <= n faire
+        la <- la * i;
+        i <- i + 1;
+    fin tantque; 
+    retourner la;
+fin
+
+fonction sin2 (entrée x <Réel>) retourne <Réel>
+glossaire
+    i <Entier>;
+    y <Réel>;
+    r <Réel>;
+début
+    y <- x;
+    r <- x;
+    i <- 0;
+    tantque i < 10 faire
+        y <- - y * x * x;
+        r <- r + y * (1.0 / factrl (1+2 * (i+1)));
+        i <- i + 1;
+    fin tantque;
+    retourner r;
+fin
+
+fonction sin (entrée theta <Réel>) retourne <Réel>
+glossaire
+    x <Réel>;
+    a <Réel>;
+    sign <Réel>;
+    i <Entier>;
+    tmp <Entier>;
+début
+    -- ramener theta dans l'intervale [-PI, PI]
+    sign <- 1;
+    x <- theta / PI;
+    si x < 0.0 alors
+        sign <- - 1;
+        x <- - x;
+    fin si;
+    i <- réelVersEntier (x + 0.5);
+    a <- x - i;
+    si (i-((i div 2)*2)) /= 0 alors
+        sign <- - sign;
+    fin si;
+    -- calcul du sinus à proprement dit
+    retourner sign * sin2(a * PI);
+fin
+
+fonction cos2 (entrée x <Réel>) retourne <Réel>
+glossaire
+    i <Entier>;
+    y <Réel>;
+    r <Réel>;
+début
+    y <- 1;
+    r <- 1;
+    i <- 1;
+    tantque i < 10 faire
+        y <- - y * x * x;
+        r <- r + y * (1.0 / factrl (2 * i));
+        i <- i + 1;
+    fin tantque;
+    retourner r;
+fin
+
+fonction cos (entrée theta <Réel>) retourne <Réel>
+glossaire
+    x <Réel>;
+    a <Réel>;
+    sign <Réel>;
+    i <Entier>;
+    tmp <Entier>;
+début
+    -- ramener theta dans l'intervale [-PI, PI]
+    sign <- 1;
+    x <- theta / PI;
+    si x < 0.0 alors
+        sign <- - 1;
+        x <- - x;
+    fin si;
+    i <- réelVersEntier (x + 0.5);
+    a <- x - i;
+    si (i-((i div 2)*2)) /= 0 alors
+        sign <- - sign;
+    fin si;
+    -- calcul du cosinus à proprement dit
+    retourner sign * cos2(a * PI);
+fin

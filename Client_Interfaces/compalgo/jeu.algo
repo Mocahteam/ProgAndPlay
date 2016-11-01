@@ -1,0 +1,372 @@
+importer jeu, pp, entréeSortie, listeConstantesKP41;
+
+------------------------------------------
+-- Fonction/Pocédure interne à jeu.algo --
+------------------------------------------
+
+-- formate l'affichage pour une lecture correcte
+procédure écrireErreurFormatée (entrée nomFct <Chaîne>, entrée erreur <Chaîne>)
+début
+    écrire ("!!! ") ;
+    écrire (nomFct) ;
+    écrire (" - Erreur : ") ;
+    écrire (erreur) ;
+fin
+
+-- Affiche un message d'erreur en fonction du nom de la fonction appelante et
+-- du code d'erreur.
+-- La fonction n'affiche pas si le code ne représente pas une erreur
+procédure afficherErreur (entrée nomFct <Chaîne>, entrée code <Entier>)
+début
+    si code = -1 alors
+        écrireErreurFormatée (nomFct, getError) ;
+        clearError;
+    fin si ;
+    si code = -10 alors -- Cette constante est définie arbitrairement dans le fichier "pp.java" (Attention aux collisions avec les ordres de constrcution négatifs)
+        écrireErreurFormatée (nomFct, "invalid group, must be upper 0") ;
+    fin si ;
+    si code = -20 alors -- Cette constante est définie arbitrairement dans le fichier "pp.java" (Attention aux collisions avec les ordres de constrcution négatifs)
+        écrireErreurFormatée (nomFct, "allocation memory error") ;
+    fin si ;
+fin
+
+-- effectue la mise à jour de l'unité et fournit le code d'erreur si l'une des
+-- fonctions à échouer
+procédure synchroniserUnitéPrivée (màj u <Unité>, sortie erreur <Entier>)
+glossaire
+    i <Entier> ; -- compteur de boucle
+    j <Entier> ; -- compteur de boucle
+    tmp1 <Entier> ; -- variable de stockage
+    tmp2 <Réel> ; -- variable de stockage
+début
+    erreur <- 0 ;
+    u.coalition <- unitGetCoalition(u.id) ;
+    si u.coalition < 0 alors
+        erreur <- u.coalition ;
+    fin si ;
+    si erreur = 0 alors
+        u.sorte <- unitGetType(u.id) ;
+        si u.sorte < 0 alors
+            erreur <- u.sorte ;
+        fin si ;
+    fin si ;
+    si erreur = 0 alors
+        unitGetPosition (u.id, u.position.x, u.position.y) ;
+        si u.position.x < 0 alors
+            erreur <- réelVersEntier (u.position.x) ;
+        fin si ;
+    fin si ;
+    si erreur = 0 alors
+        u.santé <- unitGetHealth (u.id) ;
+        si u.santé < 0 alors
+            erreur <- réelVersEntier (u.santé) ;
+        fin si ;
+    fin si ;
+    si erreur = 0 alors
+        u.santéMax <- unitGetMaxHealth (u.id) ;
+        si u.santéMax < 0 alors
+            erreur <- réelVersEntier (u.santéMax) ;
+        fin si ;
+    fin si ;
+    si erreur = 0 alors
+        u.groupe <- unitGetGroup (u.id) ;
+        si u.groupe < 0 et u.groupe /= -2 alors
+            erreur <- u.groupe ;
+        fin si ;
+    fin si ;
+    si erreur = 0 alors
+        enterCriticalSection ;
+        si u.coalition = MOI alors
+            u.nbCommandeATraiter <- unitGetNumPdgCmds (u.id) ;
+            si u.nbCommandeATraiter > NBCOMMANDEMAX alors
+                u.nbCommandeATraiter <- NBCOMMANDEMAX;
+            fin si;
+        sinon
+            u.nbCommandeATraiter <- 0 ;
+        fin si ;
+        si u.nbCommandeATraiter >= 0 alors
+            i <- 1 ;
+            tantque i <= u.nbCommandeATraiter et erreur = 0 faire
+                tmp1 <- unitPdgCmdGetCode (u.id, i - 1) ;
+                si tmp1 = -1 alors -- ne pas tester "tmp1 < 0" car tmp1 peut être négatif si code construction
+                    erreur <- tmp1 ;
+                sinon
+                    u.commandeATraiter[i].code <- tmp1 ;
+                    tmp1 <- unitPdgCmdGetNumParam (u.id, i - 1) ;
+                    si tmp1 < 0 alors
+                        erreur <- tmp1;
+                    sinon
+                        si tmp1 > NBPARAMETRESMAX alors
+                            u.commandeATraiter[i].nbParamètres <- NBPARAMETRESMAX ;
+                        sinon
+                            u.commandeATraiter[i].nbParamètres <- tmp1 ;
+                        fin si ;
+                        j <- 1 ;
+                        tantque j <= u.commandeATraiter[i].nbParamètres et erreur = 0 faire
+                            tmp2 <- unitPdgCmdGetParam (u.id, i - 1, j - 1) ;
+                            si tmp2 < 0 alors
+                                erreur <- réelVersEntier (tmp2) ;
+                            sinon
+                                u.commandeATraiter[i].paramètres[j] <- tmp2 ;
+                                j <- j + 1 ;
+                            fin si ;
+                        fin tantque ;
+                        i <- i + 1 ;
+                    fin si ;
+                fin si;
+            fin tantque ;
+        sinon
+            erreur <- u.nbCommandeATraiter ;
+        fin si ;
+        exitCriticalSection;
+    fin si ;
+fin
+
+----------------------------------
+-- Opérations de gestion du jeu --
+----------------------------------
+
+procédure ouvrirJeu
+début
+    afficherErreur ("ouvrirJeu", open) ;
+fin
+
+procédure fermerJeu
+début
+    afficherErreur ("fermerJeu", close) ;
+fin
+
+--------------------------------
+-- Opérations générales du jeu --
+--------------------------------
+
+fonction jeuEstTerminé retourne <Booléen>
+glossaire
+    retour <Entier> ;    -- valeur à retourner
+début
+    retour <- isGameOver ;
+    afficherErreur ("jeuEstTerminé", retour) ;
+    retourner retour > 0 ;
+fin
+
+fonction dimensionsCarte retourne <Position>
+glossaire
+    dim <Position> ;    -- dimension de la carte
+début
+    getMapSize (dim.x, dim.y) ;
+    afficherErreur ("dimensionsCarte", réelVersEntier (dim.x)) ;
+    retourner dim ;
+fin
+
+fonction positionDeDépart retourne <Position>
+glossaire
+    pos <Position> ;    -- position de départ
+début
+    getStartPosition (pos.x, pos.y) ;
+    afficherErreur ("obtenirPositionDeDépart", réelVersEntier (pos.x)) ;
+    retourner pos ;
+fin
+
+fonction resourcesDisponibles (entrée id <Entier>) retourne <Entier>
+glossaire
+    retour <Entier> ;
+début
+    retour <- getResource (id) ;
+    afficherErreur ("resourcesDisponibles", retour) ;
+    retourner retour ;
+fin
+
+----------------------------------------
+-- Opérations sur les zones spéciales --
+----------------------------------------
+
+fonction nombreZonesSpéciales retourne <Entier>
+glossaire
+    retour <Entier> ;    -- valeur à retourner
+début
+    retour <- getNumSpecialAreas ;
+    afficherErreur ("nombreZonesSpéciales", retour) ;
+    retourner retour ;
+fin
+
+fonction positionZoneSpéciale (entrée zs <Entier>) retourne <Position>
+glossaire
+    pos <Position> ;    -- position de la zone construcible
+début
+    getSpecialAreaPosition (zs - 1, pos.x, pos.y) ;
+    afficherErreur ("positionZoneSpéciale", réelVersEntier (pos.x)) ;
+    retourner pos ;
+fin
+
+-----------------------------------
+-- Opérations sur les coalitions --
+-----------------------------------
+
+fonction nombreUnités (entrée c <Entier>) retourne <Entier>
+glossaire
+    retour <Entier> ;    -- valeur à retourner
+début
+    retour <- getNumUnits (c) ;
+    afficherErreur ("nombreUnités", retour) ;
+    retourner retour ;
+fin
+
+fonction ièmeUnité (entrée c <Entier>, entrée i <Entier>) retourne <Unité>
+glossaire
+    u <Unité> ;            -- unité à retourner
+    erreur <Entier> ;      -- code d'erreur
+début
+    u.id <- getUnitAt (c, i - 1) ;
+    afficherErreur ("ièmeUnité", u.id) ;
+    si u.id >= 0 alors
+        synchroniserUnitéPrivée (u, erreur) ;
+        afficherErreur ("ièmeUnité", erreur) ;
+    fin si ;
+    retourner u ;
+fin
+
+-------------------------------
+-- Opérations sur les unités --
+-------------------------------
+
+fonction estVisible (entrée u <Unité>) retourne <Booléen>
+glossaire
+    retour <Entier> ;    -- valeur à retourner
+début
+    -- utilisation d'une fonction utilisant cette unité pour vérifier son
+    -- existance
+    retour <- unitGetCoalition(u.id) ;
+    -- si le retour est positif c'est qu'il n'y a pas eut d'erreur et que donc
+    -- elle est bien visible
+    retourner retour >= 0 ;
+fin
+
+fonction estSynchronisée (entrée u <Unité>) retourne <Booléen>
+glossaire
+    i <Entier> ;        -- compteur de boucle
+    j <Entier> ;        -- compteur de boucle
+    pos <Position> ;    -- position de l'unité
+    retour <Entier> ;   -- retour entier
+    retourR <Réel> ;    -- retour réel
+    res <Booléen> ;     -- valeur à retourner
+début
+    -- pour savoir si une unité est synchronisée, on vérifie tous ces champs
+    unitGetPosition (u.id, pos.x, pos.y) ;
+    afficherErreur ("estSynchronisée", réelVersEntier(pos.x)) ;
+    res <- u.position.x = pos.x et u.position.y = pos.y ;
+    si res alors
+        retour <- unitGetCoalition(u.id) ;
+        afficherErreur ("estSynchronisée", retour) ;
+        res <- u.coalition = retour et res ;
+    fin si ;
+    si res alors
+        retour <- unitGetType(u.id) ;
+        afficherErreur ("estSynchronisée", retour) ;
+        res <- u.sorte = retour et res ;
+    fin si ;
+    si res alors
+        retourR <- unitGetHealth (u.id) ;
+        afficherErreur ("estSynchronisée", réelVersEntier (retourR)) ;
+        res <- u.santé = retourR et res ;
+    fin si ;
+    si res alors
+        retourR <- unitGetMaxHealth (u.id) ;
+        afficherErreur ("estSynchronisée", réelVersEntier (retourR)) ;
+        res <- u.santéMax = retourR et res ;
+    fin si ;
+    si res alors
+        retour <- unitGetGroup (u.id) ;
+        afficherErreur ("estSynchronisée", retour) ;
+        res <- u.groupe = retour et res ;
+    fin si ;
+    si res alors
+        enterCriticalSection ;
+        retour <- unitGetNumPdgCmds (u.id) ;
+        exitCriticalSection ;
+        afficherErreur ("estSynchronisée", retour) ;
+        res <- u.nbCommandeATraiter = retour et res ;
+    fin si ;
+    si res alors
+        enterCriticalSection ;
+        i <- 1 ;
+        tantque i <= u.nbCommandeATraiter et res faire
+            retour <- unitPdgCmdGetCode (u.id, i - 1);
+            afficherErreur ("estSynchronisée", retour) ;
+            res <- u.commandeATraiter[i].code = retour et res ;
+            si res alors
+                retour <- unitPdgCmdGetNumParam (u.id, i - 1);
+                afficherErreur ("estSynchronisée", retour) ;
+                res <- u.commandeATraiter[i].nbParamètres = retour et res ;
+                j <- 1 ;
+                tantque res et j <= retour faire
+                    retourR <- unitPdgCmdGetParam (u.id, i - 1, j - 1) ;
+                    afficherErreur ("estSynchronisée",
+                        réelVersEntier (retourR)) ;
+                    res <-
+                        u.commandeATraiter[i].paramètres[j] = retourR et res ;
+                    j <- j + 1 ;
+                fin tantque ;
+            fin si ;
+            i <- i + 1 ;
+        fin tantque ;
+        exitCriticalSection ;
+    fin si ;
+    retourner res ;
+fin
+
+procédure synchroniserUnité (màj u <Unité>)
+glossaire
+    erreur <Entier> ;    -- code d'erreur
+début
+    synchroniserUnitéPrivée (u, erreur) ;
+    afficherErreur ("synchroniserUnité", erreur) ;
+fin
+
+procédure affecterGroupe (entrée u <Unité>, entrée g <Entier>)
+début
+    afficherErreur ("affecterGroupe", unitSetGroup (u.id, g)) ;
+fin
+
+procédure retirerGroupe (entrée u <Unité>)
+début
+    afficherErreur ("retirerGroupe", unitRemoveFromGroup (u.id)) ;
+fin
+
+procédure réaliserActionSurUnité
+    (entrée u <Unité>, entrée action <Entier>, entrée cible <Unité>)
+début
+    afficherErreur
+        ("réaliserActionSurUnité", unitActionOnUnit (u.id, action, cible.id)) ;
+fin
+
+procédure réaliserActionSurPosition
+    (entrée u <Unité>, entrée action <Entier>, entrée pos <Position>)
+début
+    afficherErreur
+        ("réaliserActionSurPosition",
+        unitActionOnPosition (u.id, action, pos.x, pos.y)) ;
+fin
+
+procédure réaliserActionNonCiblée
+    (entrée u <Unité>, entrée action <Entier>, entrée param <Réel>)
+début
+    afficherErreur
+        ("réaliserActionNonCiblée",
+        unitUntargetedAction (u.id, action, param)) ;
+fin
+
+
+-------------------------------
+-- Opérations additionnelles --
+-------------------------------
+
+fonction hasard (entrée limite <Réel>) retourne <Réel>
+début
+    retourner random (limite) ;
+fin
+
+procédure délai (entrée t <Entier>)
+début
+    delay (t) ;
+fin
+
