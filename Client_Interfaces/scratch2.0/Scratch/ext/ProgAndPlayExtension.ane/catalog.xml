@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding ="utf-8"?>
+<swc xmlns="http://www.adobe.com/flash/swccatalog/9">
+  <versions>
+    <swc version="1.2" />
+    <flex version="4.6.0" build="23201" minimumSupportedVersion="3.0.0" />
+  </versions>
+  <features>
+    <feature-script-deps />
+    <feature-files />
+  </features>
+  <libraries>
+    <library path="library.swf">
+      <script name="_1bf6e58e8bd799dcbed1d9c59f36c49f4039998665e706662593b9f836f350c2_flash_display_Sprite" mod="1477960842243" signatureChecksum="1519417843" >
+        <def id="_1bf6e58e8bd799dcbed1d9c59f36c49f4039998665e706662593b9f836f350c2_flash_display_Sprite" /> 
+        <dep id="flash.system:Security" type="e" /> 
+        <dep id="flash.display:Sprite" type="i" /> 
+        <dep id="AS3" type="n" /> 
+      </script>
+      <script name="ProgAndPlayANE" mod="1477955595974" signatureChecksum="4290289300" >
+        <def id="ProgAndPlayANE" /> 
+        <dep id="flash.external:ExtensionContext" type="s" /> 
+        <dep id="trace" type="e" /> 
+        <dep id="flash.external:ExtensionContext" type="e" /> 
+        <dep id="flash.events:EventDispatcher" type="i" /> 
+        <dep id="AS3" type="n" /> 
+      </script>
+      <digests>
+        <digest type="SHA-256" signed="false" value="31b3237cced8a1e9876f2873aeb4114b6099d7aaf22c46957e03186cf9fbdb06"   />
+      </digests>
+    </library>
+  </libraries>
+  <files>
+  </files>
+</swc>

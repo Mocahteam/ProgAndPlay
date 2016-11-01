@@ -1,0 +1,13 @@
+<extension xmlns="http://ns.adobe.com/air/extension/19.0"> 
+    <id>ProgAndPlayExtension</id> 
+    <versionNumber>0.0.1</versionNumber> 
+    <platforms> 
+        <platform name="Windows-x86"> 
+            <applicationDeployment> 
+                <nativeLibrary>ProgAndPlayExtension.dll</nativeLibrary> 
+                <initializer>ProgAndPlayInitializer</initializer> 
+                <finalizer>ProgAndPlayFinalizer</finalizer> 
+            </applicationDeployment> 
+		</platform>
+    </platforms> 
+</extension>
