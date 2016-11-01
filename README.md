@@ -1,5 +1,5 @@
 # ProgAndPlay
-Prog&amp;Play is a library designed for Real Time Strategy games (RTS). It enables player to program easily and interactively units of the video game.
+Prog&amp;Play is a library designed for Real Time Strategy games (RTS). It enables player to program easily and interactively units of the video game. More details on [Prog&amp;Play pages](https://www.irit.fr/ProgAndPlay/index_en.php) 
 
 ## Windows Compilation
   Prog&Play compilation and associated interfaces
