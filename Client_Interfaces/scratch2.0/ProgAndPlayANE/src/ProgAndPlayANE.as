@@ -20,7 +20,9 @@ package
 				trace ("Extension non chargée...");
 			else
 				trace ("Extension chargée (YES!!!) ...");
-			// Ouverture du PP_Open
+		}
+		
+		public function PP_Open_ext():void{
 			if (progPlayContext != null)
 				progPlayContext.call("PP_Open_wrapper");
 		}
@@ -61,23 +63,39 @@ package
 			return -1;
 		}
 		
-		public function PP_SpecialAreaPosX_ext(num:int):int{
+		public function PP_SpecialAreaPosX_ext(num:int):Number{
 			if (progPlayContext != null)
 				return int (progPlayContext.call("PP_SpecialAreaPosX_wrapper", num));
 			return -1;
 		}
 		
-		public function PP_SpecialAreaPosY_ext(num:int):int{
+		public function PP_SpecialAreaPosY_ext(num:int):Number{
 			if (progPlayContext != null)
 				return int (progPlayContext.call("PP_SpecialAreaPosY_wrapper", num));
 			return -1;
 		}
 		
+		public function PP_Resource_ext(id:int):int{
+			if (progPlayContext != null)
+				return int (progPlayContext.call("PP_Resource_wrapper", id));
+			return -1;
+		}
+		
+		public function PP_NumUnits_ext(coalition:int):int{
+			if (progPlayContext != null)
+				return int (progPlayContext.call("PP_NumUnits_wrapper", coalition));
+			return -1;
+		}
+		
+		public function PP_UnitAt_ext(coalition:int, id:int):int{
+			if (progPlayContext != null)
+				return int (progPlayContext.call("PP_UnitAt_wrapper", coalition, id));
+			return -1;
+		}
+		
 		public function PP_Close_ext():void{
-			if (progPlayContext != null){
+			if (progPlayContext != null)
 				progPlayContext.call("PP_Close_wrapper");
-				progPlayContext = null;
-			}
 		}
 	}
 }

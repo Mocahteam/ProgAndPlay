@@ -93,6 +93,9 @@ public class LooksPrims {
 		primTable['PP_NumSpecialArea']		= prim_PP_NumSpecialArea;
 		primTable['PP_SpecialAreaPosX']		= prim_PP_SpecialAreaPosX;
 		primTable['PP_SpecialAreaPosY']		= prim_PP_SpecialAreaPosY;
+		primTable['PP_Resource']			= prim_PP_Resource;
+		primTable['PP_NumUnits']			= prim_PP_NumUnits;
+		primTable['PP_UnitAt']				= prim_PP_UnitAt;
 		primTable['PP_Close']				= prim_PP_Close;
 		// ---
 	}
@@ -102,58 +105,53 @@ public class LooksPrims {
 	private function prim_PP_Open(b:Block):void {
  		if (!ppExt)
 			ppExt = new ProgAndPlayANE();
+ 		if (ppExt)
+			ppExt.PP_Open_ext();
+		
 	}
 	
 	private function prim_PP_Close(b:Block):void {
- 		if (ppExt){
+ 		if (ppExt)
 			ppExt.PP_Close_ext();
-			ppExt = null;
-		}
 	}
 	
 	private function prim_PP_IsGameOver(b:Block):Boolean {
- 		if (ppExt){
+ 		if (ppExt)
 			return ppExt.PP_IsGameOver_ext();
-		}
 		return false;
 	}
 	
 	private function prim_PP_MapWidth(b:Block):int {
- 		if (ppExt){
+ 		if (ppExt)
 			return ppExt.PP_MapWidth_ext();
-		}
 		return -1;
 	}
 	
 	private function prim_PP_MapHeight(b:Block):int {
- 		if (ppExt){
+ 		if (ppExt)
 			return ppExt.PP_MapHeight_ext();
-		}
 		return -1;
 	}
 	
 	private function prim_PP_StartPosX(b:Block):Number {
- 		if (ppExt){
+ 		if (ppExt)
 			return ppExt.PP_StartPosX_ext();
-		}
 		return -1;
 	}
 	
 	private function prim_PP_StartPosY(b:Block):Number {
- 		if (ppExt){
+ 		if (ppExt)
 			return ppExt.PP_StartPosY_ext();
-		}
 		return -1;
 	}
 	
 	private function prim_PP_NumSpecialArea(b:Block):int {
- 		if (ppExt){
+ 		if (ppExt)
 			return ppExt.PP_NumSpecialArea_ext();
-		}
 		return -1;
 	}
 	
-	private function prim_PP_SpecialAreaPosX(b:Block):int {
+	private function prim_PP_SpecialAreaPosX(b:Block):Number {
  		if (ppExt){
 			var num:int = interp.arg(b, 0) as int;
 			return ppExt.PP_SpecialAreaPosX_ext(num);
@@ -161,10 +159,35 @@ public class LooksPrims {
 		return -1;
 	}
 	
-	private function prim_PP_SpecialAreaPosY(b:Block):int {
+	private function prim_PP_SpecialAreaPosY(b:Block):Number {
  		if (ppExt){
 			var num:int = interp.arg(b, 0) as int;
 			return ppExt.PP_SpecialAreaPosY_ext(num);
+		}
+		return -1;
+	}
+	
+	private function prim_PP_Resource(b:Block):int {
+ 		if (ppExt){
+			var num:int = interp.arg(b, 0) as int;
+			return ppExt.PP_Resource_ext(num);
+		}
+		return -1;
+	}
+	
+	private function prim_PP_NumUnits(b:Block):int {
+ 		if (ppExt){
+			var coalition:int = interp.arg(b, 0) as int;
+			return ppExt.PP_NumUnits_ext(coalition);
+		}
+		return -1;
+	}
+	
+	private function prim_PP_UnitAt(b:Block):int {
+ 		if (ppExt){
+			var id:int = interp.arg(b, 0) as int;
+			var coalition:int = interp.arg(b, 1) as int;
+			return ppExt.PP_UnitAt_ext(coalition, id);
 		}
 		return -1;
 	}

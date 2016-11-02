@@ -20,6 +20,9 @@ FREObject FRE_PP_StartPosY(FREContext ctx, void* functionData, uint32_t argc, FR
 FREObject FRE_PP_NumSpecialArea(FREContext ctx, void* functionData, uint32_t argc, FREObject argv[]);
 FREObject FRE_PP_SpecialAreaPosX(FREContext ctx, void* functionData, uint32_t argc, FREObject argv[]);
 FREObject FRE_PP_SpecialAreaPosY(FREContext ctx, void* functionData, uint32_t argc, FREObject argv[]);
+FREObject FRE_PP_Resource(FREContext ctx, void* functionData, uint32_t argc, FREObject argv[]);
+FREObject FRE_PP_NumUnits(FREContext ctx, void* functionData, uint32_t argc, FREObject argv[]);
+FREObject FRE_PP_UnitAt(FREContext ctx, void* functionData, uint32_t argc, FREObject argv[]);
 
 void ProgAndPlayInitializer(void** extDataToSet, FREContextInitializer* ctxInitializerToSet, FREContextFinalizer* ctxFinalizerToSet) {
 	extDataToSet = 0;  // pas de données commune au contexte dans notre cas. 
@@ -46,7 +49,10 @@ void ProgAndPlayContextInitializer(void* extData, const uint8_t* ctxType, FRECon
 		{ (const uint8_t*) "PP_StartPosY_wrapper",        0, &FRE_PP_StartPosY },
 		{ (const uint8_t*) "PP_NumSpecialArea_wrapper",        0, &FRE_PP_NumSpecialArea },
 		{ (const uint8_t*) "PP_SpecialAreaPosX_wrapper",        0, &FRE_PP_SpecialAreaPosX },
-		{ (const uint8_t*) "PP_SpecialAreaPosY_wrapper",        0, &FRE_PP_SpecialAreaPosY }
+		{ (const uint8_t*) "PP_SpecialAreaPosY_wrapper",        0, &FRE_PP_SpecialAreaPosY },
+		{ (const uint8_t*) "PP_Resource_wrapper",        0, &FRE_PP_Resource },
+		{ (const uint8_t*) "PP_NumUnits_wrapper",        0, &FRE_PP_NumUnits },
+		{ (const uint8_t*) "PP_UnitAt_wrapper",        0, &FRE_PP_UnitAt }
 	};
 
 	// Tell AIR how many functions there are in the array:
@@ -125,6 +131,39 @@ FREObject FRE_PP_SpecialAreaPosY(FREContext ctx, void* functionData, uint32_t ar
 	FREObject value;
 	FRENewObjectFromDouble(PP_GetSpecialAreaPosition(num).y, &value);
 	return value;
+}
+
+FREObject FRE_PP_Resource(FREContext ctx, void* functionData, uint32_t argc, FREObject argv[]){
+	// Récupération du paramètre
+	int num;
+	FREGetObjectAsInt32(argv[0], &num);
+	// Appel Prog&Play pour la valeur de retour 
+	FREObject value;
+	FRENewObjectFromInt32(PP_GetResource(num), &value);
+	return value;
+}
+
+FREObject FRE_PP_NumUnits(FREContext ctx, void* functionData, uint32_t argc, FREObject argv[]){
+	// Récupération du paramètre
+	int coalition;
+	FREGetObjectAsInt32(argv[0], &coalition);
+	// Appel Prog&Play pour la valeur de retour 
+	FREObject value;
+	FRENewObjectFromInt32(PP_GetNumUnits((PP_Coalition)coalition), &value);
+	return value;
+}
+
+FREObject FRE_PP_UnitAt(FREContext ctx, void* functionData, uint32_t argc, FREObject argv[]){
+	// Récupération des paramètres
+	int coalition;
+	FREGetObjectAsInt32(argv[0], &coalition);
+	int id;
+	FREGetObjectAsInt32(argv[1], &id);
+	// Appel Prog&Play pour la valeur de retour 
+	FREObject value;
+	FRENewObjectFromInt32(PP_GetUnitAt((PP_Coalition)coalition, id), &value);
+	return value;
+	
 }
 
 #ifdef __cplusplus
