@@ -64,7 +64,9 @@ public class ScriptsPart extends UIPart {
 		var palette:BlockPalette = new BlockPalette();
 		palette.color = CSS.tabColor;
 		paletteFrame = new ScrollFrame();
-		paletteFrame.allowHorizontalScrollbar = false;
+		// Muratet ---
+		//paletteFrame.allowHorizontalScrollbar = false;
+		// ---
 		paletteFrame.setContents(palette);
 		addChild(paletteFrame);
 

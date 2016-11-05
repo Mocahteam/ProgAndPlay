@@ -33,63 +33,87 @@ package
 			return false;
 		}
 		
-		public function PP_MapWidth_ext():int{
+		public function PP_GetMapWidth_ext():int{
 			if (progPlayContext != null)
-				return int (progPlayContext.call("PP_MapWidth_wrapper"));
+				return int (progPlayContext.call("PP_GetMapWidth_wrapper"));
 			return -1;
 		}
 		
-		public function PP_MapHeight_ext():int{
+		public function PP_GetMapHeight_ext():int{
 			if (progPlayContext != null)
-				return int (progPlayContext.call("PP_MapHeight_wrapper"));
+				return int (progPlayContext.call("PP_GetMapHeight_wrapper"));
 			return -1;
 		}
 		
-		public function PP_StartPosX_ext():Number{
+		public function PP_GetStartPosX_ext():Number{
 			if (progPlayContext != null)
-				return Number (progPlayContext.call("PP_StartPosX_wrapper"));
+				return Number (progPlayContext.call("PP_GetStartPosX_wrapper"));
 			return -1;
 		}
 		
-		public function PP_StartPosY_ext():Number{
+		public function PP_GetStartPosY_ext():Number{
 			if (progPlayContext != null)
-				return Number (progPlayContext.call("PP_StartPosY_wrapper"));
+				return Number (progPlayContext.call("PP_GetStartPosY_wrapper"));
 			return -1;
 		}
 		
-		public function PP_NumSpecialArea_ext():int{
+		public function PP_GetNumSpecialArea_ext():int{
 			if (progPlayContext != null)
-				return int (progPlayContext.call("PP_NumSpecialArea_wrapper"));
+				return int (progPlayContext.call("PP_GetNumSpecialArea_wrapper"));
 			return -1;
 		}
 		
-		public function PP_SpecialAreaPosX_ext(num:int):Number{
+		public function PP_GetSpecialAreaPosX_ext(num:int):Number{
 			if (progPlayContext != null)
-				return int (progPlayContext.call("PP_SpecialAreaPosX_wrapper", num));
+				return int (progPlayContext.call("PP_GetSpecialAreaPosX_wrapper", num));
 			return -1;
 		}
 		
-		public function PP_SpecialAreaPosY_ext(num:int):Number{
+		public function PP_GetSpecialAreaPosY_ext(num:int):Number{
 			if (progPlayContext != null)
-				return int (progPlayContext.call("PP_SpecialAreaPosY_wrapper", num));
+				return int (progPlayContext.call("PP_GetSpecialAreaPosY_wrapper", num));
 			return -1;
 		}
 		
-		public function PP_Resource_ext(id:int):int{
+		public function PP_GetResource_ext(id:int):int{
 			if (progPlayContext != null)
-				return int (progPlayContext.call("PP_Resource_wrapper", id));
+				return int (progPlayContext.call("PP_GetResource_wrapper", id));
 			return -1;
 		}
 		
-		public function PP_NumUnits_ext(coalition:int):int{
+		public function PP_GetNumUnits_ext(coalition:int):int{
 			if (progPlayContext != null)
-				return int (progPlayContext.call("PP_NumUnits_wrapper", coalition));
+				return int (progPlayContext.call("PP_GetNumUnits_wrapper", coalition));
 			return -1;
 		}
 		
-		public function PP_UnitAt_ext(coalition:int, id:int):int{
+		public function PP_GetUnitAt_ext(coalition:int, id:int):int{
 			if (progPlayContext != null)
-				return int (progPlayContext.call("PP_UnitAt_wrapper", coalition, id));
+				return int (progPlayContext.call("PP_GetUnitAt_wrapper", coalition, id));
+			return -1;
+		}
+		
+		public function PP_Unit_GetCoalition_ext(unitId:int):int{
+			if (progPlayContext != null)
+				return int (progPlayContext.call("PP_Unit_GetCoalition_wrapper", unitId));
+			return -1;
+		}
+		
+		public function PP_Unit_GetType_ext(unitId:int):int{
+			if (progPlayContext != null)
+				return int (progPlayContext.call("PP_Unit_GetType_wrapper", unitId));
+			return -1;
+		}
+		
+		public function PP_Unit_GetPositionX_ext(unitId:int):int{
+			if (progPlayContext != null)
+				return int (progPlayContext.call("PP_Unit_GetPositionX_wrapper", unitId));
+			return -1;
+		}
+		
+		public function PP_Unit_GetPositionY_ext(unitId:int):int{
+			if (progPlayContext != null)
+				return int (progPlayContext.call("PP_Unit_GetPositionY_wrapper", unitId));
 			return -1;
 		}
 		

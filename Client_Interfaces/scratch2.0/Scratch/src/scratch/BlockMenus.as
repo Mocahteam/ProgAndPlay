@@ -534,112 +534,64 @@ public class BlockMenus implements DragClient {
 	// Muratet ---
 	private function resourceMenu(evt:MouseEvent):void {
 		var m:Menu = new Menu(setBlockArg, 'resource');
-		m.addItem('METAL');
-		m.addItem('ENERGY');
+		for (var i:int = 0 ; i < Specs.pp_resourcesList.length ; i++)
+			m.addItem(Specs.pp_resourcesList[i].name);
 		showMenu(m);
 	}
 	
 	private function coalitionMenu(evt:MouseEvent):void {
 		var m:Menu = new Menu(setBlockArg, 'coalition');
-		m.addItem('MY');
-		m.addItem('ALLY');
-		m.addItem('ENEMY');
+		for (var i:int = 0 ; i < Specs.pp_coalitionsList.length ; i++)
+			m.addItem(Specs.pp_coalitionsList[i].name);
 		showMenu(m);
 	}
 	
 	private function unitsMenu(evt:MouseEvent):void {
 		var m:Menu = new Menu(setBlockArg, 'units');
-		m.addItem('ASSEMBLER');
-		m.addItem('BADBLOCK');
-		m.addItem('BIT');
-		m.addItem('BYTE');
-		m.addItem('KERNEL');
-		m.addItem('LOGIC BOMB');
-		m.addItem('POINTER');
-		m.addItem('SIGNAL');
-		m.addItem('SOCKET');
-		m.addItem('TERMINAL');
+		for (var i:int = 0 ; i < Specs.pp_unitsList.length ; i++)
+			m.addItem(Specs.pp_unitsList[i].name);
 		showMenu(m);
+	}
+	
+	private function addOptions(m:Menu, filter:String):void {
+		for (var i:int = 0 ; i < Specs.pp_standardCommandsList.length ; i++)
+			if ((Specs.pp_standardCommandsList[i].target as Array).indexOf(filter) != -1)
+				m.addItem(Specs.pp_standardCommandsList[i].name);
+		if (Specs.pp_specificCommandsList.length > 0) {
+			m.addLine();
+			for (var j:int = 0 ; j < Specs.pp_specificCommandsList.length ; j++)
+				if ((Specs.pp_specificCommandsList[j].target as Array).indexOf(filter) != -1)
+					m.addItem(Specs.pp_specificCommandsList[j].name);
+		}
 	}
 	
 	private function commandsMenu(evt:MouseEvent):void {
 		var m:Menu = new Menu(setBlockArg, 'commands');
-		m.addItem('ATTACK');
-		m.addItem('FIGHT');
-		m.addItem('GUARD');
-		m.addItem('LAUNCH MINE');
-		m.addItem('MOVE');
-		m.addItem('NX FLAG');
-		m.addItem('PATROL');
-		m.addItem('RECLAIM');
-		m.addItem('REPAIR');
-		m.addItem('RESTORE');
-		m.addItem('SELF DESTRUCTION');
-		m.addItem('SIGTERM');
-		m.addItem('WAIT');
-		m.addItem('BUILD ASSEMBLER');
-		m.addItem('BUILD BADBLOCK');
-		m.addItem('BUILD BIT');
-		m.addItem('BUILD BYTE');
-		m.addItem('BUILD LOGIC BOMB');
-		m.addItem('BUILD POINTER');
-		m.addItem('BUILD SIGNAL');
-		m.addItem('BUILD TERMINAL');
-		m.addItem('DEBUG');
+		addOptions(m, "DURING_ACTION");
 		showMenu(m);
 	}
 	
 	private function commandsOnPositionMenu(evt:MouseEvent):void {
 		var m:Menu = new Menu(setBlockArg, 'commandsOnPosition');
-		m.addItem('ATTACK');
-		m.addItem('FIGHT');
-		m.addItem('MOVE');
-		m.addItem('NX FLAG');
-		m.addItem('PATROL');
-		m.addItem('RECLAIM');
-		m.addItem('RESTORE');
-		m.addItem('SIGTERM');
-		m.addItem('BUILD ASSEMBLER');
-		m.addItem('BUILD BADBLOCK');
-		m.addItem('BUILD BIT');
-		m.addItem('BUILD BYTE');
-		m.addItem('BUILD LOGIC BOMB');
-		m.addItem('BUILD POINTER');
-		m.addItem('BUILD SIGNAL');
-		m.addItem('BUILD TERMINAL');
-		m.addItem('DEBUG');
+		addOptions(m, "TARGET_POSITION");
 		showMenu(m);
 	}
 	
 	private function commandsOnUnitMenu(evt:MouseEvent):void {
 		var m:Menu = new Menu(setBlockArg, 'commandsOnUnit');
-		m.addItem('ATTACK');
-		m.addItem('FIGHT');
-		m.addItem('GUARD');
-		m.addItem('MOVE');
-		m.addItem('NX FLAG');
-		m.addItem('PATROL');
-		m.addItem('RECLAIM');
-		m.addItem('REPAIR');
-		m.addItem('SIGTERM');
+		addOptions(m, "TARGET_UNIT");
 		showMenu(m);
 	}
 	
 	private function commandsUntargetMenu(evt:MouseEvent):void {
 		var m:Menu = new Menu(setBlockArg, 'commandsUntarget');
-		m.addItem('LAUNCH MINE');
-		m.addItem('SELF DESTRUCTION');
-		m.addItem('STOP');
-		m.addItem('STOP BUILDING');
-		m.addItem('WAIT');
+		addOptions(m, "UNTARGET");
 		showMenu(m);
 	}
 	
 	private function statesMenu(evt:MouseEvent):void {
 		var m:Menu = new Menu(setBlockArg, 'states');
-		m.addItem('FIRE STATE');
-		m.addItem('MOVE STATE');
-		m.addItem('REPEAT');
+		addOptions(m, "STATE_ACTION");
 		showMenu(m);
 	}
 	// ---

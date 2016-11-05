@@ -84,24 +84,29 @@ public class LooksPrims {
 		primTable['setRotationStyle']		= primSetRotationStyle;
 		
 		// Muratet ---
-		primTable['PP_Open']				= prim_PP_Open;
-		primTable['PP_IsGameOver']			= prim_PP_IsGameOver;
-		primTable['PP_MapWidth']			= prim_PP_MapWidth;
-		primTable['PP_MapHeight']			= prim_PP_MapHeight;
-		primTable['PP_StartPosX']			= prim_PP_StartPosX;
-		primTable['PP_StartPosY']			= prim_PP_StartPosY;
-		primTable['PP_NumSpecialArea']		= prim_PP_NumSpecialArea;
-		primTable['PP_SpecialAreaPosX']		= prim_PP_SpecialAreaPosX;
-		primTable['PP_SpecialAreaPosY']		= prim_PP_SpecialAreaPosY;
-		primTable['PP_Resource']			= prim_PP_Resource;
-		primTable['PP_NumUnits']			= prim_PP_NumUnits;
-		primTable['PP_UnitAt']				= prim_PP_UnitAt;
-		primTable['PP_Close']				= prim_PP_Close;
+		primTable['PP_Open']					= prim_PP_Open;
+		primTable['PP_IsGameOver']				= prim_PP_IsGameOver;
+		primTable['PP_GetMapWidth']				= prim_PP_GetMapWidth;
+		primTable['PP_GetMapHeight']			= prim_PP_GetMapHeight;
+		primTable['PP_GetStartPosX']			= prim_PP_GetStartPosX;
+		primTable['PP_GetStartPosY']			= prim_PP_GetStartPosY;
+		primTable['PP_GetNumSpecialArea']		= prim_PP_GetNumSpecialArea;
+		primTable['PP_GetSpecialAreaPosX']		= prim_PP_GetSpecialAreaPosX;
+		primTable['PP_GetSpecialAreaPosY']		= prim_PP_GetSpecialAreaPosY;
+		primTable['PP_GetResource']				= prim_PP_GetResource;
+		primTable['PP_GetNumUnits']				= prim_PP_GetNumUnits;
+		primTable['PP_GetUnitAt']				= prim_PP_GetUnitAt;
+		primTable['PP_Unit_IsCoalition']		= prim_PP_Unit_IsCoalition;
+		primTable['PP_Unit_IsType']				= prim_PP_Unit_IsType;
+		primTable['PP_Unit_GetPositionX']		= prim_PP_Unit_GetPositionX;
+		primTable['PP_Unit_GetPositionY']		= prim_PP_Unit_GetPositionY;
+		primTable['PP_Close']					= prim_PP_Close;
 		// ---
 	}
 
 	// Muratet ---
 	private var ppExt:ProgAndPlayANE = null;
+	
 	private function prim_PP_Open(b:Block):void {
  		if (!ppExt)
 			ppExt = new ProgAndPlayANE();
@@ -121,76 +126,136 @@ public class LooksPrims {
 		return false;
 	}
 	
-	private function prim_PP_MapWidth(b:Block):int {
+	private function prim_PP_GetMapWidth(b:Block):int {
  		if (ppExt)
-			return ppExt.PP_MapWidth_ext();
+			return ppExt.PP_GetMapWidth_ext();
 		return -1;
 	}
 	
-	private function prim_PP_MapHeight(b:Block):int {
+	private function prim_PP_GetMapHeight(b:Block):int {
  		if (ppExt)
-			return ppExt.PP_MapHeight_ext();
+			return ppExt.PP_GetMapHeight_ext();
 		return -1;
 	}
 	
-	private function prim_PP_StartPosX(b:Block):Number {
+	private function prim_PP_GetStartPosX(b:Block):Number {
  		if (ppExt)
-			return ppExt.PP_StartPosX_ext();
+			return ppExt.PP_GetStartPosX_ext();
 		return -1;
 	}
 	
-	private function prim_PP_StartPosY(b:Block):Number {
+	private function prim_PP_GetStartPosY(b:Block):Number {
  		if (ppExt)
-			return ppExt.PP_StartPosY_ext();
+			return ppExt.PP_GetStartPosY_ext();
 		return -1;
 	}
 	
-	private function prim_PP_NumSpecialArea(b:Block):int {
+	private function prim_PP_GetNumSpecialArea(b:Block):int {
  		if (ppExt)
-			return ppExt.PP_NumSpecialArea_ext();
+			return ppExt.PP_GetNumSpecialArea_ext();
 		return -1;
 	}
 	
-	private function prim_PP_SpecialAreaPosX(b:Block):Number {
+	private function prim_PP_GetSpecialAreaPosX(b:Block):Number {
  		if (ppExt){
 			var num:int = interp.arg(b, 0) as int;
-			return ppExt.PP_SpecialAreaPosX_ext(num);
+			return ppExt.PP_GetSpecialAreaPosX_ext(num);
 		}
 		return -1;
 	}
 	
-	private function prim_PP_SpecialAreaPosY(b:Block):Number {
+	private function prim_PP_GetSpecialAreaPosY(b:Block):Number {
  		if (ppExt){
 			var num:int = interp.arg(b, 0) as int;
-			return ppExt.PP_SpecialAreaPosY_ext(num);
+			return ppExt.PP_GetSpecialAreaPosY_ext(num);
 		}
 		return -1;
 	}
 	
-	private function prim_PP_Resource(b:Block):int {
+	private function getCodeFromName (array:Array, name:String):int {
+		var selected:Array = array.filter(function (element:*, index:int, arr:Array):Boolean {
+			return (element.name == name);
+		});
+		if (selected.length > 0)
+			return selected[0].code;
+		else
+			return -1;
+	}
+	
+	private function prim_PP_GetResource(b:Block):int {
  		if (ppExt){
-			var num:int = interp.arg(b, 0) as int;
-			return ppExt.PP_Resource_ext(num);
+			var code:int = getCodeFromName(Specs.pp_resourcesList, interp.arg(b, 0) as String);
+			if (code != -1)
+				return ppExt.PP_GetResource_ext(code);
+			else
+				return -1;
 		}
 		return -1;
 	}
 	
-	private function prim_PP_NumUnits(b:Block):int {
+	private function prim_PP_GetNumUnits(b:Block):int {
  		if (ppExt){
-			var coalition:int = interp.arg(b, 0) as int;
-			return ppExt.PP_NumUnits_ext(coalition);
+			var coalition:int = getCodeFromName(Specs.pp_coalitionsList, interp.arg(b, 0) as String);
+			if (coalition != -1)
+				return ppExt.PP_GetNumUnits_ext(coalition);
+			else
+				return -1;
 		}
 		return -1;
 	}
 	
-	private function prim_PP_UnitAt(b:Block):int {
+	private function prim_PP_GetUnitAt(b:Block):int {
  		if (ppExt){
 			var id:int = interp.arg(b, 0) as int;
-			var coalition:int = interp.arg(b, 1) as int;
-			return ppExt.PP_UnitAt_ext(coalition, id);
+			var coalition:int = getCodeFromName(Specs.pp_coalitionsList, interp.arg(b, 1) as String);
+			if (coalition != -1)
+				return ppExt.PP_GetUnitAt_ext(coalition, id);
+			else
+				return -1;
 		}
 		return -1;
 	}
+	
+	private function prim_PP_Unit_IsCoalition(b:Block):Boolean {
+ 		if (ppExt){
+			var unitId:int = interp.arg(b, 0) as int;
+			var coalition:int = getCodeFromName(Specs.pp_coalitionsList, interp.arg(b, 1) as String);
+			if (coalition != -1)
+				return ppExt.PP_Unit_GetCoalition_ext(unitId) == coalition;
+			else
+				return false;
+		}
+		return false;
+	}
+	
+	private function prim_PP_Unit_IsType(b:Block):Boolean {
+ 		if (ppExt){
+			var unitId:int = interp.arg(b, 0) as int;
+			var unitType:int = getCodeFromName(Specs.pp_unitsList, interp.arg(b, 1) as String);
+			if (unitType != -1)
+				return ppExt.PP_Unit_GetType_ext(unitId) == unitType;
+			else
+				return false;
+		}
+		return false;
+	}
+	
+	private function prim_PP_Unit_GetPositionX(b:Block):Number {
+ 		if (ppExt){
+			var unitId:int = interp.arg(b, 0) as int;
+			return ppExt.PP_Unit_GetPositionX_ext(unitId);
+		}
+		return -1;
+	}
+	
+	private function prim_PP_Unit_GetPositionY(b:Block):Number {
+ 		if (ppExt){
+			var unitId:int = interp.arg(b, 0) as int;
+			return ppExt.PP_Unit_GetPositionY_ext(unitId);
+		}
+		return -1;
+	}
+		
 	// ---
 	
 	private function primNextCostume(b:Block):void {

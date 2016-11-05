@@ -25,6 +25,7 @@
 
 package scratch {
 import blocks.*;
+import flash.utils.ByteArray;
 
 import extensions.*;
 
@@ -42,6 +43,10 @@ import ui.media.MediaLibrary;
 import ui.parts.UIPart;
 
 import uiwidgets.*;
+
+// Muratet ---
+import com.adobe.serialization.json.JSON;
+// ---
 
 public class PaletteBuilder {
 
@@ -67,6 +72,9 @@ public class PaletteBuilder {
 
 		if (selectedCategory == Specs.dataCategory) return showDataCategory();
 		if (selectedCategory == Specs.myBlocksCategory) return showMyBlocksPalette(shiftKey);
+		// Muratet ---
+		if (selectedCategory == Specs.ppCategory) return showProgAndPlayCategory();
+		// ---
 
 		var catName:String = Specs.categories[selectedCategory][1];
 		var catColor:int = Specs.blockColor(selectedCategory);
@@ -84,6 +92,41 @@ public class PaletteBuilder {
 		addBlocksForCategory(selectedCategory, catColor);
 		updateCheckboxes();
 	}
+	
+	// Muratet ---
+	public function showProgAndPlayCategory():void {
+		addItem(makeLabel(Translator.map(Specs.pp_currentConstantsName) + " " + Translator.map("selected")));
+		addItem(new Button(Translator.map('Select constants list'), selectConstantsList));
+		// add reset button
+		if (Specs.pp_currentConstantsName != Specs.pp_defaultConstantsName)
+			addItem(new Button(Translator.map('Reset constants list'), function ():void {
+				Specs.pp_currentConstantsName = Specs.pp_defaultConstantsName;
+				Specs.pp_unitsList = new Array();
+				Specs.pp_specificCommandsList = new Array();
+				// Update UIs by calling this translation changed function
+				app.translationChanged();
+			}));
+		nextY += 20;
+		addBlocksForCategory(Specs.ppCategory, Specs.ppColor);
+	}
+	
+	public function selectConstantsList():void {
+		// Prompt user for a file name and load that file.
+		function fileLoadHandler(event:Event):void {
+			var file:FileReference = FileReference(event.target);
+			var fileName:String = file.name;
+			var data:ByteArray = file.data;
+			var cstData:Object = com.adobe.serialization.json.JSON.decode(data.toString());
+			Specs.pp_currentConstantsName = file.name.substring(0, file.name.lastIndexOf("."));
+			Specs.pp_unitsList = cstData["unitsType"];
+			Specs.pp_specificCommandsList = cstData["commands"];
+			// Update UIs by calling this translation changed function
+			app.translationChanged();
+		}
+		var filter:FileFilter = new FileFilter('Prog&Play constants list', '*.json');
+		Scratch.loadSingleFile(fileLoadHandler, filter);
+	}
+	// ---
 
 	private function addBlocksForCategory(category:int, catColor:int):void {
 		var cmdCount:int;
@@ -94,7 +137,26 @@ public class PaletteBuilder {
 				var defaultArgs:Array = targetObj.defaultArgsFor(spec[3], spec.slice(4));
 				var label:String = spec[0];
 				if (targetObj.isStage && spec[3] == 'whenClicked') label = 'when Stage clicked';
+				// Muratet ---
+				var undef:Boolean = false;
+				if (category == Specs.ppCategory && label == Specs.PP_IS_TYPE){
+					// deactivate block if unitsList is empty
+					if (Specs.pp_unitsList.length == 0) {
+						addItem(makeLabel(Translator.map('No unit type defined in current constants list')));
+						undef = true;
+					} else {
+						defaultArgs[1] = Specs.pp_unitsList[0].name;
+					}
+				}
+				// ---
 				var block:Block = new Block(label, spec[1], blockColor, spec[3], defaultArgs);
+				// Muratet ---
+				if (undef) {
+					// update parameter color to notify undef constants list
+					block.args[1].base.setColor(0x777777);
+					block.args[1].base.redraw();
+				}
+				// ---
 				var showCheckbox:Boolean = isCheckboxReporter(spec[3]);
 				if (showCheckbox) addReporterCheckbox(block);
 				addItem(block, showCheckbox);

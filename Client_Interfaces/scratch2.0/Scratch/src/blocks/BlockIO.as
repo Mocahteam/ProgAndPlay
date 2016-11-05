@@ -122,6 +122,31 @@ public class BlockIO {
 			}
 			b.setArg(i, a);
 		}
+		// Muratet ---
+		// update combobox menu depending on constants loaded
+		if (b.spec == Specs.PP_IS_TYPE) {
+			if (Specs.pp_unitsList.some(function (item:*, index:int, array:Array):Boolean {
+											return item.name == (args[1] as String);
+										})){
+				b.args[1].base.setColor(Specs.ppColor);
+			} else {
+				b.args[1].base.setColor(0x777777);
+			}
+			b.args[1].base.redraw();
+		} else if (b.spec == Specs.PP_IS_COMMAND) {
+			if (Specs.pp_standardCommandsList.some(	function (item:*, index:int, array:Array):Boolean {
+														return item.name == (args[2] as String);
+													}) ||
+				Specs.pp_specificCommandsList.some(	function (item:*, index:int, array:Array):Boolean {
+														return item.name == (args[2] as String);
+													})){
+				b.args[2].base.setColor(Specs.ppColor);
+			} else {
+				b.args[2].base.setColor(0x777777);
+			}
+			b.args[2].base.redraw();
+		} // TODO : Faire pareil pour les autre blocks de commande
+		// ---
 		if (substacks[0] && (b.base.canHaveSubstack1())) b.insertBlockSub1(substacks[0]);
 		if (substacks[1] && (b.base.canHaveSubstack2())) b.insertBlockSub2(substacks[1]);
 		// if hadSpriteRef is true, don't call fixMouseEdgeRefs() to avoid converting references
@@ -136,7 +161,8 @@ public class BlockIO {
 		var op:String = cmd[0];
 		if (op == '\\\\') op = '%'; // convert old Squeak modulo operator
 		for each (var entry:Array in Specs.commands) {
-			if (entry[3] == op) return entry;
+			if (entry[3] == op) 
+				return entry;
 		}
 		var extensionSpec:Array = Scratch.app.extensionManager.specForCmd(op);
 		if (extensionSpec) return extensionSpec;

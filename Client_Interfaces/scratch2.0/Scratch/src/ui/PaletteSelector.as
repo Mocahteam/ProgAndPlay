@@ -64,7 +64,10 @@ public class PaletteSelector extends Sprite {
 	}
 
 	private function initCategories():void {
+		// Muratet ---
+		//const numberOfRows:int = 5;
 		const numberOfRows:int = 6;
+		// ---
 		const w:int = 208;
 		const startY:int = 3;
 		var itemH:int;

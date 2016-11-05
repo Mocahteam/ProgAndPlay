@@ -56,6 +56,49 @@ public class Specs {
 	public static var extensionsColor:int = 0x4B4A60; // 0x72228C; // 0x672D79;
 
 	private static const undefinedColor:int = 0xD42828;
+	
+	// Muratet ---
+	public static const ppCategory:int = 13;
+	public static var ppColor:int = 0xff0000;
+	public static var PP_IS_TYPE:String = "is unit id %n a %m.units?";
+	public static var PP_IS_COMMAND:String = "is pending cmd %n of unit id %n a %m.commands action?";
+	public static var PP_COMMAND_ON_POSITION:String = "command unit id %n to %m.commandsOnPosition to x: %n y: %n";
+	public static var PP_COMMAND_ON_UNIT:String = "command unit id %n to %m.commandsOnUnit on unit id %n";
+	public static var PP_COMMAND_STATE:String = "command unit id %n to set %m.states to %n";
+	public static var PP_COMMAND_UNTARGET:String = "command unit id %n to %m.commandsUntarget";
+	
+	public static var pp_defaultConstantsName:String = 'Default constant list';
+	public static var pp_currentConstantsName:String = pp_defaultConstantsName;
+	
+	public static var pp_standardCommandsList:Array = [
+		{name:"ATTACK", code:20, target:["TARGET_POSITION", "TARGET_UNIT", "DURING_ACTION"]},
+		{name:"FIGHT", code:16, target:["TARGET_POSITION", "TARGET_UNIT", "DURING_ACTION"]},
+		{name:"FIRE STATE", code:45, target:["STATE_ACTION"]},
+		{name:"GUARD", code:25, target:["TARGET_UNIT", "DURING_ACTION"]},
+		{name:"MOVE", code:10, target:["TARGET_POSITION", "TARGET_UNIT", "DURING_ACTION"]},
+		{name:"MOVE STATE", code:50, target:["STATE_ACTION"]},
+		{name:"PATROL", code:15, target:["TARGET_POSITION", "TARGET_UNIT", "DURING_ACTION"]},
+		{name:"RECLAIM", code:90, target:["TARGET_POSITION", "TARGET_UNIT", "DURING_ACTION"]},
+		{name:"REPAIR", code:40, target:["TARGET_UNIT", "DURING_ACTION"]},
+		{name:"REPEAT", code:115, target:["STATE_ACTION"]},
+		{name:"RESTORE", code:110, target:["TARGET_POSITION", "DURING_ACTION"]},
+		{name:"SELF DESTRUCTION", code:65, target:["UNTARGET", "DURING_ACTION"]},
+		{name:"STOP", code:0, target:["UNTARGET"]},
+		{name:"STOP BUILDING", code:-7658, target:["UNTARGET"]},
+		{name:"WAIT", code:5, target:["UNTARGET", "DURING_ACTION"]}
+	];
+	public static var pp_coalitionsList:Array = [
+		{name:"MY", code:0},
+		{name:"ALLY", code:1},
+		{name:"ENEMY", code:2}
+	];
+	public static var pp_resourcesList:Array = [
+		{name:"METAL", code:0},
+		{name:"ENERGY", code:1}
+	];
+	public static var pp_specificCommandsList:Array = new Array();
+	public static var pp_unitsList:Array = new Array();
+	// ---
 
 	public static const categories:Array = [
 	 // id   category name	color
@@ -73,7 +116,7 @@ public class Specs {
 		[11, "Parameter",	parameterColor],
 		[12, "List",		listColor],
 		// Muratet ---
-		[13, "Prog&Play",	0xff0000],
+		[13, "Prog&Play",	ppColor],
 		// ---
 		[20, "Extension",	extensionsColor],
 	];
@@ -399,39 +442,39 @@ public class Specs {
 		
 		// Muratet ---
 		// Prog&Play blocks
-		["open Prog&Play",								" ", 13, "PP_Open"],
+		["open Prog&Play",										" ", 13, "PP_Open"],
 		["--"],
-		["is game over",								"b", 13, "PP_IsGameOver"],
-		["map width",									"r", 13, "PP_MapWidth"],
-		["map height",									"r", 13, "PP_MapHeight"],
-		["start x position",							"r", 13, "PP_StartPosX"],
-		["start y position",							"r", 13, "PP_StartPosY"],
-		["number of special areas",						"r", 13, "PP_NumSpecialArea"],
-		["x position of special area %n",				"r", 13, "PP_SpecialAreaPosX", 0],
-		["y position of special area %n",				"r", 13, "PP_SpecialAreaPosY", 0],
-		["amount of %m.resource resource",				"r", 13, "PP_Resource", "METAL"],
-		["number of unit in %m.coalition coalition",	"r", 13, "PP_NumUnits", "MY"],
-		["unit %n of %m.coalition coalition",			"r", 13, "PP_UnitAt", 0, "MY"],
+		["is game over",										"b", 13, "PP_IsGameOver"],
+		["map width",											"r", 13, "PP_GetMapWidth"],
+		["map height",											"r", 13, "PP_GetMapHeight"],
+		["start x position",									"r", 13, "PP_GetStartPosX"],
+		["start y position",									"r", 13, "PP_GetStartPosY"],
+		["number of special areas",								"r", 13, "PP_GetNumSpecialArea"],
+		["x position of special area %n",						"r", 13, "PP_GetSpecialAreaPosX", 0],
+		["y position of special area %n",						"r", 13, "PP_GetSpecialAreaPosY", 0],
+		["amount of %m.resource resource",						"r", 13, "PP_GetResource", "METAL"],
+		["number of unit in %m.coalition coalition",			"r", 13, "PP_GetNumUnits", "MY"],
+		["unit %n of %m.coalition coalition",					"r", 13, "PP_GetUnitAt", 0, "MY"],
 		["--"],
-		["does unit id %n belong to %m.coalition?",		"b", 13, "helloWorld", "", "MY"],
-		["is unit id %n a %m.units?",					"b", 13, "helloWorld", "", "ASSEMBLER"],
-		["x position of unit id %n",					"r", 13, "helloWorld", ""],
-		["y position of unit id %n",					"r", 13, "helloWorld", ""],
-		["health of unit id %n",						"r", 13, "helloWorld", ""],
-		["max health of unit id %n",					"r", 13, "helloWorld", ""],
-		["group of unit id %n",							"r", 13, "helloWorld", ""],
-		["number of pending cmds of unit id %n",		"r", 13, "helloWorld", ""],
-		["is pending cmd %n of unit id %n a %m.commands action?",	"b", 13, "helloWorld", 0, "", "ATTACK"],
+		["does unit id %n belong to %m.coalition?",				"b", 13, "PP_Unit_IsCoalition", "", "MY"],
+		[PP_IS_TYPE,											"b", 13, "PP_Unit_IsType", "", ""],
+		["x position of unit id %n",							"r", 13, "PP_Unit_GetPositionX", ""],
+		["y position of unit id %n",							"r", 13, "PP_Unit_GetPositionY", ""],
+		["health of unit id %n",								"r", 13, "helloWorld", ""],
+		["max health of unit id %n",							"r", 13, "helloWorld", ""],
+		["group of unit id %n",									"r", 13, "helloWorld", ""],
+		["number of pending cmds of unit id %n",				"r", 13, "helloWorld", ""],
+		[PP_IS_COMMAND,											"b", 13, "helloWorld", 0, "", "ATTACK"],
 		["number of params of pending cmd %n of unit id %n",	"r", 13, "helloWorld", 0, ""],
-		["param %n of pending cmd %n of unit id %n",	"r", 13, "helloWorld", 0, 0, ""],
+		["param %n of pending cmd %n of unit id %n",			"r", 13, "helloWorld", 0, 0, ""],
 		["--"],
-		["affect unit id %n to group %n",				" ", 13, "helloWorld", "", 0],
-		["command unit id %n to %m.commandsOnPosition to x: %n y: %n",	" ", 13, "helloWorld", "", "ATTACK", 0, 0],
-		["command unit id %n to %m.commandsOnUnit on unit id %n",	" ", 13, "helloWorld", "", "ATTACK", ""],
-		["command unit id %n to set %m.states to %n",	" ", 13, "helloWorld", "", "FIRE STATE", 0],
-		["command unit id %n to %m.commandsUntarget",	" ", 13, "helloWorld", "", "STOP"],
+		["affect unit id %n to group %n",						" ", 13, "helloWorld", "", 0],
+		[PP_COMMAND_ON_POSITION,								" ", 13, "helloWorld", "", "ATTACK", 0, 0],
+		[PP_COMMAND_ON_UNIT,									" ", 13, "helloWorld", "", "ATTACK", ""],
+		[PP_COMMAND_STATE,										" ", 13, "helloWorld", "", "FIRE STATE", 0],
+		[PP_COMMAND_UNTARGET,									" ", 13, "helloWorld", "", "STOP"],
 		["--"],
-		["close Prog&Play",								" ", 13, "PP_Close"],
+		["close Prog&Play",										" ", 13, "PP_Close"],
 		// ---
 
 	];
