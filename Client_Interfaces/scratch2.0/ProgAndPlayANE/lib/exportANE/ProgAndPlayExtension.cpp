@@ -27,6 +27,9 @@ FREObject FRE_PP_Unit_GetCoalition(FREContext ctx, void* functionData, uint32_t 
 FREObject FRE_PP_Unit_GetType(FREContext ctx, void* functionData, uint32_t argc, FREObject argv[]);
 FREObject FRE_PP_Unit_GetPositionX(FREContext ctx, void* functionData, uint32_t argc, FREObject argv[]);
 FREObject FRE_PP_Unit_GetPositionY(FREContext ctx, void* functionData, uint32_t argc, FREObject argv[]);
+FREObject FRE_PP_Unit_GetHealth(FREContext ctx, void* functionData, uint32_t argc, FREObject argv[]);
+FREObject FRE_PP_Unit_GetMaxHealth(FREContext ctx, void* functionData, uint32_t argc, FREObject argv[]);
+FREObject FRE_PP_Unit_GetGroup(FREContext ctx, void* functionData, uint32_t argc, FREObject argv[]);
 
 void ProgAndPlayInitializer(void** extDataToSet, FREContextInitializer* ctxInitializerToSet, FREContextFinalizer* ctxFinalizerToSet) {
 	extDataToSet = 0;  // pas de données commune au contexte dans notre cas. 
@@ -60,7 +63,10 @@ void ProgAndPlayContextInitializer(void* extData, const uint8_t* ctxType, FRECon
 		{ (const uint8_t*) "PP_Unit_GetCoalition_wrapper",		0, &FRE_PP_Unit_GetCoalition },
 		{ (const uint8_t*) "PP_Unit_GetType_wrapper",			0, &FRE_PP_Unit_GetType },
 		{ (const uint8_t*) "PP_Unit_GetPositionX_wrapper",		0, &FRE_PP_Unit_GetPositionX },
-		{ (const uint8_t*) "PP_Unit_GetPositionY_wrapper",		0, &FRE_PP_Unit_GetPositionY }
+		{ (const uint8_t*) "PP_Unit_GetPositionY_wrapper",		0, &FRE_PP_Unit_GetPositionY },
+		{ (const uint8_t*) "PP_Unit_GetHealth_wrapper",			0, &FRE_PP_Unit_GetHealth },
+		{ (const uint8_t*) "PP_Unit_GetMaxHealth_wrapper",		0, &FRE_PP_Unit_GetMaxHealth },
+		{ (const uint8_t*) "PP_Unit_GetGroup_wrapper",			0, &FRE_PP_Unit_GetGroup }
 	};
 
 	// Tell AIR how many functions there are in the array:
@@ -211,6 +217,36 @@ FREObject FRE_PP_Unit_GetPositionY(FREContext ctx, void* functionData, uint32_t 
 	// Appel Prog&Play pour la valeur de retour 
 	FREObject value;
 	FRENewObjectFromDouble(PP_Unit_GetPosition(unitId).y, &value);
+	return value;
+}
+
+FREObject FRE_PP_Unit_GetHealth(FREContext ctx, void* functionData, uint32_t argc, FREObject argv[]){
+	// Récupération du paramètre
+	int unitId;
+	FREGetObjectAsInt32(argv[0], &unitId);
+	// Appel Prog&Play pour la valeur de retour 
+	FREObject value;
+	FRENewObjectFromDouble(PP_Unit_GetHealth(unitId), &value);
+	return value;
+}
+
+FREObject FRE_PP_Unit_GetMaxHealth(FREContext ctx, void* functionData, uint32_t argc, FREObject argv[]){
+	// Récupération du paramètre
+	int unitId;
+	FREGetObjectAsInt32(argv[0], &unitId);
+	// Appel Prog&Play pour la valeur de retour 
+	FREObject value;
+	FRENewObjectFromDouble(PP_Unit_GetMaxHealth(unitId), &value);
+	return value;
+}
+
+FREObject FRE_PP_Unit_GetGroup(FREContext ctx, void* functionData, uint32_t argc, FREObject argv[]){
+	// Récupération du paramètre
+	int unitId;
+	FREGetObjectAsInt32(argv[0], &unitId);
+	// Appel Prog&Play pour la valeur de retour 
+	FREObject value;
+	FRENewObjectFromInt32(PP_Unit_GetGroup(unitId), &value);
 	return value;
 }
 

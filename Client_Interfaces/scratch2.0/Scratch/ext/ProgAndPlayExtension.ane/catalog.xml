@@ -10,7 +10,7 @@
   </features>
   <libraries>
     <library path="library.swf">
-      <script name="ProgAndPlayANE" mod="1478338033703" signatureChecksum="185274543" >
+      <script name="ProgAndPlayANE" mod="1478439987473" signatureChecksum="167067265" >
         <def id="ProgAndPlayANE" /> 
         <dep id="flash.external:ExtensionContext" type="s" /> 
         <dep id="trace" type="e" /> 
@@ -18,14 +18,14 @@
         <dep id="flash.events:EventDispatcher" type="i" /> 
         <dep id="AS3" type="n" /> 
       </script>
-      <script name="_09e298e9f4901d2174cb664fd23ad3dbf01982aff879fc6f320b97d3a45665c1_flash_display_Sprite" mod="1478338197631" signatureChecksum="1697544795" >
-        <def id="_09e298e9f4901d2174cb664fd23ad3dbf01982aff879fc6f320b97d3a45665c1_flash_display_Sprite" /> 
+      <script name="_63b82061cd90b521b694bd782c7b161bc5171bf2846cfecfa41d4c8ed392ef39_flash_display_Sprite" mod="1478440076190" signatureChecksum="2832104177" >
+        <def id="_63b82061cd90b521b694bd782c7b161bc5171bf2846cfecfa41d4c8ed392ef39_flash_display_Sprite" /> 
         <dep id="flash.system:Security" type="e" /> 
         <dep id="flash.display:Sprite" type="i" /> 
         <dep id="AS3" type="n" /> 
       </script>
       <digests>
-        <digest type="SHA-256" signed="false" value="2e0d670880bc55975ff38a34ed90bf2e9d072529061882225a5560e3c7fcbbac"   />
+        <digest type="SHA-256" signed="false" value="87197c51a6f0558293983dd4677837b9396f8182232885065c939bb3645ea1a9"   />
       </digests>
     </library>
   </libraries>

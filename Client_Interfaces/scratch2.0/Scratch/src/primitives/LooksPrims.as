@@ -100,6 +100,9 @@ public class LooksPrims {
 		primTable['PP_Unit_IsType']				= prim_PP_Unit_IsType;
 		primTable['PP_Unit_GetPositionX']		= prim_PP_Unit_GetPositionX;
 		primTable['PP_Unit_GetPositionY']		= prim_PP_Unit_GetPositionY;
+		primTable['PP_Unit_GetHealth']			= prim_PP_Unit_GetHealth;
+		primTable['PP_Unit_GetMaxHealth']		= prim_PP_Unit_GetMaxHealth;
+		primTable['PP_Unit_GetGroup']			= prim_PP_Unit_GetGroup;
 		primTable['PP_Close']					= prim_PP_Close;
 		// ---
 	}
@@ -252,6 +255,30 @@ public class LooksPrims {
  		if (ppExt){
 			var unitId:int = interp.arg(b, 0) as int;
 			return ppExt.PP_Unit_GetPositionY_ext(unitId);
+		}
+		return -1;
+	}
+	
+	private function prim_PP_Unit_GetHealth(b:Block):Number {
+ 		if (ppExt){
+			var unitId:int = interp.arg(b, 0) as int;
+			return ppExt.PP_Unit_GetHealth_ext(unitId);
+		}
+		return -1;
+	}
+	
+	private function prim_PP_Unit_GetMaxHealth(b:Block):Number {
+ 		if (ppExt){
+			var unitId:int = interp.arg(b, 0) as int;
+			return ppExt.PP_Unit_GetMaxHealth_ext(unitId);
+		}
+		return -1;
+	}
+	
+	private function prim_PP_Unit_GetGroup(b:Block):int {
+ 		if (ppExt){
+			var unitId:int = interp.arg(b, 0) as int;
+			return ppExt.PP_Unit_GetGroup_ext(unitId);
 		}
 		return -1;
 	}

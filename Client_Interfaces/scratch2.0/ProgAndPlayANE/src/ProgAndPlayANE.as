@@ -65,13 +65,13 @@ package
 		
 		public function PP_GetSpecialAreaPosX_ext(num:int):Number{
 			if (progPlayContext != null)
-				return int (progPlayContext.call("PP_GetSpecialAreaPosX_wrapper", num));
+				return Number (progPlayContext.call("PP_GetSpecialAreaPosX_wrapper", num));
 			return -1;
 		}
 		
 		public function PP_GetSpecialAreaPosY_ext(num:int):Number{
 			if (progPlayContext != null)
-				return int (progPlayContext.call("PP_GetSpecialAreaPosY_wrapper", num));
+				return Number (progPlayContext.call("PP_GetSpecialAreaPosY_wrapper", num));
 			return -1;
 		}
 		
@@ -105,15 +105,33 @@ package
 			return -1;
 		}
 		
-		public function PP_Unit_GetPositionX_ext(unitId:int):int{
+		public function PP_Unit_GetPositionX_ext(unitId:int):Number{
 			if (progPlayContext != null)
-				return int (progPlayContext.call("PP_Unit_GetPositionX_wrapper", unitId));
+				return Number (progPlayContext.call("PP_Unit_GetPositionX_wrapper", unitId));
 			return -1;
 		}
 		
-		public function PP_Unit_GetPositionY_ext(unitId:int):int{
+		public function PP_Unit_GetPositionY_ext(unitId:int):Number{
 			if (progPlayContext != null)
-				return int (progPlayContext.call("PP_Unit_GetPositionY_wrapper", unitId));
+				return Number (progPlayContext.call("PP_Unit_GetPositionY_wrapper", unitId));
+			return -1;
+		}
+		
+		public function PP_Unit_GetHealth_ext(unitId:int):Number{
+			if (progPlayContext != null)
+				return Number (progPlayContext.call("PP_Unit_GetHealth_wrapper", unitId));
+			return -1;
+		}
+		
+		public function PP_Unit_GetMaxHealth_ext(unitId:int):Number{
+			if (progPlayContext != null)
+				return Number (progPlayContext.call("PP_Unit_GetMaxHealth_wrapper", unitId));
+			return -1;
+		}
+		
+		public function PP_Unit_GetGroup_ext(unitId:int):int{
+			if (progPlayContext != null)
+				return int (progPlayContext.call("PP_Unit_GetGroup_wrapper", unitId));
 			return -1;
 		}
 		
