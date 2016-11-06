@@ -103,6 +103,11 @@ public class LooksPrims {
 		primTable['PP_Unit_GetHealth']			= prim_PP_Unit_GetHealth;
 		primTable['PP_Unit_GetMaxHealth']		= prim_PP_Unit_GetMaxHealth;
 		primTable['PP_Unit_GetGroup']			= prim_PP_Unit_GetGroup;
+		primTable['PP_Unit_SetGroup']			= prim_PP_Unit_SetGroup;
+		primTable['PP_Unit_GetNumPendingCmds']	= prim_PP_Unit_GetNumPendingCmds;
+		primTable['PP_Unit_IsPendingCmdAt']		= prim_PP_Unit_IsPendingCmdAt;
+		primTable['PP_Unit_PdgCmd_GetNumParams']= prim_PP_Unit_PdgCmd_GetNumParams;
+		primTable['PP_Unit_PdgCmd_GetParamAt']	= prim_PP_Unit_PdgCmd_GetParamAt;
 		primTable['PP_Close']					= prim_PP_Close;
 		// ---
 	}
@@ -279,6 +284,61 @@ public class LooksPrims {
  		if (ppExt){
 			var unitId:int = interp.arg(b, 0) as int;
 			return ppExt.PP_Unit_GetGroup_ext(unitId);
+		}
+		return -1;
+	}
+	
+	private function prim_PP_Unit_SetGroup(b:Block):void {
+ 		if (ppExt){
+			var unitId:int = interp.arg(b, 0) as int;
+			var groupId:int = interp.arg(b, 1) as int;
+			ppExt.PP_Unit_SetGroup_ext(unitId, groupId);
+		}
+	}
+	
+	private function prim_PP_Unit_GetNumPendingCmds(b:Block):int {
+ 		if (ppExt){
+			var unitId:int = interp.arg(b, 0) as int;
+			return ppExt.PP_Unit_GetNumPendingCmds_ext(unitId);
+		}
+		return -1;
+	}
+	
+	private function prim_PP_Unit_IsPendingCmdAt(b:Block):Boolean {
+ 		if (ppExt){
+			var cmdId:int = interp.arg(b, 0) as int;
+			var unitId:int = interp.arg(b, 1) as int;
+			var cmdName:String = interp.arg(b, 2) as String;
+			// try to find this command name on standard commands
+			var cmdCode:int = getCodeFromName(Specs.pp_standardCommandsList, cmdName);
+			if (cmdCode == -1)
+				// we didn't find in standard commands, then we try to find this command name on specific commands
+				cmdCode = getCodeFromName(Specs.pp_specificCommandsList, cmdName);
+			if (cmdCode == -1)
+				// we didn't find the code associated to this command
+				return false
+			else
+				// we found a code, then we compare it with Prog&Play call result
+				return ppExt.PP_Unit_GetPendingCmdAt_ext(cmdId, unitId) == cmdCode;
+		}
+		return false;
+	}
+	
+	private function prim_PP_Unit_PdgCmd_GetNumParams(b:Block):int {
+ 		if (ppExt){
+			var cmdId:int = interp.arg(b, 0) as int;
+			var unitId:int = interp.arg(b, 1) as int;
+			return ppExt.PP_Unit_PdgCmd_GetNumParams_ext(cmdId, unitId);
+		}
+		return -1;
+	}
+	
+	private function prim_PP_Unit_PdgCmd_GetParamAt(b:Block):Number {
+ 		if (ppExt){
+			var paramId:int = interp.arg(b, 0) as int;
+			var cmdId:int = interp.arg(b, 1) as int;
+			var unitId:int = interp.arg(b, 2) as int;
+			return ppExt.PP_Unit_PdgCmd_GetParamAt_ext(paramId, cmdId, unitId);
 		}
 		return -1;
 	}

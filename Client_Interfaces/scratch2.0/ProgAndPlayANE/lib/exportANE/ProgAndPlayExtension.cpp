@@ -30,6 +30,11 @@ FREObject FRE_PP_Unit_GetPositionY(FREContext ctx, void* functionData, uint32_t 
 FREObject FRE_PP_Unit_GetHealth(FREContext ctx, void* functionData, uint32_t argc, FREObject argv[]);
 FREObject FRE_PP_Unit_GetMaxHealth(FREContext ctx, void* functionData, uint32_t argc, FREObject argv[]);
 FREObject FRE_PP_Unit_GetGroup(FREContext ctx, void* functionData, uint32_t argc, FREObject argv[]);
+FREObject FRE_PP_Unit_SetGroup(FREContext ctx, void* functionData, uint32_t argc, FREObject argv[]);
+FREObject FRE_PP_Unit_GetNumPendingCmds(FREContext ctx, void* functionData, uint32_t argc, FREObject argv[]);
+FREObject FRE_PP_Unit_GetPendingCmdAt(FREContext ctx, void* functionData, uint32_t argc, FREObject argv[]);
+FREObject FRE_PP_Unit_PdgCmd_GetNumParams(FREContext ctx, void* functionData, uint32_t argc, FREObject argv[]);
+FREObject FRE_PP_Unit_PdgCmd_GetParamAt(FREContext ctx, void* functionData, uint32_t argc, FREObject argv[]);
 
 void ProgAndPlayInitializer(void** extDataToSet, FREContextInitializer* ctxInitializerToSet, FREContextFinalizer* ctxFinalizerToSet) {
 	extDataToSet = 0;  // pas de données commune au contexte dans notre cas. 
@@ -47,26 +52,31 @@ void ProgAndPlayContextInitializer(void* extData, const uint8_t* ctxType, FRECon
                         const FRENamedFunction** functionsToSet) { 
 	static FRENamedFunction extensionFunctions[] =
 	{
-		{ (const uint8_t*) "PP_Open_wrapper",					0, &FRE_PP_Open },
-		{ (const uint8_t*) "PP_Close_wrapper",					0, &FRE_PP_Close },
-		{ (const uint8_t*) "PP_IsGameOver_wrapper",				0, &FRE_PP_IsGameOver },
-		{ (const uint8_t*) "PP_GetMapWidth_wrapper",			0, &FRE_PP_GetMapWidth },
-		{ (const uint8_t*) "PP_GetMapHeight_wrapper",			0, &FRE_PP_GetMapHeight },
-		{ (const uint8_t*) "PP_GetStartPosX_wrapper",			0, &FRE_PP_GetStartPosX },
-		{ (const uint8_t*) "PP_GetStartPosY_wrapper",			0, &FRE_PP_GetStartPosY },
-		{ (const uint8_t*) "PP_GetNumSpecialArea_wrapper",		0, &FRE_PP_GetNumSpecialArea },
-		{ (const uint8_t*) "PP_GetSpecialAreaPosX_wrapper",		0, &FRE_PP_GetSpecialAreaPosX },
-		{ (const uint8_t*) "PP_GetSpecialAreaPosY_wrapper",		0, &FRE_PP_GetSpecialAreaPosY },
-		{ (const uint8_t*) "PP_GetResource_wrapper",			0, &FRE_PP_GetResource },
-		{ (const uint8_t*) "PP_GetNumUnits_wrapper",			0, &FRE_PP_GetNumUnits },
-		{ (const uint8_t*) "PP_GetUnitAt_wrapper",				0, &FRE_PP_GetUnitAt },
-		{ (const uint8_t*) "PP_Unit_GetCoalition_wrapper",		0, &FRE_PP_Unit_GetCoalition },
-		{ (const uint8_t*) "PP_Unit_GetType_wrapper",			0, &FRE_PP_Unit_GetType },
-		{ (const uint8_t*) "PP_Unit_GetPositionX_wrapper",		0, &FRE_PP_Unit_GetPositionX },
-		{ (const uint8_t*) "PP_Unit_GetPositionY_wrapper",		0, &FRE_PP_Unit_GetPositionY },
-		{ (const uint8_t*) "PP_Unit_GetHealth_wrapper",			0, &FRE_PP_Unit_GetHealth },
-		{ (const uint8_t*) "PP_Unit_GetMaxHealth_wrapper",		0, &FRE_PP_Unit_GetMaxHealth },
-		{ (const uint8_t*) "PP_Unit_GetGroup_wrapper",			0, &FRE_PP_Unit_GetGroup }
+		{ (const uint8_t*) "PP_Open_wrapper",						0, &FRE_PP_Open },
+		{ (const uint8_t*) "PP_Close_wrapper",						0, &FRE_PP_Close },
+		{ (const uint8_t*) "PP_IsGameOver_wrapper",					0, &FRE_PP_IsGameOver },
+		{ (const uint8_t*) "PP_GetMapWidth_wrapper",				0, &FRE_PP_GetMapWidth },
+		{ (const uint8_t*) "PP_GetMapHeight_wrapper",				0, &FRE_PP_GetMapHeight },
+		{ (const uint8_t*) "PP_GetStartPosX_wrapper",				0, &FRE_PP_GetStartPosX },
+		{ (const uint8_t*) "PP_GetStartPosY_wrapper",				0, &FRE_PP_GetStartPosY },
+		{ (const uint8_t*) "PP_GetNumSpecialArea_wrapper",			0, &FRE_PP_GetNumSpecialArea },
+		{ (const uint8_t*) "PP_GetSpecialAreaPosX_wrapper",			0, &FRE_PP_GetSpecialAreaPosX },
+		{ (const uint8_t*) "PP_GetSpecialAreaPosY_wrapper",			0, &FRE_PP_GetSpecialAreaPosY },
+		{ (const uint8_t*) "PP_GetResource_wrapper",				0, &FRE_PP_GetResource },
+		{ (const uint8_t*) "PP_GetNumUnits_wrapper",				0, &FRE_PP_GetNumUnits },
+		{ (const uint8_t*) "PP_GetUnitAt_wrapper",					0, &FRE_PP_GetUnitAt },
+		{ (const uint8_t*) "PP_Unit_GetCoalition_wrapper",			0, &FRE_PP_Unit_GetCoalition },
+		{ (const uint8_t*) "PP_Unit_GetType_wrapper",				0, &FRE_PP_Unit_GetType },
+		{ (const uint8_t*) "PP_Unit_GetPositionX_wrapper",			0, &FRE_PP_Unit_GetPositionX },
+		{ (const uint8_t*) "PP_Unit_GetPositionY_wrapper",			0, &FRE_PP_Unit_GetPositionY },
+		{ (const uint8_t*) "PP_Unit_GetHealth_wrapper",				0, &FRE_PP_Unit_GetHealth },
+		{ (const uint8_t*) "PP_Unit_GetMaxHealth_wrapper",			0, &FRE_PP_Unit_GetMaxHealth },
+		{ (const uint8_t*) "PP_Unit_GetGroup_wrapper",				0, &FRE_PP_Unit_GetGroup },
+		{ (const uint8_t*) "PP_Unit_SetGroup_wrapper",				0, &FRE_PP_Unit_SetGroup },
+		{ (const uint8_t*) "PP_Unit_GetNumPendingCmds_wrapper",		0, &FRE_PP_Unit_GetNumPendingCmds },
+		{ (const uint8_t*) "PP_Unit_GetPendingCmdAt_wrapper",		0, &FRE_PP_Unit_GetPendingCmdAt },
+		{ (const uint8_t*) "PP_Unit_PdgCmd_GetNumParams_wrapper",	0, &FRE_PP_Unit_PdgCmd_GetNumParams },
+		{ (const uint8_t*) "PP_Unit_PdgCmd_GetParamAt_wrapper",		0, &FRE_PP_Unit_PdgCmd_GetParamAt }
 	};
 
 	// Tell AIR how many functions there are in the array:
@@ -247,6 +257,98 @@ FREObject FRE_PP_Unit_GetGroup(FREContext ctx, void* functionData, uint32_t argc
 	// Appel Prog&Play pour la valeur de retour 
 	FREObject value;
 	FRENewObjectFromInt32(PP_Unit_GetGroup(unitId), &value);
+	return value;
+}
+
+FREObject FRE_PP_Unit_SetGroup(FREContext ctx, void* functionData, uint32_t argc, FREObject argv[]){
+	// Récupération des paramètres
+	int unitId;
+	FREGetObjectAsInt32(argv[0], &unitId);
+	int groupId;
+	FREGetObjectAsInt32(argv[1], &groupId);
+	// Appel Prog&Play
+	PP_Unit_SetGroup(unitId, groupId);
+	return 0;
+}
+
+FREObject FRE_PP_Unit_GetNumPendingCmds(FREContext ctx, void* functionData, uint32_t argc, FREObject argv[]){
+	// Récupération du paramètre
+	int unitId;
+	FREGetObjectAsInt32(argv[0], &unitId);
+	// Appel Prog&Play pour la valeur de retour 
+	PP_PendingCommands cmds;
+	FREObject value;
+	if (PP_Unit_GetPendingCommands(unitId, &cmds) != -1)
+		FRENewObjectFromInt32(cmds.nbCmds, &value);
+	else
+		FRENewObjectFromInt32(-1, &value);
+	return value;
+}
+
+FREObject FRE_PP_Unit_GetPendingCmdAt(FREContext ctx, void* functionData, uint32_t argc, FREObject argv[]){
+	// Récupération des paramètres
+	int cmdId;
+	FREGetObjectAsInt32(argv[0], &cmdId);
+	int unitId;
+	FREGetObjectAsInt32(argv[1], &unitId);
+	// Appel Prog&Play pour la valeur de retour 
+	PP_PendingCommands cmds;
+	FREObject value;
+	if (PP_Unit_GetPendingCommands(unitId, &cmds) != -1){
+		if (cmdId >= 0 && cmdId < cmds.nbCmds)
+			FRENewObjectFromInt32(cmds.cmd[cmdId].code, &value);
+		else
+			FRENewObjectFromInt32(-1, &value);
+	}
+	else
+		FRENewObjectFromInt32(-1, &value);
+	return value;
+}
+
+FREObject FRE_PP_Unit_PdgCmd_GetNumParams(FREContext ctx, void* functionData, uint32_t argc, FREObject argv[]){
+	// Récupération des paramètres
+	int cmdId;
+	FREGetObjectAsInt32(argv[0], &cmdId);
+	int unitId;
+	FREGetObjectAsInt32(argv[1], &unitId);
+	// Appel Prog&Play pour la valeur de retour 
+	PP_PendingCommands cmds;
+	FREObject value;
+	if (PP_Unit_GetPendingCommands(unitId, &cmds) != -1){
+		if (cmdId >= 0 && cmdId < cmds.nbCmds)
+			FRENewObjectFromInt32(cmds.cmd[cmdId].nbParams, &value);
+		else
+			FRENewObjectFromInt32(-1, &value);
+	}
+	else
+		FRENewObjectFromInt32(-1, &value);
+	return value;
+}
+
+FREObject FRE_PP_Unit_PdgCmd_GetParamAt(FREContext ctx, void* functionData, uint32_t argc, FREObject argv[]){
+	// Récupération des paramètres
+	int paramId;
+	FREGetObjectAsInt32(argv[0], &paramId);
+	int cmdId;
+	FREGetObjectAsInt32(argv[1], &cmdId);
+	int unitId;
+	FREGetObjectAsInt32(argv[2], &unitId);
+	// Appel Prog&Play pour la valeur de retour 
+	PP_PendingCommands cmds;
+	FREObject value;
+	if (PP_Unit_GetPendingCommands(unitId, &cmds) != -1){
+		if (cmdId >= 0 && cmdId < cmds.nbCmds){
+			PP_Cmd cmd = cmds.cmd[cmdId];
+			if (paramId >= 0 && paramId < cmd.nbParams)
+				FRENewObjectFromDouble(cmds.cmd[cmdId].param[paramId], &value);
+			else
+				FRENewObjectFromDouble(-1, &value);
+		}
+		else
+			FRENewObjectFromDouble(-1, &value);
+	}
+	else
+		FRENewObjectFromDouble(-1, &value);
 	return value;
 }
 

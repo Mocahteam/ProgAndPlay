@@ -230,7 +230,15 @@ public class BlockMenus implements DragClient {
 	}
 
 	private function setBlockArg(selection:*):void {
-		if (blockArg != null) blockArg.setArgValue(selection);
+		// Muratet ---
+		//if (blockArg != null) blockArg.setArgValue(selection);
+		if (blockArg != null) {
+			blockArg.setArgValue(selection);
+			// put same color on param as parent's color
+			blockArg.base.setColor((blockArg.parent as Block).base.color);
+			blockArg.base.redraw();
+		}
+		// ---
 		Scratch.app.setSaveNeeded();
 		SCRATCH::allow3d { Scratch.app.runtime.checkForGraphicEffects(); }
 	}

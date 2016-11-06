@@ -135,6 +135,35 @@ package
 			return -1;
 		}
 		
+		public function PP_Unit_SetGroup_ext(unitId:int, groupId:int):void{
+			if (progPlayContext != null)
+				progPlayContext.call("PP_Unit_SetGroup_wrapper", unitId, groupId);
+		}
+		
+		public function PP_Unit_GetNumPendingCmds_ext(unitId:int):int{
+			if (progPlayContext != null)
+				return int (progPlayContext.call("PP_Unit_GetNumPendingCmds_wrapper", unitId));
+			return -1;
+		}
+		
+		public function PP_Unit_GetPendingCmdAt_ext(cmdId:int, unitId:int):int{
+			if (progPlayContext != null)
+				return int (progPlayContext.call("PP_Unit_GetPendingCmdAt_wrapper", cmdId, unitId));
+			return -1;
+		}
+		
+		public function PP_Unit_PdgCmd_GetNumParams_ext(cmdId:int, unitId:int):int{
+			if (progPlayContext != null)
+				return int (progPlayContext.call("PP_Unit_PdgCmd_GetNumParams_wrapper", cmdId, unitId));
+			return -1;
+		}
+		
+		public function PP_Unit_PdgCmd_GetParamAt_ext(paramId:int, cmdId:int, unitId:int):Number{
+			if (progPlayContext != null)
+				return Number (progPlayContext.call("PP_Unit_PdgCmd_GetParamAt_wrapper", paramId, cmdId, unitId));
+			return -1;
+		}
+		
 		public function PP_Close_ext():void{
 			if (progPlayContext != null)
 				progPlayContext.call("PP_Close_wrapper");
