@@ -24,6 +24,7 @@
 
 package {
 import blocks.*;
+import flash.net.navigateToURL;
 
 import com.adobe.utils.StringUtil;
 
@@ -82,7 +83,10 @@ public class Scratch extends Sprite {
 	public var editMode:Boolean; // true when project editor showing, false when only the player is showing
 	public var isOffline:Boolean; // true when running as an offline (i.e. stand-alone) app
 	public var isSmallPlayer:Boolean; // true when displaying as a scaled-down player (e.g. in search results)
-	public var stageIsContracted:Boolean; // true when the stage is half size to give more space on small screens
+	// Muratet ---
+	//public var stageIsContracted:Boolean; // true when the stage is half size to give more space on small screens
+	public var stageIsContracted:Boolean = true; // true when the stage is half size to give more space on small screens
+	// ---
 	public var isIn3D:Boolean;
 	public var render3D:DisplayObjectContainerIn3D;
 	public var isArmCPU:Boolean;
@@ -374,6 +378,8 @@ public class Scratch extends Sprite {
 	}
 
 	public function showTip(tipName:String):void {
+		var request:URLRequest = new URLRequest("./static_tips/en/home.html");
+		navigateToURL(request, "_blank");
 	}
 
 	public function closeTips():void {
@@ -1138,6 +1144,12 @@ public class Scratch extends Sprite {
 			setProjectName('Untitled');
 			topBarPart.refresh();
 			stagePart.refresh();
+			// Muratet ---
+			// Reset Prog&Play data
+			Specs.pp_currentConstantsName = Specs.pp_defaultConstantsName;
+			Specs.pp_unitsList = new Array();
+			Specs.pp_specificCommandsList = new Array();
+			// ---
 			if (callback != null) callback();
 		}
 

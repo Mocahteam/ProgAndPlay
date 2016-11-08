@@ -45,7 +45,7 @@ import ui.parts.UIPart;
 import uiwidgets.*;
 
 // Muratet ---
-import com.adobe.serialization.json.JSON;
+import util.JSON;
 // ---
 
 public class PaletteBuilder {
@@ -107,7 +107,7 @@ public class PaletteBuilder {
 				app.translationChanged();
 			}));
 		nextY += 20;
-		addBlocksForCategory(Specs.ppCategory, Specs.ppColor);
+		addBlocksForCategory(Specs.ppCategory, Specs.blockColor(13));
 	}
 	
 	public function selectConstantsList():void {
@@ -116,14 +116,14 @@ public class PaletteBuilder {
 			var file:FileReference = FileReference(event.target);
 			var fileName:String = file.name;
 			var data:ByteArray = file.data;
-			var cstData:Object = com.adobe.serialization.json.JSON.decode(data.toString());
+			var cstData:Object = util.JSON.parse(data.toString());
 			Specs.pp_currentConstantsName = file.name.substring(0, file.name.lastIndexOf("."));
 			Specs.pp_unitsList = cstData["unitsType"];
 			Specs.pp_specificCommandsList = cstData["commands"];
 			// Update UIs by calling this translation changed function
 			app.translationChanged();
 		}
-		var filter:FileFilter = new FileFilter('Prog&Play constants list', '*.json');
+		var filter:FileFilter = new FileFilter(Translator.map('Prog&Play constants list'), '*.json');
 		Scratch.loadSingleFile(fileLoadHandler, filter);
 	}
 	// ---
@@ -137,29 +137,27 @@ public class PaletteBuilder {
 				var defaultArgs:Array = targetObj.defaultArgsFor(spec[3], spec.slice(4));
 				var label:String = spec[0];
 				if (targetObj.isStage && spec[3] == 'whenClicked') label = 'when Stage clicked';
-				// Muratet ---
-				var undef:Boolean = false;
-				if (category == Specs.ppCategory && label == Specs.PP_IS_TYPE){
-					// deactivate block if unitsList is empty
-					if (Specs.pp_unitsList.length == 0) {
-						addItem(makeLabel(Translator.map('No unit type defined in current constants list')));
-						undef = true;
-					} else {
-						defaultArgs[1] = Specs.pp_unitsList[0].name;
-					}
-				}
-				// ---
 				var block:Block = new Block(label, spec[1], blockColor, spec[3], defaultArgs);
-				// Muratet ---
-				if (undef) {
-					// update parameter color to notify undef constants list
-					block.args[1].base.setColor(0x777777);
-					block.args[1].base.redraw();
-				}
-				// ---
 				var showCheckbox:Boolean = isCheckboxReporter(spec[3]);
 				if (showCheckbox) addReporterCheckbox(block);
 				addItem(block, showCheckbox);
+				// Muratet ---
+				if (category == Specs.ppCategory && label == Specs.PP_IS_TYPE){
+					// deactivate block if unitsList is empty
+					if (Specs.pp_unitsList.length == 0) {
+						nextY -= block.height + 5;
+						var hint:TextField = makeLabel(Translator.map('No unit type defined in selected constants list'));
+						addItem(hint);
+						hint.x += block.width + 5;
+						// update parameter color to notify undef constants list
+						block.args[1].base.setColor(0x777777);
+						block.args[1].base.redraw();
+					} else {
+						block.args[1].setArgValue(Specs.pp_unitsList[0].name);
+					}
+					app.palette.updateSize();
+				}
+				// ---
 				cmdCount++;
 			} else {
 				if ((spec.length == 1) && (cmdCount > 0)) nextY += 10 * spec[0].length; // add some space

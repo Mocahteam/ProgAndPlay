@@ -164,6 +164,21 @@ package
 			return -1;
 		}
 		
+		public function PP_Unit_ActionOnPosition_ext(unitId:int, cmdId:int, x:Number, y:Number):void{
+			if (progPlayContext != null)
+				progPlayContext.call("PP_Unit_ActionOnPosition_wrapper", unitId, cmdId, x, y);
+		}
+		
+		public function PP_Unit_ActionOnUnit_ext(unitId:int, cmdId:int, targetId:int):void{
+			if (progPlayContext != null)
+				progPlayContext.call("PP_Unit_ActionOnUnit_wrapper", unitId, cmdId, targetId);
+		}
+		
+		public function PP_Unit_UntargetedAction_ext(unitId:int, cmdId:int, param:Number = -1):void{
+			if (progPlayContext != null)
+				progPlayContext.call("PP_Unit_UntargetedAction_wrapper", unitId, cmdId, param);
+		}
+		
 		public function PP_Close_ext():void{
 			if (progPlayContext != null)
 				progPlayContext.call("PP_Close_wrapper");

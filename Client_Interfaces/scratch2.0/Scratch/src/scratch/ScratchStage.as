@@ -859,6 +859,13 @@ public class ScratchStage extends ScratchObj {
 		json.writeKeyValue('videoAlpha', videoAlpha);
 		json.writeKeyValue('children', children);
 		json.writeKeyValue('info', info);
+		
+		// Muratet ---
+		// Write Prog&Play data
+		if (Specs.pp_unitsList.length > 0)				json.writeKeyValue('unitsType', Specs.pp_unitsList);
+		if (Specs.pp_specificCommandsList.length > 0)	json.writeKeyValue('commands', Specs.pp_specificCommandsList);
+		json.writeKeyValue('fileName', Specs.pp_currentConstantsName);
+		// ---
 	}
 
 	public override function readJSON(jsonObj:Object):void {
@@ -871,6 +878,13 @@ public class ScratchStage extends ScratchObj {
 		if (jsonObj.videoAlpha) videoAlpha = jsonObj.videoAlpha;
 		children = jsonObj.children;
 		info = jsonObj.info;
+		
+		// Muratet ---
+		// Read Prog&Play data
+		Specs.pp_unitsList = jsonObj.unitsType || [];
+		Specs.pp_specificCommandsList = jsonObj.commands || [];
+		Specs.pp_currentConstantsName = jsonObj.fileName || Specs.pp_defaultConstantsName;
+		// ---
 
 		// instantiate sprites and record their names
 		var spriteNameMap:Object = new Object();

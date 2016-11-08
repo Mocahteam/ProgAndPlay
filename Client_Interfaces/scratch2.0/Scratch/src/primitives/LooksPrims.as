@@ -108,6 +108,10 @@ public class LooksPrims {
 		primTable['PP_Unit_IsPendingCmdAt']		= prim_PP_Unit_IsPendingCmdAt;
 		primTable['PP_Unit_PdgCmd_GetNumParams']= prim_PP_Unit_PdgCmd_GetNumParams;
 		primTable['PP_Unit_PdgCmd_GetParamAt']	= prim_PP_Unit_PdgCmd_GetParamAt;
+		primTable['PP_Unit_ActionOnPosition']	= prim_PP_Unit_ActionOnPosition;
+		primTable['PP_Unit_ActionOnUnit']		= prim_PP_Unit_ActionOnUnit;
+		primTable['PP_Unit_ActionSetState']		= prim_PP_Unit_ActionSetState;
+		primTable['PP_Unit_UntargetedAction']	= prim_PP_Unit_UntargetedAction;
 		primTable['PP_Close']					= prim_PP_Close;
 		// ---
 	}
@@ -341,6 +345,65 @@ public class LooksPrims {
 			return ppExt.PP_Unit_PdgCmd_GetParamAt_ext(paramId, cmdId, unitId);
 		}
 		return -1;
+	}
+	
+	private function prim_PP_Unit_ActionOnPosition(b:Block):void {
+ 		if (ppExt){
+			var unitId:int = interp.arg(b, 0) as int;
+			var cmdName:String = interp.arg(b, 1) as String;
+			var cmdCode:int = getCodeFromName(Specs.pp_standardCommandsList, cmdName);
+			if (cmdCode == -1)
+				// we didn't find in standard commands, then we try to find this command name on specific commands
+				cmdCode = getCodeFromName(Specs.pp_specificCommandsList, cmdName);
+			if (cmdCode != -1){
+				var x:Number = interp.arg(b, 2) as Number;
+				var y:Number = interp.arg(b, 3) as Number;
+				ppExt.PP_Unit_ActionOnPosition_ext(unitId, cmdCode, x, y);
+			}
+		}
+	}
+	
+	private function prim_PP_Unit_ActionOnUnit(b:Block):void {
+ 		if (ppExt){
+			var unitId:int = interp.arg(b, 0) as int;
+			var cmdName:String = interp.arg(b, 1) as String;
+			var cmdCode:int = getCodeFromName(Specs.pp_standardCommandsList, cmdName);
+			if (cmdCode == -1)
+				// we didn't find in standard commands, then we try to find this command name on specific commands
+				cmdCode = getCodeFromName(Specs.pp_specificCommandsList, cmdName);
+			if (cmdCode != -1){
+				var targetId:int = interp.arg(b, 2) as int;
+				ppExt.PP_Unit_ActionOnUnit_ext(unitId, cmdCode, targetId);
+			}
+		}
+	}
+	
+	private function prim_PP_Unit_ActionSetState(b:Block):void {
+ 		if (ppExt){
+			var unitId:int = interp.arg(b, 0) as int;
+			var cmdName:String = interp.arg(b, 1) as String;
+			var cmdCode:int = getCodeFromName(Specs.pp_standardCommandsList, cmdName);
+			if (cmdCode == -1)
+				// we didn't find in standard commands, then we try to find this command name on specific commands
+				cmdCode = getCodeFromName(Specs.pp_specificCommandsList, cmdName);
+			if (cmdCode != -1){
+				var param:Number = interp.arg(b, 2) as Number;
+				ppExt.PP_Unit_UntargetedAction_ext(unitId, cmdCode, param);
+			}
+		}
+	}
+	
+	private function prim_PP_Unit_UntargetedAction(b:Block):void {
+ 		if (ppExt){
+			var unitId:int = interp.arg(b, 0) as int;
+			var cmdName:String = interp.arg(b, 1) as String;
+			var cmdCode:int = getCodeFromName(Specs.pp_standardCommandsList, cmdName);
+			if (cmdCode == -1)
+				// we didn't find in standard commands, then we try to find this command name on specific commands
+				cmdCode = getCodeFromName(Specs.pp_specificCommandsList, cmdName);
+			if (cmdCode != -1)
+				ppExt.PP_Unit_UntargetedAction_ext(unitId, cmdCode);
+		}
 	}
 		
 	// ---

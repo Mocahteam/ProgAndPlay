@@ -444,7 +444,7 @@ public class Specs {
 		// Prog&Play blocks
 		["open Prog&Play",										" ", 13, "PP_Open"],
 		["--"],
-		["is game over",										"b", 13, "PP_IsGameOver"],
+		["is game over?",										"b", 13, "PP_IsGameOver"],
 		["map width",											"r", 13, "PP_GetMapWidth"],
 		["map height",											"r", 13, "PP_GetMapHeight"],
 		["start x position",									"r", 13, "PP_GetStartPosX"],
@@ -469,10 +469,10 @@ public class Specs {
 		["param %n of pending cmd %n of unit id %n",			"r", 13, "PP_Unit_PdgCmd_GetParamAt", 0, 0, ""],
 		["--"],
 		["affect unit id %n to group %n",						" ", 13, "PP_Unit_SetGroup", "", 0],
-		[PP_COMMAND_ON_POSITION,								" ", 13, "helloWorld", "", "ATTACK", 0, 0],
-		[PP_COMMAND_ON_UNIT,									" ", 13, "helloWorld", "", "ATTACK", ""],
-		[PP_COMMAND_STATE,										" ", 13, "helloWorld", "", "FIRE STATE", 0],
-		[PP_COMMAND_UNTARGET,									" ", 13, "helloWorld", "", "STOP"],
+		[PP_COMMAND_ON_POSITION,								" ", 13, "PP_Unit_ActionOnPosition", "", "ATTACK", 0, 0],
+		[PP_COMMAND_ON_UNIT,									" ", 13, "PP_Unit_ActionOnUnit", "", "ATTACK", ""],
+		[PP_COMMAND_STATE,										" ", 13, "PP_Unit_ActionSetState", "", "FIRE STATE", 0],
+		[PP_COMMAND_UNTARGET,									" ", 13, "PP_Unit_UntargetedAction", "", "STOP"],
 		["--"],
 		["close Prog&Play",										" ", 13, "PP_Close"],
 		// ---

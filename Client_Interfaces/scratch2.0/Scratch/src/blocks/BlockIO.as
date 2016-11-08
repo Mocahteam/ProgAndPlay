@@ -124,29 +124,34 @@ public class BlockIO {
 		}
 		// Muratet ---
 		// update combobox menu depending on constants loaded
-		if (b.spec == Specs.PP_IS_TYPE) {
+		if (b.spec == Translator.map(Specs.PP_IS_TYPE)) {
 			if (Specs.pp_unitsList.some(function (item:*, index:int, array:Array):Boolean {
 											return item.name == (args[1] as String);
 										})){
-				b.args[1].base.setColor(Specs.ppColor);
+				b.args[1].base.setColor(Specs.blockColor(13));
 			} else {
 				b.args[1].base.setColor(0x777777);
 			}
 			b.args[1].base.redraw();
-		} else if (b.spec == Specs.PP_IS_COMMAND) {
+		} else if (b.spec == Translator.map(Specs.PP_IS_COMMAND) || b.spec == Translator.map(Specs.PP_COMMAND_ON_POSITION) || b.spec == Translator.map(Specs.PP_COMMAND_ON_UNIT) || b.spec == Translator.map(Specs.PP_COMMAND_STATE) || b.spec == Translator.map(Specs.PP_COMMAND_UNTARGET)) {
+			var argPos:int = 1;
+			if (b.spec == Translator.map(Specs.PP_IS_COMMAND))
+				argPos = 2;
 			if (Specs.pp_standardCommandsList.some(	function (item:*, index:int, array:Array):Boolean {
-														return item.name == (args[2] as String);
+														trace (argPos);
+														return item.name == (args[argPos] as String);
 													}) ||
 				Specs.pp_specificCommandsList.some(	function (item:*, index:int, array:Array):Boolean {
-														return item.name == (args[2] as String);
+														return item.name == (args[argPos] as String);
 													})){
-				b.args[2].base.setColor(Specs.ppColor);
+				b.args[argPos].base.setColor(Specs.blockColor(13));
 			} else {
-				b.args[2].base.setColor(0x777777);
+				b.args[argPos].base.setColor(0x777777);
 			}
-			b.args[2].base.redraw();
-		} // TODO : Faire pareil pour les autre blocks de commande
+			b.args[argPos].base.redraw();
+		}
 		// ---
+		
 		if (substacks[0] && (b.base.canHaveSubstack1())) b.insertBlockSub1(substacks[0]);
 		if (substacks[1] && (b.base.canHaveSubstack2())) b.insertBlockSub2(substacks[1]);
 		// if hadSpriteRef is true, don't call fixMouseEdgeRefs() to avoid converting references

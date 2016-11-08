@@ -613,6 +613,10 @@ public class Block extends Sprite {
 			if (argToCopy is BlockArg) {
 				var arg:BlockArg = argToCopy;
 				BlockArg(args[i]).setArgValue(arg.argValue, arg.labelOrNull());
+				// Muratet ---
+				BlockArg(args[i]).base.setColor(arg.base.color);
+				BlockArg(args[i]).base.redraw();
+				// ---
 			}
 			if (argToCopy is Block) {
 				var newArg:Block = Block(argToCopy).duplicate(false);

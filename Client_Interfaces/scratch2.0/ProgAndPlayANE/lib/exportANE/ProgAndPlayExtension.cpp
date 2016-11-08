@@ -35,6 +35,9 @@ FREObject FRE_PP_Unit_GetNumPendingCmds(FREContext ctx, void* functionData, uint
 FREObject FRE_PP_Unit_GetPendingCmdAt(FREContext ctx, void* functionData, uint32_t argc, FREObject argv[]);
 FREObject FRE_PP_Unit_PdgCmd_GetNumParams(FREContext ctx, void* functionData, uint32_t argc, FREObject argv[]);
 FREObject FRE_PP_Unit_PdgCmd_GetParamAt(FREContext ctx, void* functionData, uint32_t argc, FREObject argv[]);
+FREObject FRE_PP_Unit_ActionOnPosition(FREContext ctx, void* functionData, uint32_t argc, FREObject argv[]);
+FREObject FRE_PP_Unit_ActionOnUnit(FREContext ctx, void* functionData, uint32_t argc, FREObject argv[]);
+FREObject FRE_PP_Unit_UntargetedAction(FREContext ctx, void* functionData, uint32_t argc, FREObject argv[]);
 
 void ProgAndPlayInitializer(void** extDataToSet, FREContextInitializer* ctxInitializerToSet, FREContextFinalizer* ctxFinalizerToSet) {
 	extDataToSet = 0;  // pas de données commune au contexte dans notre cas. 
@@ -76,7 +79,10 @@ void ProgAndPlayContextInitializer(void* extData, const uint8_t* ctxType, FRECon
 		{ (const uint8_t*) "PP_Unit_GetNumPendingCmds_wrapper",		0, &FRE_PP_Unit_GetNumPendingCmds },
 		{ (const uint8_t*) "PP_Unit_GetPendingCmdAt_wrapper",		0, &FRE_PP_Unit_GetPendingCmdAt },
 		{ (const uint8_t*) "PP_Unit_PdgCmd_GetNumParams_wrapper",	0, &FRE_PP_Unit_PdgCmd_GetNumParams },
-		{ (const uint8_t*) "PP_Unit_PdgCmd_GetParamAt_wrapper",		0, &FRE_PP_Unit_PdgCmd_GetParamAt }
+		{ (const uint8_t*) "PP_Unit_PdgCmd_GetParamAt_wrapper",		0, &FRE_PP_Unit_PdgCmd_GetParamAt },
+		{ (const uint8_t*) "PP_Unit_ActionOnPosition_wrapper",		0, &FRE_PP_Unit_ActionOnPosition },
+		{ (const uint8_t*) "PP_Unit_ActionOnUnit_wrapper",			0, &FRE_PP_Unit_ActionOnUnit },
+		{ (const uint8_t*) "PP_Unit_UntargetedAction_wrapper",		0, &FRE_PP_Unit_UntargetedAction }
 	};
 
 	// Tell AIR how many functions there are in the array:
@@ -350,6 +356,49 @@ FREObject FRE_PP_Unit_PdgCmd_GetParamAt(FREContext ctx, void* functionData, uint
 	else
 		FRENewObjectFromDouble(-1, &value);
 	return value;
+}
+
+FREObject FRE_PP_Unit_ActionOnPosition(FREContext ctx, void* functionData, uint32_t argc, FREObject argv[]){
+	// Récupération des paramètres
+	int unitId;
+	FREGetObjectAsInt32(argv[0], &unitId);
+	int cmdId;
+	FREGetObjectAsInt32(argv[1], &cmdId);
+	PP_Pos p;
+	double val;
+	FREGetObjectAsDouble(argv[2], &val);
+	p.x = val;
+	FREGetObjectAsDouble(argv[3], &val);
+	p.y = val;
+	// Appel Prog&Play
+	PP_Unit_ActionOnPosition(unitId, cmdId, p);
+	return 0;
+}
+
+FREObject FRE_PP_Unit_ActionOnUnit(FREContext ctx, void* functionData, uint32_t argc, FREObject argv[]){
+	// Récupération des paramètres
+	int unitId;
+	FREGetObjectAsInt32(argv[0], &unitId);
+	int cmdId;
+	FREGetObjectAsInt32(argv[1], &cmdId);
+	int targetId;
+	FREGetObjectAsInt32(argv[2], &targetId);
+	// Appel Prog&Play
+	PP_Unit_ActionOnUnit(unitId, cmdId, targetId);
+	return 0;
+}
+
+FREObject FRE_PP_Unit_UntargetedAction(FREContext ctx, void* functionData, uint32_t argc, FREObject argv[]){
+	// Récupération des paramètres
+	int unitId;
+	FREGetObjectAsInt32(argv[0], &unitId);
+	int cmdId;
+	FREGetObjectAsInt32(argv[1], &cmdId);
+	double param;
+	FREGetObjectAsDouble(argv[2], &param);
+	// Appel Prog&Play
+	PP_Unit_UntargetedAction(unitId, cmdId, param);
+	return 0;
 }
 
 #ifdef __cplusplus
