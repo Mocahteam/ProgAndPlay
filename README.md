@@ -2,7 +2,7 @@
 Prog&amp;Play is a library designed for Real Time Strategy games (RTS). It enables player to program easily and interactively units of the video game. More details on [Prog&amp;Play pages](https://www.irit.fr/ProgAndPlay/index_en.php) 
 
 ## Repository architecture
-This repository includes source code of the Prog&amp;Play library. It is composed by the "pp" directory that includes low level source code of Prog&amp;Play and "Client_Interfaces" directory that includes interfaces of Prog&amp;Play in different programming langages (It is one of these interfaces that the player has to use).
+This repository includes source code of the Prog&amp;Play library. It is composed by the [pp](./pp) directory that includes low level source code of Prog&amp;Play and [Client_Interfaces](./Client_Interfaces) directory that includes interfaces of Prog&amp;Play in different programming langages (It is one of these interfaces that the player has to use).
 
 ## Windows Compilation
 * Prog&Play compilation and associated interfaces
