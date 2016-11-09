@@ -1,0 +1,21 @@
+<html> <head><meta charset=utf-8><link href=../../static/css/base.css rel=stylesheet><link href=../../static/css/modules/bootstrap-accordion.css rel=stylesheet><link href=../../static/css/pages/help.css rel=stylesheet><link href=../../static/css/modules/tabs.css rel=stylesheet><link href=../../static/css/modules/icons.css rel=stylesheet><link href=../../static/css/pages/tips.css rel=stylesheet><link href=../../static/css/modules/tip-bar.css rel=stylesheet><script type=text/javascript src=../../static/js/jquery.min.js></script></head> <body id=tips-standalone class> <div id=tip-content> <div class=multi-step> <div class="progress-bar in-progress"> <span id=tip-progress-bar style=width:25%></span> </div> <div class=tutorial-dropdown-menu-bar> <h3 class=tutorial-menu-name> <a href=nametip-intro.html>Animate Your Name</a> </h3> <div class=tutorial-dropdown-menu> <nav> <a href=#.html id=tutorial-menu-icon class=dropdown-closed></a> <ul style=display:none;> <li class=page-link> <a href=nametip1.html> <div class="index-num ">1</div> Choose the First Letter </a> </li> <li class=page-link> <a href=nametip2.html> <div class="index-num active">2</div> Add Color Effects </a> </li> <li class=page-link> <a href=nametip3.html> <div class="index-num ">3</div> Add a Sound </a> </li> <li class=page-link> <a href=nametip4.html> <div class="index-num ">4</div> Add a Backdrop </a> </li> <li class=page-link> <a href=nametip5.html> <div class="index-num ">5</div> Add Your Next Letter </a> </li> <li class=page-link> <a href=nametip6.html> <div class="index-num ">6</div> Make It Spin </a> </li> <li class=page-link> <a href=nametip7.html> <div class="index-num ">7</div> Finish Your Name </a> </li> <li class=page-link> <a href=nametip8.html> <div class="index-num ">8</div> Share Your Project </a> </li> </ul> </nav> </div> </div> <div class=navcenter> <span class="navigate back"> <a href=nametip1.html><img src=../../static/images/help/tip-arrow-back.png>Back</a> </span> <span class="navigate next"> <a href=nametip3.html> Next <img src=../../static/images/help/tip-arrow-forward.png> </a> </span> </div> <h2>Add Color Effects</h2> <p>Make the letter change color whenever it's clicked.</p> <div class=steps> <p>Build a script like this:</p> <p><img src=../../static/images/help/ayn-s2-i1.gif></p> </div> <div class="steps last"> <p>Now you can click your letter on the Stage to see its color change:</p> <img src=../../static/images/help/change-color-animated.gif> <a class=next-step-button href=nametip3.html>Next, add a sound</a> </div> <div class=scroll-gradient></div> </div> </div> <script type=text/javascript>
+      var Scratch = Scratch || {};
+      Scratch.INIT_DATA = Scratch.INIT_DATA || {};
+      Scratch.INIT_DATA.COI = {
+        TARGET_DOMAIN: "http://scratch.mit.edu"
+      };
+    </script> <script type=text/javascript src=../../static/js/lib/json2.js></script> <script type=text/javascript src=../../static/js/lib/underscore-min.js></script> <script type=text/javascript src=../../static/js/lib/backbone-min.js></script> <script type=text/javascript src=../../static/js/bootstrap-accordion.js></script> <script type=text/javascript src=../../static/js/bootstrap-tab.js></script> <script type=text/javascript src=../../static/js/views/backbone-extensions.js></script> <script type=text/javascript src=../../static/js/views/cross-origin-interface.js></script> <script type=text/javascript src=../../static/js/views/tips.js></script> <script type=text/javascript>
+      /* Initialize progress bar and navcenter translation */
+      $(function($){
+        $(document).on('click', '#tutorial-menu-icon', function() {
+            $('.tutorial-dropdown-menu nav ul').toggle();
+            if ($('#tutorial-menu-icon').hasClass('dropdown-opened')) {
+                $('#tutorial-menu-icon').removeClass('dropdown-opened');
+                $('#tutorial-menu-icon').addClass('dropdown-closed');
+            } else {
+                $('#tutorial-menu-icon').removeClass('dropdown-closed');
+                $('#tutorial-menu-icon').addClass('dropdown-opened');
+            }
+        })
+      });
+    </script> </body> </html>

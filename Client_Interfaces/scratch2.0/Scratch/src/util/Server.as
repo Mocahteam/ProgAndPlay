@@ -253,12 +253,18 @@ public class Server implements IServer {
 //			whenDone(BackpackPart.localAssets[md5]);
 //			return null;
 //		}
-		var url:String = URLs.assetCdnPrefix + URLs.internalAPI + 'asset/' + md5 + '/get/';
+		// Muratet ---
+		//var url:String = URLs.assetCdnPrefix + URLs.internalAPI + 'asset/' + md5 + '/get/';
+		var url:String = './media/' + md5;
+		// ---
 		return serverGet(url, whenDone);
 	}
 
 	public function getMediaLibrary(libraryType:String, whenDone:Function):URLLoader {
-		var url:String = getCdnStaticSiteURL() + 'medialibraries/' + libraryType + 'Library.json';
+		// Muratet ---
+		//var url:String = getCdnStaticSiteURL() + 'medialibraries/' + libraryType + 'Library.json';
+		var url:String = './media/libs/' + libraryType + 'Library.json';
+		// ---
 		return serverGet(url, whenDone);
 	}
 
@@ -287,7 +293,6 @@ public class Server implements IServer {
 		function imageDecoded(e:Event):void {
 			whenDone(makeThumbnail(e.target.content.bitmapData));
 		}
-
 		return serverGet(url, decodeImage);
 	}
 
@@ -305,7 +310,10 @@ public class Server implements IServer {
 	}
 
 	public function getThumbnail(idAndExt:String, w:int, h:int, whenDone:Function):URLLoader {
-		var url:String = getCdnStaticSiteURL() + 'medialibrarythumbnails/' + idAndExt;
+		// Muratet ---
+		//var url:String = getCdnStaticSiteURL() + 'medialibrarythumbnails/' + idAndExt;
+		var url:String = './media/' + idAndExt;
+		// ---
 		return downloadThumbnail(url, w, h, whenDone);
 	}
 

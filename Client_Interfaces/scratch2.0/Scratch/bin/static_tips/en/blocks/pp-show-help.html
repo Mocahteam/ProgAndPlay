@@ -1,0 +1,52 @@
+<html>
+	<head>
+		<meta charset=utf-8>
+		<link href=../../static/css/base.css rel=stylesheet>
+		<link href=../../static/css/modules/bootstrap-accordion.css rel=stylesheet>
+		<link href=../../static/css/pages/help.css rel=stylesheet>
+		<link href=../../static/css/modules/tabs.css rel=stylesheet>
+		<link href=../../static/css/modules/icons.css rel=stylesheet>
+		<link href=../../static/css/pages/tips.css rel=stylesheet>
+		<link href=../../static/css/modules/tip-bar.css rel=stylesheet>
+		<script type=text/javascript src=../../static/js/jquery.min.js></script>
+	</head>
+	<body id=tips-standalone class>
+		<div id=tip-content>
+			<div class=example>
+			</div>
+		</div>
+		<script type=text/javascript>
+		  var Scratch = Scratch || {};
+		  Scratch.INIT_DATA = Scratch.INIT_DATA || {};
+		  Scratch.INIT_DATA.COI = {
+			TARGET_DOMAIN: "http://scratch.mit.edu"
+		  };
+		</script>
+		<script type=text/javascript>
+			var getUrlParameter = function getUrlParameter(sParam) {
+				var sPageURL = decodeURIComponent(window.location.search.substring(1)),
+					sURLVariables = sPageURL.split('&'),
+					sParameterName,
+					i;
+
+				for (i = 0; i < sURLVariables.length; i++) {
+					sParameterName = sURLVariables[i].split('=');
+
+					if (sParameterName[0] === sParam) {
+						return sParameterName[1] === undefined ? true : sParameterName[1];
+					}
+				}
+			};
+			var src = getUrlParameter('src');
+			$( "div.example" ).html( "<img src=../../static/images/help/"+src+">" );
+		</script>
+		<script type=text/javascript src=../../static/js/lib/json2.js></script>
+		<script type=text/javascript src=../../static/js/lib/underscore-min.js></script>
+		<script type=text/javascript src=../../static/js/lib/backbone-min.js></script>
+		<script type=text/javascript src=../../static/js/bootstrap-accordion.js></script>
+		<script type=text/javascript src=../../static/js/bootstrap-tab.js></script>
+		<script type=text/javascript src=../../static/js/views/backbone-extensions.js></script>
+		<script type=text/javascript src=../../static/js/views/cross-origin-interface.js></script>
+		<script type=text/javascript src=../../static/js/views/tips.js></script>
+	</body>
+</html>

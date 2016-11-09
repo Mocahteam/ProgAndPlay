@@ -10,6 +10,10 @@ import flash.utils.ByteArray;
 
 import ui.parts.UIPart;
 
+// Muratet ---
+import translation.Translator;
+// ---
+
 import util.*;
 
 public class BlockColorEditor extends Sprite {
@@ -115,7 +119,10 @@ public class BlockColorEditor extends Sprite {
 	}
 
 	private function addCategorySelector():void {
-		category = makeLabel('Category:', 12, 120, 0, true);
+		// Muratet ---
+		//category = makeLabel('Category:', 12, 120, 0, true);
+		category = makeLabel(Translator.map('Category:'), 12, 120, 0, true);
+		// ---
 		category.addEventListener(MouseEvent.MOUSE_OVER, categoryRollover);
 		category.addEventListener(MouseEvent.MOUSE_OUT, categoryRollover);
 		category.addEventListener(MouseEvent.MOUSE_DOWN, categoryMenu);
@@ -150,13 +157,18 @@ public class BlockColorEditor extends Sprite {
 
 		blockLabel = makeLabel('', 11, blockShape.x + 4, blockShape.y + 3);
 		blockLabel.defaultTextFormat = new TextFormat('Arial', 11, 0xFFFFFF, true);
-		blockLabel.text = 'block color test';
+		blockLabel.text = Translator.map('block color test');
 	}
 
-	private function addHSVControls():void {
-		makeLabel('Hue', 15, 35, 60, true);
-		makeLabel('Sat.', 15, 110, 60, true);
-		makeLabel('Bri.', 15, 185, 60, true);
+	private function addHSVControls():void { 
+		// Muratet ---
+		//makeLabel('Hue', 15, 35, 60, true);
+		//makeLabel('Sat.', 15, 110, 60, true);
+		//makeLabel('Bri.', 15, 185, 60, true);
+		makeLabel(Translator.map('Hue'), 15, 35, 60, true);
+		makeLabel(Translator.map('Sat.'), 15, 110, 60, true);
+		makeLabel(Translator.map('Bri.'), 15, 185, 60, true);
+		// ---
 
 		addChild(hueBox = new EditableLabel(hueTextChanged));
 		addChild(satBox = new EditableLabel(satTextChanged));

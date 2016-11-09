@@ -1,0 +1,28 @@
+{
+	"unitsType":[
+		{"name":"ASSEMBLER", "code":2},
+		{"name":"BADBLOCK", "code":3},
+		{"name":"BIT", "code":4},
+		{"name":"BYTE", "code":7},
+		{"name":"KERNEL", "code":25},
+		{"name":"LOGIC BOMB", "code":26},
+		{"name":"POINTER", "code":39},
+		{"name":"SIGNAL", "code":44},
+		{"name":"SOCKET", "code":45},
+		{"name":"TERMINAL", "code":46}
+	],
+	"commands":[
+		{"name":"BUILD ASSEMBLER", "code":-2, "target":["TARGET_POSITION", "DURING_ACTION"]},
+		{"name":"BUILD BADBLOCK", "code":-3, "target":["TARGET_POSITION", "DURING_ACTION"]},
+		{"name":"BUILD BIT", "code":-4, "target":["TARGET_POSITION", "DURING_ACTION"]},
+		{"name":"BUILD BYTE", "code":-7, "target":["TARGET_POSITION", "DURING_ACTION"]},
+		{"name":"BUILD LOGIC BOMB", "code":-26, "target":["TARGET_POSITION", "DURING_ACTION"]},
+		{"name":"BUILD POINTER", "code":-39, "target":["TARGET_POSITION", "DURING_ACTION"]},
+		{"name":"BUILD SOCKET", "code":-45, "target":["TARGET_POSITION", "DURING_ACTION"]},
+		{"name":"BUILD TERMINAL", "code":-46, "target":["TARGET_POSITION", "DURING_ACTION"]},
+		{"name":"DEBUG", "code":-35, "target":["TARGET_POSITION", "DURING_ACTION"]},
+		{"name":"LAUNCH MINE", "code":33395, "target":["UNTARGET", "DURING_ACTION"]},
+		{"name":"NX FLAG", "code":33389, "target":["TARGET_POSITION", "TARGET_UNIT", "DURING_ACTION"]},
+		{"name":"SIGTERM", "code":35126, "target":["TARGET_POSITION", "TARGET_UNIT", "DURING_ACTION"]}
+	]
+}

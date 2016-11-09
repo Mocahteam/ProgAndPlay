@@ -1,0 +1,28 @@
+{
+	"unitsType":[
+		{"name":"un ASSEMBLEUR", "code":2},
+		{"name":"un MAUVAIS BLOC", "code":3},
+		{"name":"un BIT", "code":4},
+		{"name":"un OCTET", "code":7},
+		{"name":"un NOYAU", "code":25},
+		{"name":"une BOMBE LOGIQUE", "code":26},
+		{"name":"un POINTEUR", "code":39},
+		{"name":"un SIGNAL", "code":44},
+		{"name":"un SOCKET", "code":45},
+		{"name":"un TERMINAL", "code":46}
+	],
+	"commands":[
+		{"name":"CONSTRUIRE UN ASSEMBLEUR", "code":-2, "target":["TARGET_POSITION", "DURING_ACTION"]},
+		{"name":"CONSTRUIRE UN MAUVAIS BLOC", "code":-3, "target":["TARGET_POSITION", "DURING_ACTION"]},
+		{"name":"CONSTRUIRE UN BIT", "code":-4, "target":["TARGET_POSITION", "DURING_ACTION"]},
+		{"name":"CONSTRUIRE UN OCTET", "code":-7, "target":["TARGET_POSITION", "DURING_ACTION"]},
+		{"name":"CONSTRUIRE UNE BOMBE LOGIQUE", "code":-26, "target":["TARGET_POSITION", "DURING_ACTION"]},
+		{"name":"CONSTRUIRE UN POINTEUR", "code":-39, "target":["TARGET_POSITION", "DURING_ACTION"]},
+		{"name":"CONSTRUIRE UN SOCKET", "code":-45, "target":["TARGET_POSITION", "DURING_ACTION"]},
+		{"name":"CONSTRUIRE UN TERMINAL", "code":-46, "target":["TARGET_POSITION", "DURING_ACTION"]},
+		{"name":"DEBOGUER", "code":-35, "target":["TARGET_POSITION", "DURING_ACTION"]},
+		{"name":"LANCER MINES", "code":33395, "target":["UNTARGET", "DURING_ACTION"]},
+		{"name":"LANCER UN NX FLAG", "code":33389, "target":["TARGET_POSITION", "TARGET_UNIT", "DURING_ACTION"]},
+		{"name":"LANCER UN SIGTERM", "code":35126, "target":["TARGET_POSITION", "TARGET_UNIT", "DURING_ACTION"]}
+	]
+}

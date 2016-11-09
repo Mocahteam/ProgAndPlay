@@ -1,0 +1,776 @@
+/* standalone tips page */
+
+body, html {
+    background-color: #eee;
+    background-image: none;
+    height: auto;
+    font-size: 13px !important;
+    overflow-x: hidden; /* so IE8 won't have a horizontal scrollbar */
+    position: absolute;
+    top: 0;
+    bottom: 0;
+	/* Muratet --- */
+    /*width: 320px;*/
+	width: 100%;
+	/* --- */
+}
+
+body[dir="RTL"] {
+  right: 0;
+}
+
+body.tips-home {
+  background-color: #d0d2d3;
+  border-bottom-left-radius: 10px;
+}
+
+/* Customize the tip bar scrollbar in webkit */
+::-webkit-scrollbar {
+    width: 9px;
+}
+/* Track */
+::-webkit-scrollbar-track {
+    -webkit-border-radius: 9px;
+    border-radius: 9px;
+    background: rgba(208,210,211,1);
+}
+ 
+/* Handle */
+::-webkit-scrollbar-thumb {
+    -webkit-border-radius: 9px;
+    border-radius: 9px;
+    background: rgba(177,179,181,1);
+}
+
+#tip-content {
+  /* Muratet --- */
+  /*width: 300px;*/ /* 300-scrollbar track width */
+  width: 98%;
+  /* --- */
+  padding: 10px 20px 10px 10px;
+}
+
+.tips-home #tip-content {
+	/* Muratet --- */
+    /*width: 330px;*/ /* 300-scrollbar track width */
+	width: 98%;
+	/* --- */
+    padding: 10px 0px 10px 0px;
+}
+
+#tip-content .multi-step {
+	margin-top: 25px;
+	padding-bottom: 50px;
+}
+
+/* --------------- Typography --------------- */
+
+#tip-content h1 {font-size:19.5px; margin-bottom:0;padding-top:2px;}
+#tip-content h2 {font-size:18px; clear:both; font-weight:400; padding:10px 0px 5px 0px;}
+#tip-content h3 {
+  font-size:14px; 
+  line-height: 23.8px; 
+  clear:both; 
+  cursor: pointer;
+  font-weight:400; 
+}
+#tip-content h3.accordion-heading {
+  background-color: #49b3f0;
+  color: #fff;
+  text-shadow: none;
+  padding: 0 10px;
+}
+
+#tip-content h4 {
+  font-size:13px; 
+  line-height: 23.8px; 
+  clear:both; 
+  font-weight:500; 
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  padding-bottom: 5px;
+}
+
+#tip-content .reminder {
+  font-style: italic;
+}
+
+/* --------------- Icons ----------------------------- */
+.tutorial-dropdown-menu .dropdown-closed:after,
+.tutorial-dropdown-menu .dropdown-opened:after,
+#step-by-step .accordion-group a:before,
+#step-by-step .accordion-group a:after,
+h3.accordion-heading:before,
+h3.accordion-heading:after,
+.next-step-button:after {
+  font-family: 'scratch-icons';
+  speak: none;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+
+  /* Better Font Rendering =========== */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h3.accordion-heading:after {
+  display: inline-block;
+  float: right;
+  content: "\e604";
+}
+
+.effects h3.accordion-heading:before,
+.animation h3.accordion-heading:before,
+.games h3.accordion-heading:before,
+.stories h3.accordion-heading:before,
+.music h3.accordion-heading:before {
+  padding-right: 5px;
+}
+
+h3.accordion-heading.collapsed:after {
+  content: "\e605";
+}
+
+.effects h3.accordion-heading:before {
+  content: "\e606";
+}
+
+.animation h3.accordion-heading:before {
+  content: "\e607";
+}
+
+.games h3.accordion-heading:before {
+  content: "\e608";
+}
+
+.stories h3.accordion-heading:before {
+  content: "\e60a";
+}
+
+.music h3.accordion-heading:before {
+  content: "\e609";
+}
+
+.tutorial-dropdown-menu .dropdown-closed:after {
+  display: inline-block;
+  content: "\e603";
+}
+
+.tutorial-dropdown-menu .dropdown-opened:after {
+  display: inline-block;
+  content: "\e600";
+}
+
+.next-step-button:after {
+  content: "\e602";
+  float: right;
+  display: inline-block;
+  margin-right: 5px;
+}
+
+
+/* --------------- Next Button Styling --------------- */
+
+#tip-content .next-step-button {
+  display: block;
+  margin: 20px 0px 0px 0px;
+  color:white;
+  position: relative;
+  padding: 5px 5px 5px 10px;
+  -webkit-border-radius: 5px;
+    border-radius: 5px;
+    -webkit-linear
+  border: 1px solid #eee;
+  border-color: #1798c4 #1798c4 hsl(195, 79%, 38%);
+  background-color: #1DB0F0;
+  filter: progid:DXImageTransform.Microsoft.Gradient(startColorStr=#30aadf,endColorStr=#169fdb);
+  -webkit-box-shadow: inset 0 1px 0 rgba(255,255,255,0.2),0 1px 2px rgba(0,0,0,0.05);
+  -moz-box-shadow: inset 0 1px 0 rgba(255,255,255,0.2),0 1px 2px rgba(0,0,0,0.05);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.2),0 1px 2px rgba(0,0,0,0.05); 
+}
+
+#tip-content .next-step-button:hover {
+  background-color: #1AA0D8;
+}
+
+
+/* Content styling */
+
+#tip-content .motion h3{
+  background-color: #4a6cd4;
+}
+#tip-content .accordion-group.motion {
+  border-color:#4a6cd4;
+}
+#tip-content .looks h3{
+  background-color: #8a55d7;
+}
+#tip-content .accordion-group.looks {
+  border-color:#8a55d7;
+}
+
+#tip-content .sound h3{
+  background-color: #bb42c3;
+}
+#tip-content .accordion-group.sound {
+  border-color:#bb42c3;
+}
+
+#tip-content .pen h3{
+  background-color: #0e9a6c;
+}
+#tip-content .accordion-group.pen {
+  border-color:#0e9a6c;
+}
+
+#tip-content .data h3{
+  background-color: #ee7d16;
+}
+#tip-content .accordion-group.data {
+  border-color:#ee7d16;
+}
+
+#tip-content .events h3{
+  background-color: #c88330;
+}
+
+#tip-content .accordion-group.events {
+  border-color:#c88330;
+}
+
+/* Muratet --- */
+#tip-content .progandplay h3{
+  background-color: #ff0000;
+}
+
+#tip-content .accordion-group.progandplay {
+  border-color:#ff0000;
+}
+/* --- */
+
+#tip-content .control h3{
+  background-color: #e1a91a;
+}
+#tip-content .accordion-group.control {
+  border-color:#e1a91a;
+}
+
+#tip-content .sensing h3{
+  background-color: #2ca5e2;
+}
+#tip-content .accordion-group.sensing {
+  border-color:#2ca5e2;
+}
+
+#tip-content .operators h3{
+  background-color: #5cb712;
+}
+#tip-content .accordion-group.operators {
+  border-color:#5cb712;
+}
+
+#tip-content .more h3{
+  background-color: #672d79;
+}
+#tip-content .accordion-group.more {
+  border-color:#672d79;
+}
+
+#tip-content .extensions h3{
+  background-color: #672d79;
+}
+#tip-content .accordion-group.extensions {
+  border-color:#672d79;
+}
+
+
+#tip-content .multi-step h3.accordion-heading {
+  background-color: #bcbec0;
+}
+#tip-content .multi-step .accordion-group {
+  border-color: #bcbec0;
+}
+
+
+
+/* headers */
+#tip-content .header {
+  background-color: #CFDAE4;
+  color: #333;
+  border: 0px solid #CCC;
+  padding: 10px;
+  border-radius: 10px;
+  margin-top: 0px;
+  margin-bottom: 5px;
+}
+
+#tip-content .header h2 {
+  color: #333;
+  margin-top: 10px;
+}
+#tip-content .header h3 {
+  cursor: default;
+}
+
+#tip-content .header h4 {
+  color: #333;
+}
+
+/* contents */
+
+
+#tip-content .example {
+  background-color: #D7D7D7;
+  color: #333;
+  padding: 10px 10px 5px 10px;
+  border-radius: 10px;
+  margin-top: 10px;
+  margin-bottom: 5px;
+}
+
+#tip-content .steps {
+  color: #333;
+  padding-top: 15px;
+  margin-top: 15px;
+  border-top:  2px solid #ddd;
+}
+
+#tip-content .steps img {
+  padding-bottom: 10px;
+}
+
+#tip-content .steps .intext {
+  display: inline-block;
+  position: relative;
+  padding: 0px 3px;
+  max-height: 20px;
+  max-width: 30px;
+  margin-top: -4px;
+  bottom:-4px;
+}
+
+.clear {
+  clear:both;
+}
+
+#tip-content ul.step-index,
+#tip-content .step-index ul {
+  list-style-type: none;
+  margin: 0px;
+}
+
+#tip-content .step-index a {
+  display: block;
+}
+
+.index-num {
+  display: inline-block;
+  width: 20px;
+  height: 10px;
+  padding-bottom: 10px;
+  border-radius: 50%;
+  border: 1px solid #1AA0D8;  
+  text-align: center;
+  font-weight: bold;
+  font-size: 11px;  
+  margin-right: 6px;
+}
+
+.index-num:hover,
+.index-num.active,
+.step-index li:hover .index-num {
+  color:white;
+  background: #1AA0D8;
+}
+
+
+/* --------------- Colors for Coding Block References --------------- */
+
+.motioncolor {
+  color: #4A6CD4;
+  font-weight: bold;
+}
+
+.soundcolor {
+  color: #BB42C3;
+  font-weight: bold;
+}
+
+.controlcolor {
+  color: #cc9e2a;     
+  /* ^^^^^  This is not exact Control color (#E1A91A). It is slightly darker but more legible */
+  font-weight: bold;
+}
+
+.lookscolor {
+  color: #8A55D7;
+  font-weight: bold;
+}
+
+.datacolor {
+	color: #ED6015;
+	font-weight: bold;
+	}
+
+.eventscolor {
+  color: #C88330;
+  font-weight: bold;
+}
+
+.sensingcolor {
+  color: #009BD0;
+  font-weight: bold;
+}
+
+.operatorscolor {
+  color: #A0CC00;
+  font-weight: bold;
+}
+
+
+.tab-ref {
+  border-top: 1px solid #D0D1D2;
+  border-right: 1px solid #D0D1D2;
+  border-left: 1px solid #D0D1D2;
+  border-radius: 7px 7px 0px 0px;
+  padding: 4px 4px 0px 4px;
+  color: #636465;
+  background-color: #E6E8E8;
+}
+
+
+#tip-content .tips-video {
+  color: #333;
+  padding-top: 10px;
+  padding-bottom: 1px;
+  text-align: center;
+}
+
+
+#tip-content .steps.last {
+  margin-bottom: 23px; /* offset content from fixed floating nav */
+}
+
+#tip-content .maps {
+  background-color: #FFFFFF;
+  color: #333;
+  padding: 0 10px;
+   border-radius: 10px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+#tip-content .progress-bar {
+  background-color: #eee;
+  height: 5px;
+  left: 0;
+  top: 0;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  border-radius: 2px;
+  position: fixed;
+  z-index: 100;
+}
+
+#tip-content .progress-bar span {
+  display: inline-block;
+  height: 100%;
+  box-shadow: none;
+  -webkit-transition: width .1s ease-in-out;
+  -moz-transition: width .1s ease-in-out;
+  -ms-transition: width .1s ease-in-out;
+  -o-transition: width .1s ease-in-out;
+  transition: width .1s ease-in-out;
+}
+
+.in-progress span {
+  background-color: #49B3F0;
+}
+
+.finished span {
+  background-color: #41D967;
+}
+
+#tip-content .tutorial-dropdown-menu-bar {
+  height: 20px;
+  position: fixed;
+  top: 5px;
+  left: 0;
+  padding: 5px 0 5px 10px;
+  background-color: #ddd;
+  width: 100%;
+  z-index: 100;
+}
+
+.tutorial-dropdown-menu-bar .tutorial-menu-name {
+  float: left;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.tutorial-menu-name a {
+  color: #554747;
+}
+
+.tutorial-menu-name a:hover {
+  text-decoration: none;
+}
+
+.tutorial-dropdown-menu {
+  float: right;
+  padding: 0 20px 0 0;
+} 
+
+.tutorial-dropdown-menu nav ul,
+.tutorial-dropdown-menu nav:active ul {
+  display: block;
+  position: absolute;
+  padding: 0;
+  margin: 0;
+  background: #ddd;
+  border: none;
+  box-shadow: 0 5px 15px -5px #111;
+  width: 100%;
+  top: 30px;
+  left: 0;
+  text-decoration: none;
+}
+
+.tutorial-dropdown-menu nav li {
+  text-align: left;
+  margin: 0 10px 0 0;
+  padding: 0px;
+  width: 100%;
+  font-size: 10px;
+  border-top: 1px solid #eee;
+  font-size: 12px;
+}
+
+.tutorial-dropdown-menu nav li:hover {
+  background-color: #ccc;
+}
+
+.tutorial-dropdown-menu nav li a {
+  margin: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 5px 0 5px 10px;
+}
+
+.tutorial-dropdown-menu nav li a:hover {
+  text-decoration: none;
+}
+
+#tip-content .navcenter {
+  position: relative;
+  text-align: center;
+  height: 20px;
+  /* Muratet --- */
+  /*width: 291px;*/
+  width: 100%;
+  /* --- */
+  padding-top: 5px;
+  padding-bottom: 3px;
+  margin-left: -10px;
+  padding-left: 10px;
+}
+
+#tip-content .navigate {
+  vertical-align:top;
+}
+#tip-content .navigate a {
+  padding: 5px;
+  vertical-align:top;
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+
+#tip-content .navtext {
+  padding-left: 0px; 5px; 3px; 3px;
+}
+
+#tip-content .navtext a {
+  padding: 0px; 5px; 3px; 3px;
+}
+
+#tip-content .navigate img {
+  padding: 0px 5px;
+  height: 12px;
+  display: inline;
+  margin-top: 4px;
+}
+
+
+#tip-content .navigate.back {
+  position: absolute;
+  left: 0px;
+}
+
+#tip-content .navigate.next {
+  position: absolute;
+  right: 0px;
+}
+
+
+/* accordion style overrides */
+#tip-content .accordion {
+  margin-left: .1em;
+  margin-bottom: 10px;
+/* need a margin here so the body element isn't stuck at a fixed height when the accordion expands */
+}
+
+#tip-content .accordion-group{
+  margin-bottom:0;
+}
+
+#tip-content .accordion-group {
+  border: 6px solid #49b3f0;
+  border-radius: 6px;
+  border-left-width: 0px;
+  border-right-width: 0px;
+  margin-top: 10px;
+}
+
+#tip-content .accordion-heading > span{
+  color: #999;
+  margin-right: 5px;
+  width: 12px;
+  display: inline-block;
+  text-align:center;
+}
+
+#tip-content .accordion-heading.expanded {
+  background-color: #CCCCCF;
+}
+
+.tip-homescreen {
+  min-height: 100%;
+}
+
+#tip-content .tabs {
+  display: table;
+  border-collapse: separate;
+  border-spacing: 1px 0px;
+}
+
+.tips-home #tip-content .tabs {
+  margin-left: 15px;
+}
+
+#tip-content .h-tabs {
+  display: table-row;
+  margin-bottom: 0;
+  margin-left: 10px;
+}
+
+#tip-content .h-tabs li {
+  margin-right: 1px;
+  display: table-cell;
+  float: none;
+  padding: 2px 15px;
+  background-color: #dbddde;
+  border-color: #dbddde;
+  vertical-align: middle;
+  text-align: center;
+}
+
+#tip-content .h-tabs li a {
+  border: none;
+  padding: 0;
+}
+
+#tip-content .h-tabs li a:hover {
+  border-color: none;
+}
+
+#tip-content .h-tabs>li.active a,
+#tip-content .h-tabs>li.active {
+  border-color: #e6e7e8;
+}
+
+#tip-content .h-tabs li.active a,
+#tip-content .h-tabs li.active,
+.tip-homescreen{
+  background-color: #e6e7e8;
+}
+
+#tip-content .accordion-heading > a,
+#tip-content .accordion-body,
+#tip-content .indent {
+  padding-left: 20px;
+  display: block;
+}
+
+#tip-content .accordion-body {
+  height: 0px;
+  background-color: #f1f2f2;
+  overflow: hidden;
+}
+
+#tip-content .accordion-body .inner {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+#tip-content .tab-pane {
+  padding: 0 16px 16px 16px;
+}
+
+.tab-pane p {
+  padding-top: 10px;
+}
+
+#step-by-step .accordion-group {
+  height: 50px;
+  background: #fff;
+  border: none;
+}
+
+#step-by-step .accordion-group a {
+  display: block;
+}
+
+#step-by-step .accordion-group a:hover {
+  text-decoration: none;
+}
+
+#step-by-step .accordion-group a:after{
+  content: "\e602";
+  display: inline-block;
+  float: right;
+  margin-right: 5px;
+  line-height: 50px;
+}
+
+#step-by-step .accordion-group,
+#step-by-step .accordion-group img {
+  border-radius: 5px;
+}
+
+#step-by-step .accordion-group img {
+  height: 50px;
+  vertical-align: middle;
+  border-top-right-radius: 0px;
+  border-bottom-right-radius: 0px;
+  margin-right: 5px;
+}
+
+#step-by-step .accordion-group:hover {
+  background-color: #ddd;
+}
+
+.scroll-gradient {
+  height: 5px;
+  width: 100%;
+  position: fixed;
+  bottom: 0;
+  background: #eee;
+  margin-left: -10px;
+  box-shadow: 0px -5px 50px 35px #eee
+}
+

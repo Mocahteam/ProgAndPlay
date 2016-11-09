@@ -1,0 +1,21 @@
+<html> <head><meta charset=utf-8><link href=../../static/css/base.css rel=stylesheet><link href=../../static/css/modules/bootstrap-accordion.css rel=stylesheet><link href=../../static/css/pages/help.css rel=stylesheet><link href=../../static/css/modules/tabs.css rel=stylesheet><link href=../../static/css/modules/icons.css rel=stylesheet><link href=../../static/css/pages/tips.css rel=stylesheet><link href=../../static/css/modules/tip-bar.css rel=stylesheet><script type=text/javascript src=../../static/js/jquery.min.js></script></head> <body id=tips-standalone class> <div id=tip-content> <div class=multi-step> <div class="progress-bar in-progress"> <span id=tip-progress-bar style=width:63%></span> </div> <div class=tutorial-dropdown-menu-bar> <h3 class=tutorial-menu-name> <a href=makey-intro.html>MaKey MaKey and Scratch</a> </h3> <div class=tutorial-dropdown-menu> <nav> <a href=#.html id=tutorial-menu-icon class=dropdown-closed></a> <ul style=display:none;> <li class=page-link> <a href=makey1.html> <div class="index-num ">1</div> Plug in the MaKey MaKey </a> </li> <li class=page-link> <a href=makey2.html> <div class="index-num ">2</div> Connect to EARTH </a> </li> <li class=page-link> <a href=makey3.html> <div class="index-num ">3</div> Connect to SPACE </a> </li> <li class=page-link> <a href=makey4.html> <div class="index-num ">4</div> Try It! </a> </li> <li class=page-link> <a href=makey5.html> <div class="index-num active">5</div> Code and Customize </a> </li> <li class=page-link> <a href=makey6.html> <div class="index-num ">6</div> Add More Keys </a> </li> <li class=page-link> <a href=makey7.html> <div class="index-num ">7</div> Experiment and Create </a> </li> <li class=page-link> <a href=makey8.html> <div class="index-num ">8</div> Extra Tip: Quick Keys </a> </li> </ul> </nav> </div> </div> <div class=navcenter> <span class="navigate back"> <a href=makey4.html><img src=../../static/images/help/tip-arrow-back.png>Back</a> </span> <span class="navigate next"> <a href=makey6.html> Next <img src=../../static/images/help/tip-arrow-forward.png> </a> </span> </div> <h2>Code and Customize</h2> <div class=steps> <p>What do you want to happen in Scratch?</p> <p>If you’re in a blank project (with just the cat), try a script like this: </p><p><img src=../../static/images/help/ma-s5-i1.png></p> </div> <div class="steps last"> <p>If you’re in the Makey Makey drum or piano project, try adding or changing the sounds.</p> <a class=next-step-button href=makey6.html>Next, add more keys</a> </div> <div class=scroll-gradient></div> </div> </div> <script type=text/javascript>
+      var Scratch = Scratch || {};
+      Scratch.INIT_DATA = Scratch.INIT_DATA || {};
+      Scratch.INIT_DATA.COI = {
+        TARGET_DOMAIN: "http://scratch.mit.edu"
+      };
+    </script> <script type=text/javascript src=../../static/js/lib/json2.js></script> <script type=text/javascript src=../../static/js/lib/underscore-min.js></script> <script type=text/javascript src=../../static/js/lib/backbone-min.js></script> <script type=text/javascript src=../../static/js/bootstrap-accordion.js></script> <script type=text/javascript src=../../static/js/bootstrap-tab.js></script> <script type=text/javascript src=../../static/js/views/backbone-extensions.js></script> <script type=text/javascript src=../../static/js/views/cross-origin-interface.js></script> <script type=text/javascript src=../../static/js/views/tips.js></script> <script type=text/javascript>
+      /* Initialize progress bar and navcenter translation */
+      $(function($){
+        $(document).on('click', '#tutorial-menu-icon', function() {
+            $('.tutorial-dropdown-menu nav ul').toggle();
+            if ($('#tutorial-menu-icon').hasClass('dropdown-opened')) {
+                $('#tutorial-menu-icon').removeClass('dropdown-opened');
+                $('#tutorial-menu-icon').addClass('dropdown-closed');
+            } else {
+                $('#tutorial-menu-icon').removeClass('dropdown-closed');
+                $('#tutorial-menu-icon').addClass('dropdown-opened');
+            }
+        })
+      });
+    </script> </body> </html>
