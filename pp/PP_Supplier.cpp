@@ -55,7 +55,6 @@ static void deleteCommandQueue(ShCommandVector * commandQueue){
 
 /*
  * Add a command queue to the shared library
- * commandQueue: the command queue to delete
  */
 static ShCommandVector * addCommandQueue(PP_ShortUnit unit){
 	// creates a name for the commandQueue
@@ -101,7 +100,7 @@ static void removeUnitFromItsCoalition(ShUnit unit){
 /* Functions to communicate with the client                                  */
 /*****************************************************************************/
 
-int PP_Init(void){
+int PP_Init(){
 	if (!initialized){
 		// creates the shared memory
 		try{
@@ -115,6 +114,10 @@ int PP_Init(void){
 			// constructs elements of the shared memory
 			shd.mutex = segment->find_or_construct<ShMutex>("mutex")();
 			shd.gameOver = segment->find_or_construct<bool>("gameOver")();
+			shd.gamePaused = segment->find_or_construct<bool>("gamePaused")();
+			shd.tracePlayer = segment->find_or_construct<bool>("tracePlayer")();
+			*(shd.tracePlayer) = false; // init trace functionality to false by default
+			shd.timestamp = segment->find_or_construct<int>("timestamp")();
 			const ShMapDataAllocator mapDataAlloc_inst
 				(segment->get_segment_manager());
 			shd.units = segment->find_or_construct<ShMapUnits>("units")
@@ -182,6 +185,45 @@ int PP_SetGameOver(bool gameOver){
 	boost::interprocess::scoped_lock<ShMutex> lock(*(shd.mutex));
 	// update gameOver in shared memory
 	*(shd.gameOver) = gameOver;
+	// mutex is automatically freed when the bloc ended (thanks "scoped_lock") usefull if exception thrown
+	return 0;
+}
+
+int PP_SetGamePaused(bool gamePaused) {
+	if (!initialized) {
+		PP_SetError("PP_SetGamePaused : Prog&Play is not initialized");
+		return -1;
+	}
+	// takes mutex
+	boost::interprocess::scoped_lock<ShMutex> lock(*(shd.mutex));
+	// update gamePaused in shared memory
+	*(shd.gamePaused) = gamePaused;
+	// mutex is automatically freed when the bloc ended (thanks "scoped_lock") usefull if exception thrown
+	return 0;
+}
+
+int PP_SetTracePlayer() {
+	if (!initialized) {
+		PP_SetError("PP_SetTracePlayer : Prog&Play is not initialized");
+		return -1;
+	}
+	// takes mutex
+	boost::interprocess::scoped_lock<ShMutex> lock(*(shd.mutex));
+	// set trace state to true in shared memory
+	*(shd.tracePlayer) = true;
+	// mutex is automatically freed when the bloc ended (thanks "scoped_lock") usefull if exception thrown
+	return 0;
+}
+
+int PP_UpdateTimestamp(int timestamp) {
+	if (!initialized) {
+		PP_SetError("PP_UpdateTimestamp : Prog&Play is not initialized");
+		return -1;
+	}
+	// takes mutex
+	boost::interprocess::scoped_lock<ShMutex> lock(*(shd.mutex));
+	// update timestamp in shared memory
+	*(shd.timestamp) = timestamp;
 	// mutex is automatically freed when the bloc ended (thanks "scoped_lock") usefull if exception thrown
 	return 0;
 }
@@ -467,6 +509,7 @@ char * PP_PopMessage(){
 	}
 	// takes mutex
 	boost::interprocess::scoped_lock<ShMutex> lock(*(shd.mutex));
+	
 	// extract first message from the shared memory
 	if (shd.history->size() > 0){
 		// We get message from shared memory ...

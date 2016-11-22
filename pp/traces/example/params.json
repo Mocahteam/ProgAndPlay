@@ -1,0 +1,113 @@
+{
+	"PP_IsGameOver": {
+		"return": false
+	},
+	"PP_GetMapSize": {
+		"return": false
+	},
+	"PP_GetStartPosition": {
+		"return": false
+	},
+	"PP_GetNumSpecialAreas": {
+		"return": false
+	},
+	"PP_GetSpecialAreaPosition": {
+		"return": false,
+		"specialAreaId": true
+	},
+	"PP_GetResource": {
+		"return": false,
+		"resourceId": true
+	},
+	"PP_GetNumUnits": {
+		"return": false,
+		"coalition": true
+	},
+	"PP_GetUnitAt": {
+		"return": false,
+		"coalition": true,
+		"index": false
+	},
+	"PP_Unit_GetCoalition": {
+		"return": false,
+		"unitId": false,
+		"unitType": false
+	},
+	"PP_Unit_GetType": {
+		"return": false,
+		"unitId": false,
+		"unitType": false
+	},
+	"PP_Unit_GetPosition": {
+		"return": false,
+		"unitId": false,
+		"unitType": false
+	},
+	"PP_Unit_GetHealth": {
+		"return": false,
+		"unitId": false,
+		"unitType": false
+	},
+	"PP_Unit_GetMaxHealth": {
+		"return": false,
+		"unitId": false,
+		"unitType": false
+	},
+	"PP_Unit_GetPendingCommands": {
+		"unitId": false,
+		"unitType": false
+	},
+	"PP_Unit_GetGroup": {
+		"return": false,
+		"unitId": false,
+		"unitType": false
+	},
+	"PP_Unit_SetGroup": {
+		"unitId": false,
+		"unitType": false,
+		"groupId": false
+	},
+	"PP_Unit_ActionOnUnit": {
+		"unitId": false,
+		"unitType": false,
+		"action": true,
+		"targetId": false,
+		"targetType": false
+	},
+	"PP_Unit_ActionOnPosition": {
+		"unitId": false,
+		"unitType": false,
+		"action": true,
+		"position": false
+	},
+	"PP_Unit_UntargetedAction": {
+		"unitId": false,
+		"unitType": false,
+		"action": true,
+		"param": false
+	},
+	"PP_Unit_GetNumPdgCmds": {
+		"return": false,
+		"unitId": false,
+		"unitType": false
+	},
+	"PP_Unit_PdgCmd_GetCode": {
+		"return": false,
+		"unitId": false,
+		"unitType": false,
+		"idCmd": false
+	},
+	"PP_Unit_PdgCmd_GetNumParams": {
+		"return": false,
+		"unitId": false,
+		"unitType": false,
+		"idCmd": false
+	},
+	"PP_Unit_PdgCmd_GetParam": {
+		"return": false,
+		"unitId": false,
+		"unitType": false,
+		"idCmd": false,
+		"idParam": false
+	}
+}

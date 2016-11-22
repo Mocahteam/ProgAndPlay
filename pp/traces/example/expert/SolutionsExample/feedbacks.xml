@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feedbacks>
+	<feedback type="call_lack" priority="0">
+		<expert>
+			<call label="PP_GetUnitAt"/>
+		</expert>
+		<infos lang="fr">
+			<info>Exemple de feedback propre à une mission<info>
+		</infos>
+		<infos lang="en">
+			<info>Example of mission specific feedback</info>
+		</infos>
+	</feedback>
+</feedbacks>

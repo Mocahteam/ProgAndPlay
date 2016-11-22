@@ -40,7 +40,7 @@ endif
 # Addition of "-I" in front of each source directories
 INCLUDES = $(foreach tmp, $(INCLUDE_DIRS),-I$(tmp)) 
 
-all: $(CIBLE_CLIENT) $(CIBLE_SUPPLIER)
+all: $(CIBLE_CLIENT) $(CIBLE_SUPPLIER) compile_traces
 
 $(CIBLE_CLIENT): PP_Client.o PP_Error.o
 	g++ -shared -o $@ $^ $(OPTLIB_CLIENT)
@@ -59,8 +59,13 @@ PP_Error.o: PP_Error.c PP_Error.h PP_Error_Private.h
 
 clean:
 	rm $(SUPPR)
+	@(cd ./traces && $(MAKE) $@)
 	
-install: install_supplier $(INSTALL_CLIENT)
+compile_traces:
+	@echo "compilation de pp-traces ============================================="
+	@(cd ./traces && $(MAKE))
+	
+install: install_supplier $(INSTALL_CLIENT) install_traces
 
 install_supplier: $(REP_SUPPLIER)/PP_Error.c $(REP_SUPPLIER)/PP_Error.h $(REP_SUPPLIER)/PP_Error_Private.h  $(REP_SUPPLIER)/PP.h $(REP_SUPPLIER)/PP_Private.h $(REP_SUPPLIER)/PP_Supplier.cpp $(REP_SUPPLIER)/PP_Supplier.h
 
@@ -87,7 +92,7 @@ $(REP_SUPPLIER)/PP_Supplier.h: PP_Supplier.h
 
 # Windows => copy new dll
 # Linux, it is better that using symbolic links. Then, it is not necessary to make a copy of library
-install_client: $(REP_CLIENT)/ada/exemples/$(CIBLE_CLIENT) $(REP_CLIENT)/c-cpp/exemple/$(CIBLE_CLIENT) $(REP_CLIENT)/compalgo/$(CIBLE_CLIENT) $(REP_CLIENT)/java/$(CIBLE_CLIENT) $(REP_CLIENT)/ocaml/$(CIBLE_CLIENT) $(REP_CLIENT)/scratch1.4/$(CIBLE_CLIENT) $(REP_CLIENT)/scratch2.0/Scratch/air/Scratchbundle.air/$(CIBLE_CLIENT) ./test/$(CIBLE_CLIENT)
+install_client: $(REP_CLIENT)/ada/exemples/$(CIBLE_CLIENT) $(REP_CLIENT)/c-cpp/exemple/$(CIBLE_CLIENT) $(REP_CLIENT)/compalgo/$(CIBLE_CLIENT) $(REP_CLIENT)/java/$(CIBLE_CLIENT) $(REP_CLIENT)/ocaml/$(CIBLE_CLIENT) $(REP_CLIENT)/scratch/$(CIBLE_CLIENT) $(REP_CLIENT)/python/$(CIBLE_CLIENT) ./test/$(CIBLE_CLIENT)
 
 $(REP_CLIENT)/ada/exemples/$(CIBLE_CLIENT): $(CIBLE_CLIENT)
 	cp $(CIBLE_CLIENT) ../Client_Interfaces/ada/exemples/
@@ -111,5 +116,12 @@ $(REP_CLIENT)/scratch1.4/$(CIBLE_CLIENT): $(CIBLE_CLIENT)
 $(REP_CLIENT)/scratch2.0/Scratch/air/Scratchbundle.air/$(CIBLE_CLIENT): $(CIBLE_CLIENT)
 	cp $(CIBLE_CLIENT) $(REP_CLIENT)/scratch2.0/Scratch/air/Scratchbundle.air
 	
+$(REP_CLIENT)/python/$(CIBLE_CLIENT): $(CIBLE_CLIENT)
+	cp $(CIBLE_CLIENT) $(REP_CLIENT)/python
+	
 ./test/$(CIBLE_CLIENT): $(CIBLE_CLIENT)
 	cp $(CIBLE_CLIENT) ./test
+	
+install_traces:
+	@echo "installation de pp-traces ============================================="
+	@(cd ./traces && $(MAKE) install)

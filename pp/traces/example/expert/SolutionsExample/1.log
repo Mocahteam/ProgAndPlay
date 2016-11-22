@@ -1,0 +1,10 @@
+start Mission1
+mission_start_time 1463495071
+execution_start_time 1463495075
+PP_Open
+PP_GetUnitAt 0 0 - 638
+PP_Unit_ActionOnPosition 638_4 10 1983 1279
+PP_Close
+execution_end_time 1463495075
+mission_end_time 1463495080
+end won Mission1

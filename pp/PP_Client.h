@@ -109,6 +109,13 @@ int PP_Close(void);
 int PP_IsGameOver(void);
 
 /**
+ * \brief Checks if the game is paused.
+ * \return positive value if the game is paused and 0 if not. -1 is returned on
+ *         errors.
+ */
+int PP_IsGamePaused(void);
+
+/**
  * \brief Returns map size.
  * 
  * Returns map size as a PP_Pos. Fields of PP_Pos are the max values available

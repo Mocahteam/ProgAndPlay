@@ -170,6 +170,12 @@ typedef struct {
 	ShMutex *mutex;
 	/* Indicates if the game is over */
 	bool *gameOver;
+	/* Indicates if the game is paused */
+	bool *gamePaused;
+	/* Indicates if traces will be generated */
+	bool *tracePlayer;
+	/* Contains a timestamp updated by the game engine */
+	int *timestamp;
 	/* Contains all units visible by the player */
 	ShMapUnits *units;
 	/* Contains units which are dispatched according to their coalition */
