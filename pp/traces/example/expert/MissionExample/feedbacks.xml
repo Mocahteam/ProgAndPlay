@@ -5,7 +5,7 @@
 			<call label="PP_GetUnitAt"/>
 		</expert>
 		<infos lang="fr">
-			<info>Exemple de feedback propre à une mission<info>
+			<info>Exemple de feedback propre à une mission</info>
 		</infos>
 		<infos lang="en">
 			<info>Example of mission specific feedback</info>

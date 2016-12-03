@@ -82,16 +82,13 @@ int Trace::inArray(const char *ch, const char *arr[]) {
 	return -1;
 }
 
-Trace::sp_trace Trace::getNeighbour(const std::vector<Trace::sp_trace>& traces, const Trace::sp_trace& spt, int add_to_ind) {
-	Trace::sp_trace nbh;
-	int ind = -1;
-	for (unsigned int i = 0; i < traces.size(); i++) {
-		if (traces.at(i) == spt) {
-			ind = i;
-			break;
-		}
-	}
-	if (ind > -1 && ind + add_to_ind >= 0 && ind + add_to_ind < (int)traces.size())
-		nbh = traces.at(ind + add_to_ind);
-	return nbh;
+unsigned int Trace::getLength(const std::vector<Trace::sp_trace>& traces, int ind_start, int ind_end) {
+	if (ind_end == -1)
+		ind_end = traces.size();
+	if (ind_start < ind_end && (ind_start < 0 || ind_start >= (int)traces.size()))
+		throw std::runtime_error("invalid index used in getLength() function");
+	unsigned int len = 0;
+	for (int i = ind_start; i < ind_end; i++)
+		len += traces.at(i)->length();
+	return len;
 }

@@ -11,64 +11,64 @@ REP_CONT = ../../../SpringPP/$(SPRING_VERSION)/cont/traces/data
 LDFLAGS = -I../../../SpringPP/$(SPRING_VERSION)/mingwlibs/include
 RM = rm
 
-%.o: %.cpp         # combined w/ next line will compile recently changed .c files
+%.o: %.cpp        # combined w/ next line will compile recently changed .c files
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ -c $<
 
 .PHONY : all     # .PHONY ignores files named all
 all: $(EXE)      # all is dependent on $(EXE) to be complete
 
-$(EXE): $(OBJ)   # $(EXE) is dependent on all of the files in $(OBJ) to exist
+$(EXE): $(OBJ)  # $(EXE) is dependent on all of the files in $(OBJ) to exist
 	$(CC) $(OBJ) -o $@
 
 install: $(REP_CONT)/params.json $(REP_CONT)/feedbacks.xml $(REP_TRACES)/TracesParser.cpp $(REP_TRACES)/TracesParser.h $(REP_TRACES)/TracesAnalyser.cpp $(REP_TRACES)/TracesAnalyser.h $(REP_TRACES)/Trace.cpp $(REP_TRACES)/Trace.h $(REP_TRACES)/Sequence.cpp $(REP_TRACES)/Sequence.h $(REP_TRACES)/Call.cpp $(REP_TRACES)/Call.h $(REP_TRACES)/CallDef.h $(REP_TRACES)/Event.cpp $(REP_TRACES)/Event.h $(REP_TRACES)/EventDef.h
 
-$(REP_CONT)/params.json: ./params.json
-	cp ./params.json $(REP_CONT)
-	
-$(REP_CONT)/feedbacks.xml: ./feedbacks.xml
-	cp ./feedbacks.xml $(REP_CONT)
+$(REP_CONT)/params.json: ./example/params.json
+	cp ./example/params.json $(REP_CONT)
 
-$(REP_TRACES)/TracesParser.cpp: src/TracesParser.cpp
-	cp src/TracesParser.cpp $(REP_TRACES)
+$(REP_CONT)/feedbacks.xml: ./example/feedbacks.xml
+	cp ./example/feedbacks.xml $(REP_CONT)
 
-$(REP_TRACES)/TracesParser.h: src/TracesParser.h
-	cp src/TracesParser.h $(REP_TRACES)
-	
-$(REP_TRACES)/TracesAnalyser.cpp: src/TracesAnalyser.cpp
-	cp src/TracesAnalyser.cpp $(REP_TRACES)
+$(REP_TRACES)/TracesParser.cpp: TracesParser.cpp
+	cp TracesParser.cpp $(REP_TRACES)
 
-$(REP_TRACES)/TracesAnalyser.h: src/TracesAnalyser.h
-	cp src/TracesAnalyser.h $(REP_TRACES)
-	
-$(REP_TRACES)/Trace.cpp: src/Trace.cpp
-	cp src/Trace.cpp $(REP_TRACES)
-	
-$(REP_TRACES)/Trace.h: src/Trace.h
-	cp src/Trace.h $(REP_TRACES)
-	
-$(REP_TRACES)/Sequence.cpp: src/Sequence.cpp
-	cp src/Sequence.cpp $(REP_TRACES)
-	
-$(REP_TRACES)/Sequence.h: src/Sequence.h
-	cp src/Sequence.h $(REP_TRACES)
-	
-$(REP_TRACES)/Call.cpp: src/Call.cpp
-	cp src/Call.cpp $(REP_TRACES)
-	
-$(REP_TRACES)/Call.h: src/Call.h
-	cp src/Call.h $(REP_TRACES)
-	
-$(REP_TRACES)/CallDef.h: src/CallDef.h
-	cp src/CallDef.h $(REP_TRACES)
-	
-$(REP_TRACES)/Event.cpp: src/Event.cpp
-	cp src/Event.cpp $(REP_TRACES)
-	
-$(REP_TRACES)/Event.h: src/Event.h
-	cp src/Event.h $(REP_TRACES)
-	
-$(REP_TRACES)/EventDef.h: src/EventDef.h
-	cp src/EventDef.h $(REP_TRACES)
+$(REP_TRACES)/TracesParser.h: TracesParser.h
+	cp TracesParser.h $(REP_TRACES)
+
+$(REP_TRACES)/TracesAnalyser.cpp: TracesAnalyser.cpp
+	cp TracesAnalyser.cpp $(REP_TRACES)
+
+$(REP_TRACES)/TracesAnalyser.h: TracesAnalyser.h
+	cp TracesAnalyser.h $(REP_TRACES)
+
+$(REP_TRACES)/Trace.cpp: Trace.cpp
+	cp Trace.cpp $(REP_TRACES)
+
+$(REP_TRACES)/Trace.h: Trace.h
+	cp Trace.h $(REP_TRACES)
+
+$(REP_TRACES)/Sequence.cpp: Sequence.cpp
+	cp Sequence.cpp $(REP_TRACES)
+
+$(REP_TRACES)/Sequence.h: Sequence.h
+	cp Sequence.h $(REP_TRACES)
+
+$(REP_TRACES)/Call.cpp: Call.cpp
+	cp Call.cpp $(REP_TRACES)
+
+$(REP_TRACES)/Call.h: Call.h
+	cp Call.h $(REP_TRACES)
+
+$(REP_TRACES)/CallDef.h: CallDef.h
+	cp CallDef.h $(REP_TRACES)
+
+$(REP_TRACES)/Event.cpp: Event.cpp
+	cp Event.cpp $(REP_TRACES)
+
+$(REP_TRACES)/Event.h: Event.h
+	cp Event.h $(REP_TRACES)
+
+$(REP_TRACES)/EventDef.h: EventDef.h
+	cp EventDef.h $(REP_TRACES)
 
 .PHONY : clean   # .PHONY ignores files named clean
 clean:

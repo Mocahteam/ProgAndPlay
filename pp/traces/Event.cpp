@@ -1,7 +1,8 @@
 #include "Event.h"
+#include "TraceConstantList.h"
 
-const char* Event::concatEventsArr[] = {"game_paused", "game_unpaused", NULL};
-const char* Event::noConcatEventsArr[] = {"start_mission", "end_mission", "new_execution", "end_execution", "eof", NULL};
+const char* Event::concatEventsArr[] = {GAME_PAUSED, GAME_UNPAUSED, NULL};
+const char* Event::noConcatEventsArr[] = {START_MISSION, END_MISSION, NEW_EXECUTION, END_EXECUTION, "eof", NULL};
 
 Event::Event(std::string label, std::string info) : Trace(EVENT,info), label(label) {}
 

@@ -1,9 +1,9 @@
-mission name : Mission1
+mission name : MissionExample
 mission start time : 1463495071
 	execution start time : 1463495075
 		PP_Open
-		PP_GetUnitAt 0 0 - 638
-		PP_Unit_ActionOnPosition 638_4 10 1983 1279
+		PP_GetUnitAt 0 0 - 227
+		PP_Unit_ActionOnPosition 227_4 10 1056 1792
 		PP_Close
 	execution end time : 1463495075
 status : won
