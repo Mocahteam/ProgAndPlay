@@ -253,6 +253,11 @@ private:
 	static int mission_end_time;
 
 	/**
+	  * La valeur du timestamp de début d'exécution d'une tentative de résolution.
+	  */
+	static int execution_start_time;
+
+	/**
 	  * L'événement de fin de mission. Cet objet doit être conservé car l'événement de fin de mission n'est pas forcément la dernière trace dans un fichier de traces brutes.
 	  */
 	static Trace::sp_trace spe_eme;

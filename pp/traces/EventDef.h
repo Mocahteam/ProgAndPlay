@@ -83,10 +83,11 @@ class NewExecutionEvent : public Event {
 
 public:
 
-	NewExecutionEvent(int start_time): Event(NEW_EXECUTION), start_time(start_time) {}
+	NewExecutionEvent(int start_time, std::string prog_lang_used): Event(NEW_EXECUTION), start_time(start_time), prog_lang_used(prog_lang_used) {}
 
 	NewExecutionEvent(const NewExecutionEvent *nee): Event(nee) {
 		start_time = nee->start_time;
+		prog_lang_used = nee->prog_lang_used;
 	}
 
 	virtual Trace::sp_trace clone() const {
@@ -94,16 +95,22 @@ public:
 	}
 
 	virtual std::string getParams() const {
-		return boost::lexical_cast<std::string>(start_time);
+		return boost::lexical_cast<std::string>(start_time) + " " + prog_lang_used;
 	}
 
 	int getStartTime() const {
 		return start_time;
 	}
 
+	std::string getProgrammingLangageUsed() const {
+		return prog_lang_used;
+	}
+
 private:
 
 	int start_time;
+
+	std::string prog_lang_used;
 
 };
 

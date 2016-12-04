@@ -144,9 +144,9 @@ std::string TracesAnalyser::constructFeedback(const std::string& learner_xml, co
 	double best_score = 0;
 	std::vector<Trace::sp_trace> learner_traces = TracesParser::importTraceFromXml(learner_xml);
 	if (getInfosOnMission(learner_traces, learner_gi, ind_mission)) {
+		int ind_best = -1;
+		bool reimport = false;
 		if (getInfosOnExecution(learner_gi, ind_execution)) {
-			int ind_best = -1;
-			bool reimport = false;
 			for(unsigned int i = 0; i < experts_xml.size(); i++) {
 				if (reimport) {
 					learner_traces = TracesParser::importTraceFromXml(learner_xml);
@@ -154,7 +154,9 @@ std::string TracesAnalyser::constructFeedback(const std::string& learner_xml, co
 					getInfosOnExecution(learner_gi, ind_execution);
 				}
 				std::vector<Trace::sp_trace> expert_traces = TracesParser::importTraceFromXml(experts_xml.at(i));
-				if (getInfosOnMission(expert_traces, expert_gi) && getInfosOnExecution(expert_gi)) {
+				// filtrage des solutions expertes non compatibles avec le langage de programmation utilisé par le joueur
+				if (getInfosOnMission(expert_traces, expert_gi) && getInfosOnExecution(expert_gi) && expert_gi.nee->getProgrammingLangageUsed().compare(learner_gi.nee->getProgrammingLangageUsed()) == 0) {
+					osAnalyser << "solution experte analysée : "+expert_gi.nee->getProgrammingLangageUsed() << std::endl;
 					Call::call_vector expert_calls = expert_gi.root_sps->getCalls(true);
 					for (unsigned int j = 0; j < expert_calls.size(); j++) {
 						if (experts_calls_freq.find(expert_calls.at(j)->getKey()) != experts_calls_freq.end())
@@ -165,13 +167,13 @@ std::string TracesAnalyser::constructFeedback(const std::string& learner_xml, co
 					reimport = addImplicitSequences(learner_gi.root_sps, expert_gi.root_sps);
 					if (reimport) {
 						osAnalyser << "learner traces have been modified" << std::endl;
-						learner_gi.root_sps->display();
+						learner_gi.root_sps->display(osAnalyser);
 					}
 					else
 						osAnalyser << "learner traces have not been modified" << std::endl;
 					if (addImplicitSequences(expert_gi.root_sps, learner_gi.root_sps)) {
 						osAnalyser << "expert traces have been modified" << std::endl;
-						expert_gi.root_sps->display();
+						expert_gi.root_sps->display(osAnalyser);
 					}
 					else
 						osAnalyser << "expert traces have not been modified" << std::endl;
@@ -192,116 +194,120 @@ std::string TracesAnalyser::constructFeedback(const std::string& learner_xml, co
 					}
 				}
 			}
-			if (ind_best > -1) {
-				std::map<std::string,double>::iterator it = experts_calls_freq.begin();
-				while (it != experts_calls_freq.end())
-					(it++)->second /= experts_xml.size();
-				osAnalyser << "expert program " << ind_best << " has been chosen for alignment with learner traces" << std::endl;
-				osAnalyser << "similarity score : " << best_score << std::endl;
-				std::vector<Trace::sp_trace> expert_traces = TracesParser::importTraceFromXml(experts_xml.at(ind_best));
-				if (getInfosOnMission(expert_traces, expert_gi) && getInfosOnExecution(expert_gi)) {
-					if (reimport) {
-						learner_traces = TracesParser::importTraceFromXml(learner_xml);
-						getInfosOnMission(learner_traces, learner_gi, ind_mission);
-						getInfosOnExecution(learner_gi, ind_execution);
-					}
-					addImplicitSequences(learner_gi.root_sps, expert_gi.root_sps);
-					addImplicitSequences(expert_gi.root_sps, learner_gi.root_sps);
+		}
 
-					// Align roots
-					learner_gi.root_sps->setAligned(expert_gi.root_sps);
-					expert_gi.root_sps->setAligned(learner_gi.root_sps);
-
-					findBestAlignment(learner_gi.root_sps->getTraces(), expert_gi.root_sps->getTraces());
-					displayAlignment(learner_gi.root_sps->getTraces(), expert_gi.root_sps->getTraces());
+		// Si une solution experte a été trouvée
+		if (ind_best > -1) {
+			std::map<std::string,double>::iterator it = experts_calls_freq.begin();
+			while (it != experts_calls_freq.end())
+				(it++)->second /= experts_xml.size();
+			osAnalyser << "expert program " << ind_best << " has been chosen for alignment with learner traces" << std::endl;
+			osAnalyser << "similarity score : " << best_score << std::endl;
+			std::vector<Trace::sp_trace> expert_traces = TracesParser::importTraceFromXml(experts_xml.at(ind_best));
+			if (getInfosOnMission(expert_traces, expert_gi) && getInfosOnExecution(expert_gi)) {
+				if (reimport) {
+					learner_traces = TracesParser::importTraceFromXml(learner_xml);
+					getInfosOnMission(learner_traces, learner_gi, ind_mission);
+					getInfosOnExecution(learner_gi, ind_execution);
 				}
-			}
-		}
+				addImplicitSequences(learner_gi.root_sps, expert_gi.root_sps);
+				addImplicitSequences(expert_gi.root_sps, learner_gi.root_sps);
 
-		int num_attempts = learner_gi.getNumExecutions();
-		doc.AddMember("num_attempts", num_attempts, allocator); // nombre de tentatives
-		double time = learner_gi.getExecutionTime();
-		if (time != -1)
-			doc.AddMember("execution_time", time, allocator); // temps d'execution de la derniere tentative
-		time = expert_gi.getExecutionTime();
-		if (time != -1)
-			doc.AddMember("ref_execution_time", time, allocator); // temps d'execution reference
-		if (learner_gi.eme != NULL) {
-			if (learner_gi.eme->getStatus().compare("won") == 0) {
-				time = learner_gi.getResolutionTime();
-				if (time != -1)
-					doc.AddMember("resolution_time", time, allocator); // temps de resolution de la mission
-				time = expert_gi.getResolutionTime();
-				if (time != -1)
-					doc.AddMember("ref_resolution_time", time, allocator); // temps de resolution reference
+				// Align roots
+				learner_gi.root_sps->setAligned(expert_gi.root_sps);
+				expert_gi.root_sps->setAligned(learner_gi.root_sps);
+
+				findBestAlignment(learner_gi.root_sps->getTraces(), expert_gi.root_sps->getTraces());
+				displayAlignment(learner_gi.root_sps->getTraces(), expert_gi.root_sps->getTraces());
 			}
-			time = learner_gi.getAverageWaitTime();
+
+			int num_attempts = learner_gi.getNumExecutions();
+			doc.AddMember("num_attempts", num_attempts, allocator); // nombre de tentatives
+			double time = learner_gi.getExecutionTime();
 			if (time != -1)
-				doc.AddMember("exec_mean_wait_time", time, allocator); // temps d'attente moyen entre deux tentatives
-			doc.AddMember("won", learner_gi.eme->getStatus().compare("won") == 0, allocator); // victoire / defaite
-		}
-		doc.AddMember("score", std::floor(best_score * 100), allocator); // score
-
-		if (loaded) {
-			if (num_attempts == 0) {
-				std::string msg;
-				if (messages_map.find("no_execution_detected") != messages_map.end())
-					msg = messages_map.at("no_execution_detected");
-				else
-					msg = "No execution has been detected";
-				rapidjson::Value arrWarnings(rapidjson::kArrayType);
-				rapidjson::Value f(msg.c_str(), msg.size(), allocator);
-				arrWarnings.PushBack(f, allocator);
-				doc.AddMember("warnings", arrWarnings, allocator);
+				doc.AddMember("execution_time", time, allocator); // temps d'execution de la derniere tentative
+			time = expert_gi.getExecutionTime();
+			if (time != -1)
+				doc.AddMember("ref_execution_time", time, allocator); // temps d'execution reference
+			if (learner_gi.eme != NULL) {
+				if (learner_gi.eme->getStatus().compare("won") == 0) {
+					time = learner_gi.getResolutionTime();
+					if (time != -1)
+						doc.AddMember("resolution_time", time, allocator); // temps de resolution de la mission
+					time = expert_gi.getResolutionTime();
+					if (time != -1)
+						doc.AddMember("ref_resolution_time", time, allocator); // temps de resolution reference
+				}
+				time = learner_gi.getAverageWaitTime();
+				if (time != -1)
+					doc.AddMember("exec_mean_wait_time", time, allocator); // temps d'attente moyen entre deux tentatives
+				doc.AddMember("won", learner_gi.eme->getStatus().compare("won") == 0, allocator); // victoire / defaite
 			}
-			else {
-				if (endless_loop) {
+			doc.AddMember("score", std::floor(best_score * 100), allocator); // score
+
+			if (loaded) {
+				if (num_attempts == 0) {
 					std::string msg;
-					if (learner_gi.eme != NULL && messages_map.find("endless_loop") != messages_map.end())
-						msg = messages_map.at("endless_loop");
-					else if (learner_gi.eme == NULL && messages_map.find("probable_endless_loop") != messages_map.end())
-						msg = messages_map.at("probable_endless_loop");
+					if (messages_map.find("no_execution_detected") != messages_map.end())
+						msg = messages_map.at("no_execution_detected");
 					else
-						msg = "Endless loop detected";
+						msg = "No execution has been detected";
 					rapidjson::Value arrWarnings(rapidjson::kArrayType);
 					rapidjson::Value f(msg.c_str(), msg.size(), allocator);
 					arrWarnings.PushBack(f, allocator);
 					doc.AddMember("warnings", arrWarnings, allocator);
 				}
-				if (!ref_feedbacks.empty()) {
-					if (!feedbacks.empty())
-						feedbacks.clear();
-					listAlignmentFeedbacks(learner_gi.root_sps->getTraces(), expert_gi.root_sps->getTraces());
-					listGlobalFeedbacks();
-					bindFeedbacks();
-					std::sort(feedbacks.begin(), feedbacks.end());
-					filterFeedbacks();
-
-					unsigned int num_max_downgrads = std::max(1, num_attempts / NUM_DOWNGRADS), cpt_downgrads = 0, cpt_feedbacks = 0;
-					osAnalyser << "num_max_downgrads : " << num_max_downgrads << std::endl;
-					rapidjson::Value arrInfos(rapidjson::kArrayType);
-					osAnalyser << "complete list of feedbacks" << std::endl;
-					osAnalyser << "_________" << std::endl;
-					for(unsigned int i = 0; i < feedbacks.size(); i++) {
-						osAnalyser << "feedback num " << i << std::endl;
-						if (cpt_feedbacks < NUM_MAX_FEEDBACKS) {
-							osAnalyser << "num_max_feedbacks not reached" << std::endl;
-							if (i > 1 && feedbacks.at(i).priority > feedbacks.at(i-1).priority)
-								cpt_downgrads++;
-							if (cpt_downgrads <= num_max_downgrads) {
-								rapidjson::Value f(feedbacks.at(i).info.c_str(), feedbacks.at(i).info.size(), allocator);
-								arrInfos.PushBack(f, allocator);
-								cpt_feedbacks++;
-								osAnalyser << "feedback added" << std::endl;
-							}
-						}
-						feedbacks.at(i).display(osAnalyser);
+				else {
+					if (endless_loop) {
+						std::string msg;
+						if (learner_gi.eme != NULL && messages_map.find("endless_loop") != messages_map.end())
+							msg = messages_map.at("endless_loop");
+						else if (learner_gi.eme == NULL && messages_map.find("probable_endless_loop") != messages_map.end())
+							msg = messages_map.at("probable_endless_loop");
+						else
+							msg = "Endless loop detected";
+						rapidjson::Value arrWarnings(rapidjson::kArrayType);
+						rapidjson::Value f(msg.c_str(), msg.size(), allocator);
+						arrWarnings.PushBack(f, allocator);
+						doc.AddMember("warnings", arrWarnings, allocator);
 					}
-					osAnalyser << "_________" << std::endl;
+					if (!ref_feedbacks.empty()) {
+						if (!feedbacks.empty())
+							feedbacks.clear();
+						listAlignmentFeedbacks(learner_gi.root_sps->getTraces(), expert_gi.root_sps->getTraces());
+						listGlobalFeedbacks();
+						bindFeedbacks();
+						std::sort(feedbacks.begin(), feedbacks.end());
+						filterFeedbacks();
 
-					doc.AddMember("feedbacks", arrInfos, allocator);
+						unsigned int num_max_downgrads = std::max(1, num_attempts / NUM_DOWNGRADS), cpt_downgrads = 0, cpt_feedbacks = 0;
+						osAnalyser << "num_max_downgrads : " << num_max_downgrads << std::endl;
+						rapidjson::Value arrInfos(rapidjson::kArrayType);
+						osAnalyser << "complete list of feedbacks" << std::endl;
+						osAnalyser << "_________" << std::endl;
+						for(unsigned int i = 0; i < feedbacks.size(); i++) {
+							osAnalyser << "feedback num " << i << std::endl;
+							if (cpt_feedbacks < NUM_MAX_FEEDBACKS) {
+								osAnalyser << "num_max_feedbacks not reached" << std::endl;
+								if (i > 1 && feedbacks.at(i).priority > feedbacks.at(i-1).priority)
+									cpt_downgrads++;
+								if (cpt_downgrads <= num_max_downgrads) {
+									rapidjson::Value f(feedbacks.at(i).info.c_str(), feedbacks.at(i).info.size(), allocator);
+									arrInfos.PushBack(f, allocator);
+									cpt_feedbacks++;
+									osAnalyser << "feedback added" << std::endl;
+								}
+							}
+							feedbacks.at(i).display(osAnalyser);
+						}
+						osAnalyser << "_________" << std::endl;
+
+						doc.AddMember("feedbacks", arrInfos, allocator);
+					}
 				}
 			}
+		} else{
+			osAnalyser << "No expert trace match to analyse "+learner_gi.nee->getProgrammingLangageUsed()+" learner solution." << std::endl;
 		}
 	}
 	rapidjson::StringBuffer s;
@@ -408,9 +414,9 @@ bool TracesAnalyser::getInfosOnExecution(GameInfos& gi, int ind_execution) {
 
 bool TracesAnalyser::addImplicitSequences(Sequence::sp_sequence& mod_sps, Sequence::sp_sequence& ref_sps) const {
 	osAnalyser << "mod : " << std::endl;
-	mod_sps->display();
+	mod_sps->display(osAnalyser);
 	osAnalyser << "ref : " << std::endl;
-	ref_sps->display();
+	ref_sps->display(osAnalyser);
 	Trace::sp_trace spt;
 	Sequence::sp_sequence sps = ref_sps;
 	sps->reset();
@@ -429,7 +435,7 @@ bool TracesAnalyser::addImplicitSequences(Sequence::sp_sequence& mod_sps, Sequen
 				sps = boost::dynamic_pointer_cast<Sequence>(spt);
 				stack.push(sps);
 				osAnalyser << "sps" << std::endl;
-				sps->display();
+				sps->display(osAnalyser);
 				Call::call_vector pattern = sps->getCalls();
 				// looking for the pattern in mod_sps calls
 				std::vector<Call::call_vector> patterns = getPatterns(mod_sps,pattern);
@@ -437,7 +443,7 @@ bool TracesAnalyser::addImplicitSequences(Sequence::sp_sequence& mod_sps, Sequen
 				for (unsigned int i = 0; i < patterns.size(); i++) {
 					// for each pattern found in mod_sps calls we search a common parent with the maximum level in the tree
 					const Sequence::sp_sequence common_parent = getClosestCommonParent(patterns.at(i));
-					common_parent->display();
+					common_parent->display(osAnalyser);
 					if ((common_parent->isRoot() || common_parent->length() > sps->length()) && common_parent->getLevel() == sps->getLevel()-1) {
 						change = true;
 						Sequence::sp_sequence new_sps = boost::make_shared<Sequence>(1);
@@ -544,13 +550,13 @@ std::pair<double,double> TracesAnalyser::findBestAlignment(const std::vector<Tra
 	char** help = new char*[lsize];
 	osAnalyser << "begin findBestAlignment" << std::endl;
 	for (unsigned int i = 0; i < l.size(); i++) {
-		l.at(i)->display();
+		l.at(i)->display(osAnalyser);
 		if (align)
 			l.at(i)->resetAligned();
 	}
 	osAnalyser << std::endl;
 	for (unsigned int j = 0; j < e.size(); j++) {
-		e.at(j)->display();
+		e.at(j)->display(osAnalyser);
 		if (align)
 			e.at(j)->resetAligned();
 	}
@@ -747,9 +753,9 @@ void TracesAnalyser::bindFeedbacks() {
 				else if (score == max_score && (ind_max == -1 || ref_feedbacks.at(ind_max).priority > ref_feedbacks.at(j).priority))
 					ind_max = j;
 				osAnalyser << "---" << std::endl;
-				feedbacks.at(i).display();
+				feedbacks.at(i).display(osAnalyser);
 				osAnalyser << std::endl;
-				ref_feedbacks.at(j).display();
+				ref_feedbacks.at(j).display(osAnalyser);
 				osAnalyser << std::endl;
 				osAnalyser << "score :" << score << std::endl;
 				osAnalyser << "---" << std::endl;

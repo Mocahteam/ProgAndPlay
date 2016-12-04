@@ -1,0 +1,201 @@
+{
+	"PP_Open": {
+		"call_type": "CallWithNoParam",
+		"C_public_label": "PP_Open",
+		"Python_public_label": "PP_Open",
+		"Ada_public_label": "Open"
+	},
+	"PP_Close": {
+		"call_type": "CallWithNoParam",
+		"C_public_label": "PP_Close",
+		"Python_public_label": "PP_Close",
+		"Ada_public_label": "Close"
+	},
+	"PP_IsGameOver": {
+		"call_type": "CallWithNoParam",
+		"C_public_label": "PP_IsGameOver",
+		"Python_public_label": "PP_IsGameOver",
+		"Ada_public_label": "IsGameOver",
+		"OCaml_public_label": "isGameOver",
+		"return": false
+	},
+	"PP_GetMapSize": {
+		"call_type": "CallWithNoParam",
+		"C_public_label": "PP_GetMapSize",
+		"Python_public_label": "PP_GetMapSize",
+		"Ada_public_label": "GetMapSize",
+		"OCaml_public_label": "getMapSize",
+		"return": false
+	},
+	"PP_GetStartPosition": {
+		"call_type": "CallWithNoParam",
+		"C_public_label": "PP_GetStartPosition",
+		"Python_public_label": "PP_GetStartPosition",
+		"Ada_public_label": "GetStartPosition",
+		"OCaml_public_label": "getStartPosition",
+		"return": false
+	},
+	"PP_GetNumSpecialAreas": {
+		"call_type": "CallWithNoParam",
+		"C_public_label": "PP_GetNumSpecialAreas",
+		"Python_public_label": "PP_GetNumSpecialAreas",
+		"Ada_public_label": "GetNumSpecialAreas",
+		"return": false
+	},
+	"PP_GetSpecialAreaPosition": {
+		"call_type": "CallWithIntParam",
+		"C_public_label": "PP_GetSpecialAreaPosition",
+		"Python_public_label": "PP_GetSpecialAreaPosition",
+		"Ada_public_label": "GetSpecialAreaPosition",
+		"return": false,
+		"specialAreaId": true
+	},
+	"PP_GetSpecialAreas": {
+		"call_type": "CallWithNoParam",
+		"OCaml_public_label": "getSpecialAreas"
+	},
+	"PP_GetResource": {
+		"call_type": "CallWithIntParam",
+		"C_public_label": "PP_GetResource",
+		"Python_public_label": "PP_GetResource",
+		"Ada_public_label": "GetResource",
+		"OCaml_public_label": "getResource",
+		"return": false,
+		"resourceId": true
+	},
+	"PP_GetNumUnits": {
+		"call_type": "CallWithIntParam",
+		"C_public_label": "PP_GetNumUnits",
+		"Python_public_label": "PP_GetNumUnits",
+		"Ada_public_label": "GetNumUnits",
+		"return": false,
+		"coalition": true
+	},
+	"PP_GetUnitAt": {
+		"call_type": "CallWithIntIntParams",
+		"C_public_label": "PP_GetUnitAt",
+		"Python_public_label": "PP_GetUnitAt",
+		"Ada_public_label": "GetUnitAt",
+		"return": false,
+		"coalition": true,
+		"index": false
+	},
+	"PP_GetUnits": {
+		"call_type": "CallWithIntParam",
+		"OCaml_public_label": "getEntities",
+		"coalition": true
+	},
+	"PP_Unit_GetCoalition": {
+		"call_type": "CallWithUnitParam",
+		"C_public_label": "PP_Unit_GetCoalition",
+		"Python_public_label": "PP_Unit_GetCoalition",
+		"Ada_public_label": "GetCoalition",
+		"OCaml_public_label": "getCoalition",
+		"return": false,
+		"unitId": false,
+		"unitType": false
+	},
+	"PP_Unit_GetType": {
+		"call_type": "CallWithUnitParam",
+		"C_public_label": "PP_Unit_GetType",
+		"Python_public_label": "PP_Unit_GetType",
+		"Ada_public_label": "GetType",
+		"OCaml_public_label": "getType",
+		"return": false,
+		"unitId": false,
+		"unitType": false
+	},
+	"PP_Unit_GetPosition": {
+		"call_type": "CallWithUnitParam",
+		"C_public_label": "PP_Unit_GetPosition",
+		"Python_public_label": "PP_Unit_GetPosition",
+		"Ada_public_label": "GetPosition",
+		"OCaml_public_label": "getPosition",
+		"return": false,
+		"unitId": false,
+		"unitType": false
+	},
+	"PP_Unit_GetHealth": {
+		"call_type": "CallWithUnitParam",
+		"C_public_label": "PP_Unit_GetHealth",
+		"Python_public_label": "PP_Unit_GetHealth",
+		"Ada_public_label": "GetHealth",
+		"OCaml_public_label": "getHealth",
+		"return": false,
+		"unitId": false,
+		"unitType": false
+	},
+	"PP_Unit_GetMaxHealth": {
+		"call_type": "CallWithUnitParam",
+		"C_public_label": "PP_Unit_GetMaxHealth",
+		"Python_public_label": "PP_Unit_GetMaxHealth",
+		"Ada_public_label": "GetMaxHealth",
+		"OCaml_public_label": "getMaxHealth",
+		"return": false,
+		"unitId": false,
+		"unitType": false
+	},
+	"PP_Unit_GetPendingCommands": {
+		"call_type": "CallWithUnitParam",
+		"C_public_label": "PP_Unit_GetPendingCommands",
+		"Python_public_label": "PP_Unit_GetPendingCommands",
+		"Ada_public_label": "GetPendingCommands",
+		"OCaml_public_label": "getPendingCommands",
+		"unitId": false,
+		"unitType": false
+	},
+	"PP_Unit_GetGroup": {
+		"call_type": "CallWithUnitParam",
+		"C_public_label": "PP_Unit_GetGroup",
+		"Python_public_label": "PP_Unit_GetGroup",
+		"Ada_public_label": "GetGroup",
+		"OCaml_public_label": "getGroup",
+		"return": false,
+		"unitId": false,
+		"unitType": false
+	},
+	"PP_Unit_SetGroup": {
+		"call_type": "CallWithUnitIntParams",
+		"C_public_label": "PP_Unit_SetGroup",
+		"Python_public_label": "PP_Unit_SetGroup",
+		"Ada_public_label": "SetGroup",
+		"OCaml_public_label": "setGroup",
+		"unitId": false,
+		"unitType": false,
+		"groupId": false
+	},
+	"PP_Unit_ActionOnUnit": {
+		"call_type": "CallWithUnitIntUnitParams",
+		"C_public_label": "PP_Unit_ActionOnUnit",
+		"Python_public_label": "PP_Unit_ActionOnUnit",
+		"Ada_public_label": "CarryOutCommand",
+		"OCaml_public_label": "actionOnEntity",
+		"unitId": false,
+		"unitType": false,
+		"action": true,
+		"targetId": false,
+		"targetType": false
+	},
+	"PP_Unit_ActionOnPosition": {
+		"call_type": "CallWithUnitIntPosParams",
+		"C_public_label": "PP_Unit_ActionOnPosition",
+		"Python_public_label": "PP_Unit_ActionOnPosition",
+		"Ada_public_label": "CarryOutCommand",
+		"OCaml_public_label": "actionOnPosition",
+		"unitId": false,
+		"unitType": false,
+		"action": true,
+		"position": false
+	},
+	"PP_Unit_UntargetedAction": {
+		"call_type": "CallWithUnitIntFloatParams",
+		"C_public_label": "PP_Unit_UntargetedAction",
+		"Python_public_label": "PP_Unit_UntargetedAction",
+		"Ada_public_label": "CarryOutCommand",
+		"OCaml_public_label": "untargetedAction",
+		"unitId": false,
+		"unitType": false,
+		"action": true,
+		"param": false
+	}
+}

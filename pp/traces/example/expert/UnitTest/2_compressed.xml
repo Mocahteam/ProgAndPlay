@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <trace>
 	<mission name="UnitTest" start_time="1463495071" end_time="1463495080" status="won">
-		<execution start_time="1463495075" programming_language_used="C" end_time="1463495075">
+		<execution start_time="1463495075" programming_language_used="Python" end_time="1463495075">
 			<call label="PP_Open"/>
 			<call label="PP_IsGameOver" return="0"/>
 			<call label="PP_GetMapSize" return="2000 2000"/>

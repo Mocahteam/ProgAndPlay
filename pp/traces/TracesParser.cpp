@@ -6,6 +6,7 @@
 
 int TracesParser::lineNum = 0;
 int TracesParser::mission_end_time = 0;
+int TracesParser::execution_start_time = 0;
 std::string TracesParser::mission_name = "";
 Trace::sp_trace TracesParser::spe_eme;
 
@@ -85,7 +86,7 @@ void TracesParser::endParse() {
 }
 
 void TracesParser::writeFiles() {
-	display();
+	display(osParser);
 	std::string s = "\\" + filename;
 	s.replace(s.find(".log"), 4, "_compressed.txt");
 	s.insert(0, dir_path);
@@ -258,9 +259,11 @@ Trace::sp_trace TracesParser::handleLine(const std::string& s) {
 			ind++;
 		}
 		if (tokens[ind].compare(EXECUTION_START_TIME) == 0) {
-			t = new NewExecutionEvent(stoi(tokens[ind+1]));
+			TracesParser::execution_start_time = stoi(tokens[ind+1]);
 		}
 		else if (tokens[ind].compare(PROGRAMMING_LANGUAGE_USED) == 0) {
+			// Création de l'évènement
+			t = new NewExecutionEvent(TracesParser::execution_start_time, tokens[ind+1]);
 			// Chargement du fichier params en fonction du langage utilisé
 			#ifdef DEBUG
 			 	osParser << "Try to open params.json file from mods directory ([MODS]/traces/)" << std::endl;
@@ -740,7 +743,8 @@ void TracesParser::display(std::ostream &os) {
 				os << "status : " << eme->getStatus() << std::endl << "mission end time : " << eme->getEndTime() << std::endl;
 			}
 			else if (e->getLabel().compare(NEW_EXECUTION) == 0) {
-				os << "\texecution start time : " << dynamic_cast<NewExecutionEvent*>(e)->getStartTime() << std::endl;
+				NewExecutionEvent *nee = dynamic_cast<NewExecutionEvent*>(e);
+				os << "\texecution start time : " << nee->getStartTime() << std::endl << "\tprogramming_language_used " << nee->getProgrammingLangageUsed() << std::endl;
 				e->numTab = 1;
 			}
 			else if (e->getLabel().compare(END_EXECUTION) == 0) {
@@ -772,7 +776,7 @@ std::vector<Trace::sp_trace> TracesParser::importTraceFromXml(const std::string&
 				#ifdef DEBUG
 				 	osParser << i << " " << traces.at(i) << std::endl;
 				#endif
-				traces.at(i)->display();
+				traces.at(i)->display(osParser);
 			}
 		}
 	}
@@ -819,7 +823,7 @@ void TracesParser::importTraceFromNode(rapidxml::xml_node<> *node, std::vector<T
 				node = node->first_node();
 			}
 			else if (node_name.compare("execution") == 0) {
-				traces.push_back(boost::make_shared<NewExecutionEvent>(atoi(node->first_attribute("start_time")->value())));
+				traces.push_back(boost::make_shared<NewExecutionEvent>(atoi(node->first_attribute("start_time")->value()), node->first_attribute("programming_language_used")->value()));
 				node_stack.push(node);
 				node = node->first_node();
 			}
@@ -933,10 +937,12 @@ void TracesParser::exportTraceToXml() {
 					node_stack.pop();
 				}
 				else if (e->getLabel().compare(NEW_EXECUTION) == 0) {
+					NewExecutionEvent *nee = dynamic_cast<NewExecutionEvent*>(e);
 					if (node_stack.size() > 2)
 						node_stack.pop();
 					node = doc.allocate_node(rapidxml::node_element, "execution");
-					node->append_attribute(doc.allocate_attribute("start_time", doc.allocate_string(boost::lexical_cast<std::string>(dynamic_cast<NewExecutionEvent*>(e)->getStartTime()).c_str())));
+					node->append_attribute(doc.allocate_attribute("start_time", doc.allocate_string(boost::lexical_cast<std::string>(nee->getStartTime()).c_str())));
+					node->append_attribute(doc.allocate_attribute("programming_language_used", doc.allocate_string(nee->getProgrammingLangageUsed().c_str())));
 					node_stack.top()->append_node(node);
 					node_stack.push(node);
 				}
