@@ -1,0 +1,30 @@
+start UnitTest
+mission_start_time 1463495071
+execution_start_time 1463495075
+programming_language_used Scratch
+PP_Open
+PP_IsGameOver - 0
+PP_GetMapWidth - 2000
+PP_GetMapHeight - 2000
+PP_GetStartXPosition - 1000
+PP_GetStartYPosition - 1000
+PP_GetNumSpecialAreas - 12
+PP_GetSpecialAreaXPosition 2 - 250
+PP_GetSpecialAreaYPosition 2 - 250
+PP_GetResource 0 - 550
+PP_GetNumUnits 0 - 20
+PP_GetUnitAtIndexFirst 0 0 - 227
+PP_Unit_BelongTo 227_4 0 - 1
+PP_Unit_IsType 227_4 4 - 1
+PP_Unit_GetXPosition 227_4 - 133
+PP_Unit_GetYPosition 227_4 - 133
+PP_Unit_GetHealth 227_4 - 278
+PP_Unit_GetMaxHealth 227_4 - 300
+PP_Unit_GetGroup 227_4 - 3
+PP_Unit_GetNumPdgCmds 227_4 - 2
+PP_Unit_PdgCmd_IsEqualTo 0 227_4 10 - 1
+PP_Unit_PdgCmd_GetNumParams 0 227_4 - 2
+PP_Unit_PdgCmd_GetParam 0 0 227_4 - 2.5
+execution_end_time 1463495075
+mission_end_time 1463495080
+end won UnitTest

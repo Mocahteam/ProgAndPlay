@@ -142,18 +142,18 @@ std::string TracesAnalyser::constructFeedback(const std::string& learner_xml, co
 	rapidjson::Document::AllocatorType& allocator = doc.GetAllocator();
 	doc.SetObject();
 	double best_score = 0;
-	std::vector<Trace::sp_trace> learner_traces = TracesParser::importTraceFromXml(learner_xml);
+	std::vector<Trace::sp_trace> learner_traces = TracesParser::importTraceFromXml(learner_xml, osAnalyser);
 	if (getInfosOnMission(learner_traces, learner_gi, ind_mission)) {
 		int ind_best = -1;
 		bool reimport = false;
 		if (getInfosOnExecution(learner_gi, ind_execution)) {
 			for(unsigned int i = 0; i < experts_xml.size(); i++) {
 				if (reimport) {
-					learner_traces = TracesParser::importTraceFromXml(learner_xml);
+					learner_traces = TracesParser::importTraceFromXml(learner_xml, osAnalyser);
 					getInfosOnMission(learner_traces, learner_gi, ind_mission);
 					getInfosOnExecution(learner_gi, ind_execution);
 				}
-				std::vector<Trace::sp_trace> expert_traces = TracesParser::importTraceFromXml(experts_xml.at(i));
+				std::vector<Trace::sp_trace> expert_traces = TracesParser::importTraceFromXml(experts_xml.at(i), osAnalyser);
 				// filtrage des solutions expertes non compatibles avec le langage de programmation utilisé par le joueur
 				if (getInfosOnMission(expert_traces, expert_gi) && getInfosOnExecution(expert_gi) && expert_gi.nee->getProgrammingLangageUsed().compare(learner_gi.nee->getProgrammingLangageUsed()) == 0) {
 					osAnalyser << "solution experte analysée : "+expert_gi.nee->getProgrammingLangageUsed() << std::endl;
@@ -203,10 +203,10 @@ std::string TracesAnalyser::constructFeedback(const std::string& learner_xml, co
 				(it++)->second /= experts_xml.size();
 			osAnalyser << "expert program " << ind_best << " has been chosen for alignment with learner traces" << std::endl;
 			osAnalyser << "similarity score : " << best_score << std::endl;
-			std::vector<Trace::sp_trace> expert_traces = TracesParser::importTraceFromXml(experts_xml.at(ind_best));
+			std::vector<Trace::sp_trace> expert_traces = TracesParser::importTraceFromXml(experts_xml.at(ind_best), osAnalyser);
 			if (getInfosOnMission(expert_traces, expert_gi) && getInfosOnExecution(expert_gi)) {
 				if (reimport) {
-					learner_traces = TracesParser::importTraceFromXml(learner_xml);
+					learner_traces = TracesParser::importTraceFromXml(learner_xml, osAnalyser);
 					getInfosOnMission(learner_traces, learner_gi, ind_mission);
 					getInfosOnExecution(learner_gi, ind_execution);
 				}

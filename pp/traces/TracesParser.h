@@ -175,10 +175,11 @@ public:
 	  * Cette fonction permet de construire un vecteur de traces à partir d'une chaîne de caractères au format XML. Le document XML correspondant constitue une sauvegarde des informations et des traces relatifs à un ou plusieurs lancements de mission.
 	  *
 	  * \param xml la chaîne de caractères correspondant au contenu du document XML.
+	  * \param xml le flux sur dans lequel afficher les logs.
 	  *
 	  * \return le vecteur de traces construit à la fin de l'import.
 	  */
-	static std::vector<Trace::sp_trace> importTraceFromXml(const std::string& xml);
+	static std::vector<Trace::sp_trace> importTraceFromXml(const std::string& xml, std::ostream& os);
 
 	/**
 	  * \brief Importation de traces à partir d'un noeud de document XML.

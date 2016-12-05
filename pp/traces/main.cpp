@@ -153,6 +153,7 @@ int main(int argc, char *argv[]) {
 			}
 			std::string filename = argv[1];
 			filename.replace(filename.find(".log"), 4, "");
+			std::cout << "construct feedbacks" << std::endl;
 			std::string json = ta.constructFeedback(loadFile(std::string(dir_path) + "\\" + filename + "_compressed.xml"), experts_xml);
 			std::cout << json << std::endl;
 			std::ofstream jsonFile;

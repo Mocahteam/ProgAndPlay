@@ -147,6 +147,14 @@
 				<info>Check the value of the coalition used as a parameter.</info>
 			</infos>
 		</message>
+		<message id="typeToCheck">
+			<infos lang="fr">
+				<info>Vérifiez le type que vous passez en paramètres.</info>
+			</infos>
+			<infos lang="en">
+				<info>Check the type used as a parameter.</info>
+			</infos>
+		</message>
 		<message id="index">
 			<infos lang="fr">
 				<info>Vérifiez l'index que vous passez en paramètres.</info>
@@ -157,10 +165,10 @@
 		</message>
 		<message id="unitType">
 			<infos lang="fr">
-				<info>Vous ne devriez peut-être pas appeler cette fonction en passant ce type d'unité.</info>
+				<info>Vous ne devriez peut-être pas appeler cette fonction en passant une unité de ce type.</info>
 			</infos>
 			<infos lang="en">
-				<info>Maybe you shouldn't call this function with this type of unit.</info>
+				<info>Maybe you shouldn't call this function with a unit of this type.</info>
 			</infos>
 		</message>
 		<message id="groupId">
@@ -197,10 +205,34 @@
 		</message>
 		<message id="param">
 			<infos lang="fr">
-				<info>Vérifiez la valeur du paramètre fourni.</info>
+				<info>Vérifiez la valeur du paramètre.</info>
 			</infos>
 			<infos lang="en">
-				<info>Check the value of the given parameter.</info>
+				<info>Check the value of the parameter.</info>
+			</infos>
+		</message>
+		<message id="param1">
+			<infos lang="fr">
+				<info>Vérifiez la valeur du premier paramètre.</info>
+			</infos>
+			<infos lang="en">
+				<info>Check the value of the first parameter.</info>
+			</infos>
+		</message>
+		<message id="param2">
+			<infos lang="fr">
+				<info>Vérifiez la valeur du second paramètre.</info>
+			</infos>
+			<infos lang="en">
+				<info>Check the value of the second parameter.</info>
+			</infos>
+		</message>
+		<message id="param3">
+			<infos lang="fr">
+				<info>Vérifiez la valeur du troisième paramètre.</info>
+			</infos>
+			<infos lang="en">
+				<info>Check the value of the third parameter.</info>
 			</infos>
 		</message>
 		<message id="idCmd">

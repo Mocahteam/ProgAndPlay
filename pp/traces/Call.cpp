@@ -34,7 +34,7 @@ double Call::getEditDistance(const Call *c) const {
 	if (key.compare(c->key) == 0 && error == c->error) {
 		double dis = 0;
 		unsigned int tot = 2;
-		if (ind_ret != 0 && c->ind_ret != 0) {
+		if (ind_ret != 0 && c->ind_ret != 0 && key.compare("PP_GetUnitAt") != 0 && key.compare("PP_GetUnitAtIndexFirst") != 0) {
 			tot++;
 			if (!compareReturn(c))
 				dis++;
@@ -55,7 +55,7 @@ void Call::filterCall(const Call *c) {
 
 std::vector<std::string> Call::getListIdWrongParams(Call *c) const {
 	std::vector<std::string> ids;
-	if (ind_ret != 0 && c->ind_ret != 0 && !compareReturn(c))
+	if (ind_ret != 0 && c->ind_ret != 0 && key.compare("PP_GetUnitAt") != 0 && key.compare("PP_GetUnitAtIndexFirst") != 0 && !compareReturn(c))
 		ids.push_back("return");
 	std::vector<std::string> _ids = id_wrong_params(c);
 	ids.insert(ids.end(), _ids.begin(), _ids.end());

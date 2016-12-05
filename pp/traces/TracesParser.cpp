@@ -330,6 +330,47 @@ Trace::sp_trace TracesParser::handleLine(const std::string& s) {
 				int p2 = (ind+2 <= numTokens-1) ? stoi(tokens[ind+2]) : -1;
 				t = new CallWithIntIntParams(err,tokens[ind],p1,p2);
 			}
+			// Gestion des appels prenant en paramètre un entier, une unité et un entier
+			else if (Call::callMaps.getCallType(tokens[ind]).compare(CALL_WITH_INT_UNIT_INT_PARAMS) == 0) {
+				int p1 = (ind+1 <= numTokens-1) ? stoi(tokens[ind+1]) : -1;
+				// Récupération de l'id de l'unité et de son type (séparés par un "_")
+				int unitId = -1, unitType = -1;
+				if (ind+2 <= numTokens-1) {
+					std::vector<std::string> unitParamTokens = splitLine(tokens[ind+2],'_');
+					unitId = stoi(unitParamTokens[0]);
+					if (unitParamTokens.size() == 2)
+						unitType = stoi(unitParamTokens[1]);
+				}
+				int p2 = (ind+3 <= numTokens-1) ? stoi(tokens[ind+3]) : -1;
+				t = new CallWithIntUnitIntParams(err,tokens[ind],p1,unitId,unitType,p2);
+			}
+			// Gestion des appels prenant en paramètre un entier et une unité
+			else if (Call::callMaps.getCallType(tokens[ind]).compare(CALL_WITH_INT_UNIT_PARAMS) == 0) {
+				int p1 = (ind+1 <= numTokens-1) ? stoi(tokens[ind+1]) : -1;
+				// Récupération de l'id de l'unité et de son type (séparés par un "_")
+				int unitId = -1, unitType = -1;
+				if (ind+2 <= numTokens-1) {
+					std::vector<std::string> unitParamTokens = splitLine(tokens[ind+2],'_');
+					unitId = stoi(unitParamTokens[0]);
+					if (unitParamTokens.size() == 2)
+						unitType = stoi(unitParamTokens[1]);
+				}
+				t = new CallWithIntUnitParams(err,tokens[ind],p1,unitId,unitType);
+			}
+			// Gestion des appels prenant en paramètre deux entiers et une unité
+			else if (Call::callMaps.getCallType(tokens[ind]).compare(CALL_WITH_INT_INT_UNIT_PARAMS) == 0) {
+				int p1 = (ind+1 <= numTokens-1) ? stoi(tokens[ind+1]) : -1;
+				int p2 = (ind+2 <= numTokens-1) ? stoi(tokens[ind+2]) : -1;
+				// Récupération de l'id de l'unité et de son type (séparés par un "_")
+				int unitId = -1, unitType = -1;
+				if (ind+3 <= numTokens-1) {
+					std::vector<std::string> unitParamTokens = splitLine(tokens[ind+3],'_');
+					unitId = stoi(unitParamTokens[0]);
+					if (unitParamTokens.size() == 2)
+						unitType = stoi(unitParamTokens[1]);
+				}
+				t = new CallWithIntIntUnitParams(err,tokens[ind],p1,p2,unitId,unitType);
+			}
 			else {
 				// Dans ce cas, nous sommes sur un appel avec une unité en paramètres
 				// Récupération de l'id de l'unité et de son type (séparés par un "_")
@@ -759,7 +800,7 @@ void TracesParser::display(std::ostream &os) {
 		Trace::numTab = 0;
 }
 
-std::vector<Trace::sp_trace> TracesParser::importTraceFromXml(const std::string& xml) {
+std::vector<Trace::sp_trace> TracesParser::importTraceFromXml(const std::string& xml, std::ostream& os) {
 	std::vector<Trace::sp_trace> traces;
 	try {
 		std::vector<char> xml_content(xml.begin(), xml.end());
@@ -769,20 +810,20 @@ std::vector<Trace::sp_trace> TracesParser::importTraceFromXml(const std::string&
 		rapidxml::xml_node<> *root_node = doc.first_node("trace");
 		if (root_node != 0) {
 			#ifdef DEBUG
-				osParser << "begin import from XML file" << std::endl;
+				os << "begin import from XML file" << std::endl;
 			#endif
 			importTraceFromNode(root_node->first_node(),traces);
 			for (unsigned int i = 0; i < traces.size(); i++){
 				#ifdef DEBUG
-				 	osParser << i << " " << traces.at(i) << std::endl;
+				 	os << i << " " << traces.at(i) << std::endl;
 				#endif
-				traces.at(i)->display(osParser);
+				traces.at(i)->display(os);
 			}
 		}
 	}
 	catch (const std::runtime_error& e) {
 		#ifdef DEBUG
-			osParser << e.what() << std::endl;
+			os << e.what() << std::endl;
 		#endif
 	}
 	return traces;
