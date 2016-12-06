@@ -310,7 +310,7 @@ private:
 	}
 
 	virtual std::string getReadableParams() const {
-		return "(" + ((Call::units_id_map.find(unit.type) != Call::units_id_map.end()) ? Call::units_id_map.at(unit.type) : "_") + ")";
+		return "(" + ((Call::units_id_map.find(unit.type) != Call::units_id_map.end()) ? Call::units_id_map.at(unit.type)+" unit" : "_") + ")";
 	}
 
 	virtual std::vector<std::string> id_wrong_params(Call *c) const {
@@ -356,6 +356,8 @@ private:
 			return false;
 		if ((Call::callMaps.contains(key,"unitId") && unit.id != cc->unit.id) || (Call::callMaps.contains(key,"unitType") && unit.type != cc->unit.type) || (Call::callMaps.contains(key,"typeToCheck") && param != cc->param))
 			return false;
+		if ((Call::callMaps.contains(key,"unitId") && unit.id != cc->unit.id) || (Call::callMaps.contains(key,"unitType") && unit.type != cc->unit.type) || (Call::callMaps.contains(key,"action") && param != cc->param))
+			return false;
 		return true;
 	}
 
@@ -365,7 +367,7 @@ private:
 			unit.id = -1;
 		if (!Call::callMaps.contains(key,"unitType") && unit.type != cc->unit.type && unit.type != -1)
 			unit.type = -1;
-		if (!Call::callMaps.contains(key,"groupId") && !Call::callMaps.contains(key,"coalition") && !Call::callMaps.contains(key,"typeToCheck") && param != cc->param && param != -1)
+		if (!Call::callMaps.contains(key,"groupId") && !Call::callMaps.contains(key,"coalition") && !Call::callMaps.contains(key,"typeToCheck") && !Call::callMaps.contains(key,"action") && param != cc->param && param != -1)
 			param = -1;
 	}
 
@@ -391,11 +393,15 @@ private:
 
 	virtual std::string getReadableParams() const {
 		std::string s = "(";
-		s += (Call::units_id_map.find(unit.type) != Call::units_id_map.end()) ? Call::units_id_map.at(unit.type) : "_";
+		s += (Call::units_id_map.find(unit.type) != Call::units_id_map.end()) ? Call::units_id_map.at(unit.type)+" unit" : "_";
 		s += ",";
 		if (Call::callMaps.contains(key,"coalition"))
 			s += (error == Call::NONE && param != CallMisc::NONE) ? std::string(Call::getEnumLabel<int>(param,Call::coalitionsArr)) : "_";
-		else // case for "groupId", "typeToCheck", and default case
+		else if (Call::callMaps.contains(key,"typeToCheck"))
+			s += (param != -1 && Call::units_id_map.find(param) != Call::units_id_map.end()) ? Call::units_id_map.at(param) : "_";
+		else if (Call::callMaps.contains(key,"action"))
+			s += (param != -1 && Call::orders_map.find(param) != Call::orders_map.end()) ? Call::orders_map.at(param) : "_";
+		else // case for "groupId", and default case
 			s += (param != -1) ? boost::lexical_cast<std::string>(param) : "_";
 		s += ")";
 		return s;
@@ -416,6 +422,8 @@ private:
 			ids.push_back("coalition");
 		else if (Call::callMaps.contains(key,"typeToCheck") && c != NULL && param != cc->param)
 			ids.push_back("typeToCheck");
+		else if (Call::callMaps.contains(key,"action") && c != NULL && param != cc->param)
+			ids.push_back("action");
 		else if (c != NULL && param != cc->param)
 			ids.push_back("param2");
 		return ids;
@@ -488,7 +496,7 @@ private:
 		std::string s = "(";
 		s += (param != -1) ? boost::lexical_cast<std::string>(param) : "_";
 		s += ",";
-		s += (Call::units_id_map.find(unit.type) != Call::units_id_map.end()) ? Call::units_id_map.at(unit.type) : "_";
+		s += (Call::units_id_map.find(unit.type) != Call::units_id_map.end()) ? Call::units_id_map.at(unit.type)+" unit" : "_";
 		s += ")";
 		return s;
 	}
@@ -587,7 +595,7 @@ private:
 		s += ",";
 		s += (param2 != -1) ? boost::lexical_cast<std::string>(param2) : "_";
 		s += ",";
-		s += (Call::units_id_map.find(unit.type) != Call::units_id_map.end()) ? Call::units_id_map.at(unit.type) : "_";
+		s += (Call::units_id_map.find(unit.type) != Call::units_id_map.end()) ? Call::units_id_map.at(unit.type)+ "unit" : "_";
 		s += ")";
 		return s;
 	}
@@ -686,7 +694,7 @@ private:
 		std::string s = "(";
 		s += (param1 != -1) ? boost::lexical_cast<std::string>(param1) : "_";
 		s += ",";
-		s += (Call::units_id_map.find(unit.type) != Call::units_id_map.end()) ? Call::units_id_map.at(unit.type) : "_";
+		s += (Call::units_id_map.find(unit.type) != Call::units_id_map.end()) ? Call::units_id_map.at(unit.type)+" unit" : "_";
 		s += ",";
 		s += (param3 != -1) ? boost::lexical_cast<std::string>(param3) : "_";
 		s += ")";
@@ -796,11 +804,11 @@ private:
 
 	virtual std::string getReadableParams() const {
 		std::string s = "(";
-		s += (Call::units_id_map.find(unit.type) != Call::units_id_map.end()) ? Call::units_id_map.at(unit.type) : "_";
+		s += (Call::units_id_map.find(unit.type) != Call::units_id_map.end()) ? Call::units_id_map.at(unit.type)+" unit" : "_";
 		s += ",";
 		s += (Call::orders_map.find(param) != Call::orders_map.end()) ? Call::orders_map.at(param) : "_";
 		s += ",";
-		s += (Call::units_id_map.find(target.type) != Call::units_id_map.end()) ? Call::units_id_map.at(target.type) : "_";
+		s += (Call::units_id_map.find(target.type) != Call::units_id_map.end()) ? Call::units_id_map.at(target.type)+" unit" : "_";
 		s += ")";
 		return s;
 	}
@@ -903,7 +911,7 @@ private:
 
 	virtual std::string getReadableParams() const {
 		std::string s = "(";
-		s += (Call::units_id_map.find(unit.type) != Call::units_id_map.end()) ? Call::units_id_map.at(unit.type) : "_";
+		s += (Call::units_id_map.find(unit.type) != Call::units_id_map.end()) ? Call::units_id_map.at(unit.type)+" unit" : "_";
 		s += ",";
 		s += (Call::orders_map.find(param) != Call::orders_map.end()) ? Call::orders_map.at(param) : "_";
 		s += ",";
@@ -1003,7 +1011,7 @@ private:
 
 	virtual std::string getReadableParams() const {
 		std::string s = "(";
-		s += (Call::units_id_map.find(unit.type) != Call::units_id_map.end()) ? Call::units_id_map.at(unit.type) : "_";
+		s += (Call::units_id_map.find(unit.type) != Call::units_id_map.end()) ? Call::units_id_map.at(unit.type)+" unit" : "_";
 		s += ",";
 		s += (Call::orders_map.find(param1) != Call::orders_map.end()) ? Call::orders_map.at(param1) : "_";
 		s += ",";
@@ -1095,7 +1103,7 @@ private:
 
 	virtual std::string getReadableParams() const {
 		std::string s = "(";
-		s += (Call::units_id_map.find(unit.type) != Call::units_id_map.end()) ? Call::units_id_map.at(unit.type) : "_";
+		s += (Call::units_id_map.find(unit.type) != Call::units_id_map.end()) ? Call::units_id_map.at(unit.type)+" unit" : "_";
 		s += ",";
 		s += (idCmd != -1) ? boost::lexical_cast<std::string>(idCmd) : "_";
 		s += ")";
@@ -1179,7 +1187,7 @@ private:
 
 	virtual std::string getReadableParams() const {
 		std::string s = "(";
-		s += (Call::units_id_map.find(unit.type) != Call::units_id_map.end()) ? Call::units_id_map.at(unit.type) : "_";
+		s += (Call::units_id_map.find(unit.type) != Call::units_id_map.end()) ? Call::units_id_map.at(unit.type)+" unit" : "_";
 		s += ",";
 		s += (idCmd != -1) ? boost::lexical_cast<std::string>(idCmd) : "_";
 		s += ")";
@@ -1271,7 +1279,7 @@ private:
 
 	virtual std::string getReadableParams() const {
 		std::string s = "(";
-		s += (Call::units_id_map.find(unit.type) != Call::units_id_map.end()) ? Call::units_id_map.at(unit.type) : "_";
+		s += (Call::units_id_map.find(unit.type) != Call::units_id_map.end()) ? Call::units_id_map.at(unit.type)+" unit" : "_";
 		s += ",";
 		s += (idCmd != -1) ? boost::lexical_cast<std::string>(idCmd) : "_";
 		s += ",";

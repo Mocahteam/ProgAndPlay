@@ -65,6 +65,7 @@ void initExternalConstants(){
 		Call::units_id_map.insert(std::make_pair<int,std::string>(TERMINAL,"TERMINAL"));
 
 		//Initialise orders_map
+		Call::orders_map.insert(std::make_pair<int,std::string>(STOP,"STOP"));
 		Call::orders_map.insert(std::make_pair<int,std::string>(WAIT,"WAIT"));
 		Call::orders_map.insert(std::make_pair<int,std::string>(FIRE_STATE,"FIRE STATE"));
 		Call::orders_map.insert(std::make_pair<int,std::string>(SELF_DESTRUCTION,"SELF DESTRUCTION"));

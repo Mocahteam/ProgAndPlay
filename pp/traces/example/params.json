@@ -271,6 +271,7 @@
 		"Python_public_label": "PP_Unit_SetGroup",
 		"Ada_public_label": "SetGroup",
 		"OCaml_public_label": "setGroup",
+		"Scratch_public_label": "affect unit id _ to group _ ",
 		"unitId": false,
 		"unitType": false,
 		"groupId": false
@@ -281,6 +282,7 @@
 		"Python_public_label": "PP_Unit_ActionOnUnit",
 		"Ada_public_label": "CarryOutCommand",
 		"OCaml_public_label": "actionOnEntity",
+		"Scratch_public_label": "command unit id _ to _ on unit id _ ",
 		"unitId": false,
 		"unitType": false,
 		"action": true,
@@ -293,6 +295,7 @@
 		"Python_public_label": "PP_Unit_ActionOnPosition",
 		"Ada_public_label": "CarryOutCommand",
 		"OCaml_public_label": "actionOnPosition",
+		"Scratch_public_label": "command unit id _ to _ to x: _ y: _ ",
 		"unitId": false,
 		"unitType": false,
 		"action": true,
@@ -304,9 +307,17 @@
 		"Python_public_label": "PP_Unit_UntargetedAction",
 		"Ada_public_label": "CarryOutCommand",
 		"OCaml_public_label": "untargetedAction",
+		"Scratch_public_label": "command unit id _ to set _ to _ ",
 		"unitId": false,
 		"unitType": false,
 		"action": true,
 		"param": false
+	},
+	"PP_Unit_UntargetedActionWithoutParam": {
+		"call_type": "CallWithUnitIntParams",
+		"Scratch_public_label": "command unit id _ to _ ",
+		"unitId": false,
+		"unitType": false,
+		"action": true
 	}
 }

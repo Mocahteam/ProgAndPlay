@@ -6,10 +6,10 @@
 				<call label="PP_Close"/>
 			</expert>
 			<infos lang="fr">
-				<info>"PP_Close" doit être la dernière instruction de votre programme.</info>
+				<info>*PP_Close* doit être la dernière instruction de votre programme.</info>
 			</infos>
 			<infos lang="en">
-				<info>"PP_Close" must be the last function called in your program.</info>
+				<info>*PP_Close* must be the last function called in your program.</info>
 			</infos>
 		</feedback>
 		<feedback type="useful_call" priority="500">
