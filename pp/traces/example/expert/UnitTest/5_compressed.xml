@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<trace>
+	<mission name="UnitTest" start_time="1463495071" end_time="1463495080" status="won">
+		<execution start_time="1463495075" programming_language_used="Scratch" end_time="1463495075">
+			<call label="PP_Open"/>
+			<call label="PP_IsGameOver" return="0"/>
+			<call label="PP_GetMapWidth" return="2000"/>
+			<call label="PP_GetMapHeight" return="2000"/>
+			<call label="PP_GetStartXPosition" return="1000"/>
+			<call label="PP_GetStartYPosition" return="1000"/>
+			<call label="PP_GetNumSpecialAreas" return="12"/>
+			<call label="PP_GetSpecialAreaXPosition" params="2" return="250"/>
+			<call label="PP_GetSpecialAreaYPosition" params="2" return="250"/>
+			<call label="PP_GetResource" params="0" return="550"/>
+			<call label="PP_GetNumUnits" params="0" return="20"/>
+			<call label="PP_GetUnitAtIndexFirst" params="0 0" return="227"/>
+			<call label="PP_Unit_BelongTo" params="227_4 0" return="1"/>
+			<call label="PP_Unit_IsType" params="227_4 4" return="1"/>
+			<call label="PP_Unit_GetXPosition" params="227_4" return="133"/>
+			<call label="PP_Unit_GetYPosition" params="227_4" return="133"/>
+			<call label="PP_Unit_GetHealth" params="227_4" return="278"/>
+			<call label="PP_Unit_GetMaxHealth" params="227_4" return="300"/>
+			<call label="PP_Unit_GetGroup" params="227_4" return="3"/>
+			<call label="PP_Unit_GetNumPdgCmds" params="227_4" return="2"/>
+			<call label="PP_Unit_PdgCmd_IsEqualTo" params="0 227_4 10" return="1"/>
+			<call label="PP_Unit_PdgCmd_GetNumParams" params="0 227_4" return="2"/>
+			<call label="PP_Unit_PdgCmd_GetParam" params="0 0 227_4" return="2.5"/>
+			<call label="PP_Unit_SetGroup" params="227_4 4"/>
+ 			<call label="PP_Unit_ActionOnUnit" params="227_4 10 142_7"/>
+ 			<call label="PP_Unit_ActionOnPosition" params="227_4 10 1056 1792"/>
+ 			<call label="PP_Unit_UntargetedAction" params="227_4 50 1.0"/>
+ 			<call label="PP_Unit_UntargetedActionWithoutParam" params="227_4 0"/>
+ 			<call label="PP_Close"/>
+		</execution>
+	</mission>
+</trace>

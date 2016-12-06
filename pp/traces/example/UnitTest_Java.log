@@ -1,0 +1,29 @@
+start UnitTest
+mission_start_time 1463495071
+execution_start_time 1463495075
+programming_language_used Java
+PP_Open
+PP_IsGameOver - 0
+PP_GetMapSize - 2000 2000
+PP_GetStartPosition - 1000 1000
+PP_GetNumSpecialAreas - 12
+PP_GetSpecialAreaPosition 2 - 250 250
+PP_GetResource 0 - 550
+PP_GetNumUnits 0 - 20
+PP_GetUnitAt 0 0 - 227
+PP_Unit_GetCoalition 227_4 - 0
+PP_Unit_GetType 227_4 - 4
+PP_Unit_GetPosition 227_4 - 750 750
+PP_Unit_GetHealth 227_4 - 265
+PP_Unit_GetMaxHealth 227_4 - 300
+PP_Unit_GetGroup 227_4 - 3
+PP_Unit_SetGroup 227_4 3
+PP_Unit_RemoveFromGroup 227_4
+PP_Unit_GetPendingCommands 227_4
+PP_Unit_ActionOnUnit 227_4 10 142_7
+PP_Unit_ActionOnPosition 227_4 10 1056 1792
+PP_Unit_UntargetedAction 227_4 50 1.0
+PP_Close
+execution_end_time 1463495075
+mission_end_time 1463495080
+end won UnitTest
