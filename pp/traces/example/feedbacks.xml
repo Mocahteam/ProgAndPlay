@@ -165,7 +165,7 @@
 		</message>
 		<message id="unitType">
 			<infos lang="fr">
-				<info>Vous ne devriez peut-être pas appeler cette fonction en passant une unité de ce type.</info>
+				<info>Vous ne devriez peut-être pas appeler cette fonction en utilisant une unité de ce type.</info>
 			</infos>
 			<infos lang="en">
 				<info>Maybe you shouldn't call this function with a unit of this type.</info>

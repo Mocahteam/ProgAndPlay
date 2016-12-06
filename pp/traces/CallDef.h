@@ -310,7 +310,13 @@ private:
 	}
 
 	virtual std::string getReadableParams() const {
-		return "(" + ((Call::units_id_map.find(unit.type) != Call::units_id_map.end()) ? Call::units_id_map.at(unit.type)+" unit" : "_") + ")";
+		// Ugly!!! check if the label contains "Unit::" this means it is an object oriented langage
+		// and then the first parameter is the object used to call this function. So do not display
+		// unit attributes.
+		if (Call::callMaps.getLabel(key).find("Unit::") != std::string::npos)
+			return "";
+		else
+			return "(" + ((Call::units_id_map.find(unit.type) != Call::units_id_map.end()) ? Call::units_id_map.at(unit.type)+" unit" : "_") + ")";
 	}
 
 	virtual std::vector<std::string> id_wrong_params(Call *c) const {
@@ -393,8 +399,13 @@ private:
 
 	virtual std::string getReadableParams() const {
 		std::string s = "(";
-		s += (Call::units_id_map.find(unit.type) != Call::units_id_map.end()) ? Call::units_id_map.at(unit.type)+" unit" : "_";
-		s += ",";
+		// Ugly!!! check if the label contains "Unit::" this means it is an object oriented langage
+		// and then the first parameter is the object used to call this function. So display
+		// unit attributes only for non object oriented langages.
+		if (Call::callMaps.getLabel(key).find("Unit::") == std::string::npos){
+			s += (Call::units_id_map.find(unit.type) != Call::units_id_map.end()) ? Call::units_id_map.at(unit.type)+" unit" : "_";
+			s += ",";
+		}
 		if (Call::callMaps.contains(key,"coalition"))
 			s += (error == Call::NONE && param != CallMisc::NONE) ? std::string(Call::getEnumLabel<int>(param,Call::coalitionsArr)) : "_";
 		else if (Call::callMaps.contains(key,"typeToCheck"))
@@ -804,8 +815,13 @@ private:
 
 	virtual std::string getReadableParams() const {
 		std::string s = "(";
-		s += (Call::units_id_map.find(unit.type) != Call::units_id_map.end()) ? Call::units_id_map.at(unit.type)+" unit" : "_";
-		s += ",";
+		// Ugly!!! check if the label contains "Unit::" this means it is an object oriented langage
+		// and then the first parameter is the object used to call this function. So display
+		// unit attributes only for non object oriented langages.
+		if (Call::callMaps.getLabel(key).find("Unit::") == std::string::npos){
+			s += (Call::units_id_map.find(unit.type) != Call::units_id_map.end()) ? Call::units_id_map.at(unit.type)+" unit" : "_";
+			s += ",";
+		}
 		s += (Call::orders_map.find(param) != Call::orders_map.end()) ? Call::orders_map.at(param) : "_";
 		s += ",";
 		s += (Call::units_id_map.find(target.type) != Call::units_id_map.end()) ? Call::units_id_map.at(target.type)+" unit" : "_";
@@ -911,8 +927,13 @@ private:
 
 	virtual std::string getReadableParams() const {
 		std::string s = "(";
-		s += (Call::units_id_map.find(unit.type) != Call::units_id_map.end()) ? Call::units_id_map.at(unit.type)+" unit" : "_";
-		s += ",";
+		// Ugly!!! check if the label contains "Unit::" this means it is an object oriented langage
+		// and then the first parameter is the object used to call this function. So display
+		// unit attributes only for non object oriented langages.
+		if (Call::callMaps.getLabel(key).find("Unit::") == std::string::npos){
+			s += (Call::units_id_map.find(unit.type) != Call::units_id_map.end()) ? Call::units_id_map.at(unit.type)+" unit" : "_";
+			s += ",";
+		}
 		s += (Call::orders_map.find(param) != Call::orders_map.end()) ? Call::orders_map.at(param) : "_";
 		s += ",";
 		s += (pos.x != -1) ? boost::lexical_cast<std::string>(pos.x) : "_";
@@ -1011,8 +1032,13 @@ private:
 
 	virtual std::string getReadableParams() const {
 		std::string s = "(";
-		s += (Call::units_id_map.find(unit.type) != Call::units_id_map.end()) ? Call::units_id_map.at(unit.type)+" unit" : "_";
-		s += ",";
+		// Ugly!!! check if the label contains "Unit::" this means it is an object oriented langage
+		// and then the first parameter is the object used to call this function. So display
+		// unit attributes only for non object oriented langages.
+		if (Call::callMaps.getLabel(key).find("Unit::") == std::string::npos){
+			s += (Call::units_id_map.find(unit.type) != Call::units_id_map.end()) ? Call::units_id_map.at(unit.type)+" unit" : "_";
+			s += ",";
+		}
 		s += (Call::orders_map.find(param1) != Call::orders_map.end()) ? Call::orders_map.at(param1) : "_";
 		s += ",";
 		s += (param2 != -1) ? boost::lexical_cast<std::string>(param2) : "_";

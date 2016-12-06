@@ -4,14 +4,16 @@
 		"C_public_label": "PP_Open",
 		"Python_public_label": "PP_Open",
 		"Ada_public_label": "Open",
-		"Scratch_public_label": "open Prog&Play"
+		"Scratch_public_label": "open Prog&Play",
+		"Java_public_label": "PP::open"
 	},
 	"PP_Close": {
 		"call_type": "CallWithNoParam",
 		"C_public_label": "PP_Close",
 		"Python_public_label": "PP_Close",
 		"Ada_public_label": "Close",
-		"Scratch_public_label": "close Prog&Play"
+		"Scratch_public_label": "close Prog&Play",
+		"Java_public_label": "PP::close"
 	},
 	"PP_IsGameOver": {
 		"call_type": "CallWithNoParam",
@@ -20,6 +22,7 @@
 		"Ada_public_label": "IsGameOver",
 		"OCaml_public_label": "isGameOver",
 		"Scratch_public_label": "is game over?",
+		"Java_public_label": "PP::isGameOver",
 		"return": false
 	},
 	"PP_GetMapSize": {
@@ -28,6 +31,7 @@
 		"Python_public_label": "PP_GetMapSize",
 		"Ada_public_label": "GetMapSize",
 		"OCaml_public_label": "getMapSize",
+		"Java_public_label": "PP::getMapSize",
 		"return": false
 	},
 	"PP_GetMapWidth": {
@@ -46,6 +50,7 @@
 		"Python_public_label": "PP_GetStartPosition",
 		"Ada_public_label": "GetStartPosition",
 		"OCaml_public_label": "getStartPosition",
+		"Java_public_label": "PP::getStartPosition",
 		"return": false
 	},
 	"PP_GetStartXPosition": {
@@ -64,6 +69,7 @@
 		"Python_public_label": "PP_GetNumSpecialAreas",
 		"Ada_public_label": "GetNumSpecialAreas",
 		"Scratch_public_label": "number of special areas",
+		"Java_public_label": "PP::getNumSpecialAreas",
 		"return": false
 	},
 	"PP_GetSpecialAreaPosition": {
@@ -71,6 +77,7 @@
 		"C_public_label": "PP_GetSpecialAreaPosition",
 		"Python_public_label": "PP_GetSpecialAreaPosition",
 		"Ada_public_label": "GetSpecialAreaPosition",
+		"Java_public_label": "PP::getSpecialAreasPosition",
 		"return": false,
 		"specialAreaId": true
 	},
@@ -97,6 +104,7 @@
 		"Ada_public_label": "GetResource",
 		"OCaml_public_label": "getResource",
 		"Scratch_public_label": "amount of _ resource ",
+		"Java_public_label": "PP::getResource",
 		"return": false,
 		"resourceId": true
 	},
@@ -106,6 +114,7 @@
 		"Python_public_label": "PP_GetNumUnits",
 		"Ada_public_label": "GetNumUnits",
 		"Scratch_public_label": "number of unit in _ coalition ",
+		"Java_public_label": "PP::getNumUnits",
 		"return": false,
 		"coalition": true
 	},
@@ -114,6 +123,7 @@
 		"C_public_label": "PP_GetUnitAt",
 		"Python_public_label": "PP_GetUnitAt",
 		"Ada_public_label": "GetUnitAt",
+		"Java_public_label": "PP::getUnitAt",
 		"return": false,
 		"coalitionFirst": true,
 		"indexSecond": false
@@ -136,6 +146,7 @@
 		"Python_public_label": "PP_Unit_GetCoalition",
 		"Ada_public_label": "GetCoalition",
 		"OCaml_public_label": "getCoalition",
+		"Java_public_label": "Unit::getCoalition",
 		"return": false,
 		"unitId": false,
 		"unitType": false
@@ -154,6 +165,7 @@
 		"Python_public_label": "PP_Unit_GetType",
 		"Ada_public_label": "GetType",
 		"OCaml_public_label": "getType",
+		"Java_public_label": "Unit::getType",
 		"return": false,
 		"unitId": false,
 		"unitType": false
@@ -172,6 +184,7 @@
 		"Python_public_label": "PP_Unit_GetPosition",
 		"Ada_public_label": "GetPosition",
 		"OCaml_public_label": "getPosition",
+		"Java_public_label": "Unit::getPosition",
 		"return": false,
 		"unitId": false,
 		"unitType": false
@@ -197,6 +210,7 @@
 		"Ada_public_label": "GetHealth",
 		"OCaml_public_label": "getHealth",
 		"Scratch_public_label": "health of unit id _ ",
+		"Java_public_label": "Unit::getHealth",
 		"return": false,
 		"unitId": false,
 		"unitType": false
@@ -208,6 +222,7 @@
 		"Ada_public_label": "GetMaxHealth",
 		"OCaml_public_label": "getMaxHealth",
 		"Scratch_public_label": "max health of unit id _ ",
+		"Java_public_label": "Unit::getMaxHealth",
 		"return": false,
 		"unitId": false,
 		"unitType": false
@@ -218,6 +233,7 @@
 		"Python_public_label": "PP_Unit_GetPendingCommands",
 		"Ada_public_label": "GetPendingCommands",
 		"OCaml_public_label": "getPendingCommands",
+		"Java_public_label": "Unit::getPendingCommands",
 		"unitId": false,
 		"unitType": false
 	},
@@ -261,6 +277,7 @@
 		"Ada_public_label": "GetGroup",
 		"OCaml_public_label": "getGroup",
 		"Scratch_public_label": "group of unit id _ ",
+		"Java_public_label": "Unit::getGroup",
 		"return": false,
 		"unitId": false,
 		"unitType": false
@@ -272,9 +289,17 @@
 		"Ada_public_label": "SetGroup",
 		"OCaml_public_label": "setGroup",
 		"Scratch_public_label": "affect unit id _ to group _ ",
+		"Java_public_label": "Unit::setGroup",
 		"unitId": false,
 		"unitType": false,
 		"groupId": false
+	},
+	"PP_Unit_RemoveFromGroup": {
+		"call_type": "CallWithUnitParam",
+		"Java_public_label": "Unit::removeFromGroup",
+		"return": false,
+		"unitId": false,
+		"unitType": false
 	},
 	"PP_Unit_ActionOnUnit": {
 		"call_type": "CallWithUnitIntUnitParams",
@@ -283,6 +308,7 @@
 		"Ada_public_label": "CarryOutCommand",
 		"OCaml_public_label": "actionOnEntity",
 		"Scratch_public_label": "command unit id _ to _ on unit id _ ",
+		"Java_public_label": "Unit::command",
 		"unitId": false,
 		"unitType": false,
 		"action": true,
@@ -296,6 +322,7 @@
 		"Ada_public_label": "CarryOutCommand",
 		"OCaml_public_label": "actionOnPosition",
 		"Scratch_public_label": "command unit id _ to _ to x: _ y: _ ",
+		"Java_public_label": "Unit::command",
 		"unitId": false,
 		"unitType": false,
 		"action": true,
@@ -308,6 +335,7 @@
 		"Ada_public_label": "CarryOutCommand",
 		"OCaml_public_label": "untargetedAction",
 		"Scratch_public_label": "command unit id _ to set _ to _ ",
+		"Java_public_label": "Unit::command",
 		"unitId": false,
 		"unitType": false,
 		"action": true,
