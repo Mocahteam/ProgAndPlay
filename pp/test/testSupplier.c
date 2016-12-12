@@ -89,7 +89,7 @@ int main (){
 	
 	int ret;
 	
-	boost::posix_time::ptime t1 = boost::posix_time::second_clock::local_time();
+	/*boost::posix_time::ptime t1 = boost::posix_time::second_clock::local_time();
 	boost::posix_time::ptime t2 = t1 + boost::posix_time::seconds(20);
 	srand ( time(NULL) );
 	while (t1 < t2){
@@ -112,13 +112,13 @@ int main (){
 	
 	std::cout << "PP_SetGameOver : 1" << std::flush;
 	if (PP_SetGameOver(1) == -1) std::cout << PP_GetError();
-	else std::cout << std::endl;
+	else std::cout << std::endl;*/
 	
-/*	std::cout << "Entrer une valeur pour continuer : " << std::flush;
+	std::cout << "Entrer une valeur pour continuer : " << std::flush;
 	scanf("%d", &tmp);
 	
 	std::cout << "PP_GetPendingCommands : " << std::flush;
-	PP_PendingCommands* ppc = PP_GetPendingCommands();
+	PP_PendingCmds* ppc = PP_GetPendingCommands();
 	if (ppc == NULL) std::cout << PP_GetError();
 	else{
 		std::cout << ppc->size <<std::endl;
@@ -132,9 +132,8 @@ int main (){
 	std::cout << std::endl;
 	
 	std::cout << "Entrer une seconde valeur pour continuer : " << std::flush;
-	scanf("%d", &tmp);*/
+	scanf("%d", &tmp);
 	
 	std::cout << "PP_Quit" << std::endl;
 	if (PP_Quit() == -1) std::cout << PP_GetError();
-	else std::cout << ret << std::endl;
 }

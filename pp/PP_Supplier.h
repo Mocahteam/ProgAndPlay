@@ -85,15 +85,15 @@ typedef struct{
 	int commandType;
 	/* the command */
 	PP_Command command;
-} PP_PendingCommand;
+} PP_PendingCmd;
 
 /*
  * Defines a table of commands
  */
 typedef struct{
 	int size;
-	PP_PendingCommand *pendingCommand;
-} PP_PendingCommands;
+	PP_PendingCmd *pendingCommand;
+} PP_PendingCmds;
 
 /*
  * Defines a table of resources
@@ -234,7 +234,7 @@ int PP_IsStored(const PP_UnitId unitId);
  *
  * Returns : the pending commands set on success. NULL is returned on errors.
  */
-PP_PendingCommands* PP_GetPendingCommands(void);
+PP_PendingCmds* PP_GetPendingCommands(void);
 
 /*
  * Free the pending commands set from memory. Do not reference the set after
@@ -242,7 +242,7 @@ PP_PendingCommands* PP_GetPendingCommands(void);
  *
  * commands : The pending commands set to free from memory 
  */
-void PP_FreePendingCommands(PP_PendingCommands *commands);
+void PP_FreePendingCommands(PP_PendingCmds *commands);
 
 /*
  * Pop the next message defines by the client.

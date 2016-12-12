@@ -81,6 +81,40 @@ typedef struct {
   float y;
 } PP_Pos;
 
+/**
+ * \brief Maximum number of parameters of a command.
+ * \see PP_Cmd
+ */
+#define MAX_PARAMS 3
+
+/**
+ * \brief Maximum number of pending command available for a unit in the Prog&Play API.
+ * 
+ * \see PP_PendingCommands
+ */
+#define MAX_PDG_CMD 10
+
+/**
+ * \brief Represents a pending command.
+ * 
+ * Defines a pending command in Prog&Play API.
+ */
+typedef struct {
+  int code;                /**< \brief Command code. \see ConstantList_KP4.1.h - available command codes list */
+  int nbParams;            /**< \brief Number of available parameters. */
+  float param[MAX_PARAMS]; /**< \brief List of command parameters. */
+} PP_Cmd;
+
+/**
+ * \brief Represents pending commands.
+ * 
+ * Defines pending commands list associated to a unit in Prog&Play API.
+ */
+typedef struct {
+  int nbCmds;              /**< \brief Number of available pending commands. */
+  PP_Cmd cmd[MAX_PDG_CMD]; /**< \brief List of pending commands. */
+} PP_PendingCommands;
+
 #ifdef __cplusplus
 }
 #endif

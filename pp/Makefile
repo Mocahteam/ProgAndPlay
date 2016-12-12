@@ -2,10 +2,10 @@
 
 .PHONY: all clean
 
-LIB_NAME_CLIENT = pp-client
+LIB_NAME_CLIENT = pp-client-private
 LIB_NAME_SUPPLIER = pp-supplier
 
-SPRING_VERSION = spring_0.82.5.1
+SPRING_VERSION = spring-0.82.5.1
 
 REP_CLIENT = ../Client_Interfaces
 REP_SUPPLIER = ../../SpringPP/$(SPRING_VERSION)/rts/lib/pp
@@ -32,7 +32,7 @@ endif
 CIBLE_CLIENT = $(ENTETELIB)$(LIB_NAME_CLIENT)$(LIB)
 CIBLE_SUPPLIER = $(ENTETELIB)$(LIB_NAME_SUPPLIER)$(LIB)
 
-SUPPR := $(CIBLE_CLIENT) $(CIBLE_SUPPLIER) PP_Client.o PP_Supplier.o PP_Error.o
+SUPPR := $(CIBLE_CLIENT) $(CIBLE_SUPPLIER) PP_Client_Private.o PP_Supplier.o PP_Error.o
 ifeq ($(OS),Windows_NT)
 SUPPR := $(SUPPR) lib$(LIB_NAME_CLIENT).a lib$(LIB_NAME_SUPPLIER).a $(LIB_NAME_CLIENT).def $(LIB_NAME_SUPPLIER).def
 endif
@@ -42,7 +42,7 @@ INCLUDES = $(foreach tmp, $(INCLUDE_DIRS),-I$(tmp))
 
 all: $(CIBLE_CLIENT) $(CIBLE_SUPPLIER) compile_traces
 
-$(CIBLE_CLIENT): PP_Client.o PP_Error.o
+$(CIBLE_CLIENT): PP_Client_Private.o PP_Error.o
 	g++ -shared -o $@ $^ $(OPTLIB_CLIENT)
 
 $(CIBLE_SUPPLIER): PP_Supplier.o PP_Error.o
@@ -51,7 +51,7 @@ $(CIBLE_SUPPLIER): PP_Supplier.o PP_Error.o
 PP_Supplier.o: PP_Supplier.cpp PP_Supplier.h PP.h
 	g++ -c $< $(INCLUDES) $(OPT)
 
-PP_Client.o: PP_Client.cpp PP_Client.h PP_Client_Private.h PP.h
+PP_Client_Private.o: PP_Client_Private.cpp PP_Client_Private.h PP.h
 	g++ -c $< $(INCLUDES) $(OPT)
 	
 PP_Error.o: PP_Error.c PP_Error.h PP_Error_Private.h
@@ -67,7 +67,7 @@ compile_traces:
 	
 install: install_supplier $(INSTALL_CLIENT) install_traces
 
-install_supplier: $(REP_SUPPLIER)/PP_Error.c $(REP_SUPPLIER)/PP_Error.h $(REP_SUPPLIER)/PP_Error_Private.h  $(REP_SUPPLIER)/PP.h $(REP_SUPPLIER)/PP_Private.h $(REP_SUPPLIER)/PP_Supplier.cpp $(REP_SUPPLIER)/PP_Supplier.h
+install_supplier: $(REP_SUPPLIER)/PP_Error.c $(REP_SUPPLIER)/PP_Error.h $(REP_SUPPLIER)/PP_Error_Private.h  $(REP_SUPPLIER)/PP.h $(REP_SUPPLIER)/PP_Private.h $(REP_SUPPLIER)/PP_Supplier.cpp $(REP_SUPPLIER)/PP_Supplier.h ./test/$(CIBLE_SUPPLIER)
 
 $(REP_SUPPLIER)/PP_Error.c: PP_Error.c
 	cp PP_Error.c $(REP_SUPPLIER)
@@ -89,10 +89,13 @@ $(REP_SUPPLIER)/PP_Supplier.cpp: PP_Supplier.cpp
 
 $(REP_SUPPLIER)/PP_Supplier.h: PP_Supplier.h
 	cp PP_Supplier.h $(REP_SUPPLIER)
+	
+./test/$(CIBLE_SUPPLIER): $(CIBLE_SUPPLIER)
+	cp $(CIBLE_SUPPLIER) ./test
 
 # Windows => copy new dll
 # Linux, it is better that using symbolic links. Then, it is not necessary to make a copy of library
-install_client: $(REP_CLIENT)/ada/exemples/$(CIBLE_CLIENT) $(REP_CLIENT)/c-cpp/exemple/$(CIBLE_CLIENT) $(REP_CLIENT)/compalgo/$(CIBLE_CLIENT) $(REP_CLIENT)/java/$(CIBLE_CLIENT) $(REP_CLIENT)/ocaml/$(CIBLE_CLIENT) $(REP_CLIENT)/scratch/$(CIBLE_CLIENT) $(REP_CLIENT)/python/$(CIBLE_CLIENT) ./test/$(CIBLE_CLIENT)
+install_client: $(REP_CLIENT)/ada/exemples/$(CIBLE_CLIENT) $(REP_CLIENT)/c-cpp/exemple/$(CIBLE_CLIENT) $(REP_CLIENT)/compalgo/$(CIBLE_CLIENT) $(REP_CLIENT)/java/$(CIBLE_CLIENT) $(REP_CLIENT)/ocaml/$(CIBLE_CLIENT) $(REP_CLIENT)/scratch1.4/$(CIBLE_CLIENT) $(REP_CLIENT)/python/$(CIBLE_CLIENT) ./test/$(CIBLE_CLIENT)
 
 $(REP_CLIENT)/ada/exemples/$(CIBLE_CLIENT): $(CIBLE_CLIENT)
 	cp $(CIBLE_CLIENT) ../Client_Interfaces/ada/exemples/
