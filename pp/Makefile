@@ -65,7 +65,8 @@ compile_traces:
 	@echo "compilation de pp-traces ============================================="
 	@(cd ./traces && $(MAKE))
 	
-install: install_supplier $(INSTALL_CLIENT) install_traces
+install: install_supplier install_traces
+#install: install_supplier $(INSTALL_CLIENT) install_traces
 
 install_supplier: $(REP_SUPPLIER)/PP_Error.c $(REP_SUPPLIER)/PP_Error.h $(REP_SUPPLIER)/PP_Error_Private.h  $(REP_SUPPLIER)/PP.h $(REP_SUPPLIER)/PP_Private.h $(REP_SUPPLIER)/PP_Supplier.cpp $(REP_SUPPLIER)/PP_Supplier.h ./test/$(CIBLE_SUPPLIER)
 

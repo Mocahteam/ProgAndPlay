@@ -37,4 +37,13 @@
 #define CALL_WITH_UNIT_INT_POS_PARAMS "CallWithUnitIntPosParams"
 #define CALL_WITH_UNIT_INT_FLOAT_PARAMS "CallWithUnitIntFloatParams"
 
+// Error labels
+#define UNIT_NOT_FOUND_LABEL "unit_not_found"
+#define NOT_UNIT_OWNER_LABEL "not_unit_owner"
+#define INVALID_COALITION_LABEL "invalid_coalition"
+#define TARGET_NOT_FOUND_LABEL "target_not_found"
+#define OUT_OF_RANGE_LABEL "out_of_range"
+#define INVALID_GROUP_LABEL "invalid_group"
+#define POSITION_OUT_OF_BOUNDS_LABEL "position_out_of_bounds"
+
 #endif

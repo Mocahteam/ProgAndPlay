@@ -251,7 +251,7 @@
 				<info>Check the id of the parameter given to the function.</info>
 			</infos>
 		</message>
-		<message id="wrong_unit">
+		<message id="unit_not_found">
 			<infos lang="fr">
 				<info>Il semblerait que l'unité que vous passez lors de l'appel *learner_call* n'existe pas. Elle a peut-être été détruite au cours de la mission.</info>
 			</infos>
@@ -259,15 +259,23 @@
 				<info>It seems the unit you passed with the call *learner_call* does not exist. Maybe she has been destroyed during the mission.</info>
 			</infos>
 		</message>
-		<message id="wrong_target">
+		<message id="not_unit_owner">
 			<infos lang="fr">
-				<info>Avec l'appel *learner_call*, vous avez ordonné à une unité d'effectuer une action sur une unité qui n'existe pas.</info>
+				<info>Lors de l'appel *learner_call*, vous tentez de commander une unité qui ne vous appartient pas. Vous vous doutez bien que cela est interdit.</info>
+			</infos>
+			<infos lang="en">
+				<info>With the call *learner_call*, you try to command a unit that is not in your coalition. This is forbidden.</info>
+			</infos>
+		</message>
+		<message id="target_not_found">
+			<infos lang="fr">
+				<info>Lors de l'appel *learner_call*, vous avez ordonné à une unité d'effectuer une action sur une unité qui n'existe pas.</info>
 			</infos>
 			<infos lang="en">
 				<info>With the call *learner_call*, you ordered a unit to execute an action on a unit which does not exist.</info>
 			</infos>
 		</message>
-		<message id="wrong_coalition">
+		<message id="invalid_coalition">
 			<infos lang="fr">
 				<info>Attention à la valeur de coalition que vous passez en paramètres. Seulement trois valeurs sont possibles : MY_COALITION, ALLY_COALITION et ENEMY_COALITION.</info>
 			</infos>
@@ -283,12 +291,20 @@
 				<info>The parameter *out_of_range_param* of the call *learner_call* is out of range.</info>
 			</infos>
 		</message>
-		<message id="wrong_position">
+		<message id="position_out_of_bounds">
 			<infos lang="fr">
 				<info>Avec l'appel *learner_call*, vous avez ordonné à une unité d'effectuer une action en dehors de la carte. Vous vous doutez bien que cela pose problème.</info>
 			</infos>
 			<infos lang="en">
 				<info>With the call *learner_call*, you ordered a unit to execute an action outside the map. It can't work this way.</info>
+			</infos>
+		</message>
+		<message id="invalid_group">
+			<infos lang="fr">
+				<info>Avec l'appel *learner_call*, vous utilisez un numéro de groupe non valide.</info>
+			</infos>
+			<infos lang="en">
+				<info>With the call *learner_call*, you use an invalid group number.</info>
 			</infos>
 		</message>
 	</messages>

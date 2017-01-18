@@ -8,6 +8,7 @@ int TracesParser::lineNum = 0;
 int TracesParser::mission_end_time = 0;
 int TracesParser::execution_start_time = 0;
 std::string TracesParser::mission_name = "";
+std::string TracesParser::params_json = "";
 Trace::sp_trace TracesParser::spe_eme;
 
 #ifdef DEBUG
@@ -23,17 +24,6 @@ TracesParser::TracesParser(bool in_game): in_game(in_game), used(false), compres
 
 TracesParser::~TracesParser() {
 	endParse();
-}
-
-const std::string TracesParser::loadFile(std::string path) {
-	std::string res;
-	std::ifstream in(path.c_str());
-	if (in.good()) {
-		std::string line;
-		while(std::getline(in,line))
-			res += line;
-	}
-	return res;
 }
 
 bool TracesParser::beginParse(const std::string& dir_path, const std::string& filename) {
@@ -115,6 +105,7 @@ void TracesParser::parseTraceFileOffline(const std::string& dir_path, const std:
 	}
 }
 
+/* A SUPPRIMER ???
 void TracesParser::parseTraceFile(const std::string& dir_path, const std::string& filename) {
 	if (beginParse(dir_path,filename)) {
 		std::string line;
@@ -144,7 +135,7 @@ void TracesParser::parseTraceFile(const std::string& dir_path, const std::string
 	}
 	exportTraceToXml();
 	endParse();
-}
+}*/
 
 /*
  * Handles all traces contained in the file with the offline algorithm.
@@ -264,42 +255,16 @@ Trace::sp_trace TracesParser::handleLine(const std::string& s) {
 		else if (tokens[ind].compare(PROGRAMMING_LANGUAGE_USED) == 0) {
 			// Création de l'évènement
 			t = new NewExecutionEvent(TracesParser::execution_start_time, tokens[ind+1]);
-			// Chargement du fichier params en fonction du langage utilisé
-			#ifdef DEBUG
-			 	osParser << "Try to open params.json file from mods directory ([MODS]/traces/)" << std::endl;
-			#endif
-			std::string params_json = TracesParser::loadFile("./traces/params.json");
-			if (params_json.compare("") != 0){
+			// Chargement des params en fonction du langage utilisé
+			if (TracesParser::params_json.compare("") != 0){
 				#ifdef DEBUG
-				 	osParser << "File found and used for compression and analysis." << std::endl;
+				 	osParser << "Params defined, use it to compress and analyse." << std::endl;
 				#endif
-				Call::callMaps.initMaps(params_json, tokens[ind+1]);
+				Call::callMaps.initMaps(TracesParser::params_json, tokens[ind+1]);
 			} else {
 				#ifdef DEBUG
-				 	osParser << "File not found\nTry to open params.json file from Spring directory ([SPRING]/traces/data/)" << std::endl;
+					osParser << "No params defined\nUsing default compression options." << std::endl;
 				#endif
-				params_json = TracesParser::loadFile("./traces/data/params.json");
-				if (params_json.compare("") != 0){
-					#ifdef DEBUG
-					 	osParser << "File found and used for compression and analysis." << std::endl;
-					#endif
-					Call::callMaps.initMaps(params_json, tokens[ind+1]);
-				} else {
-					#ifdef DEBUG
-					 	osParser << "File not found\nTry to open params.json file from example directory (./example/)" << std::endl;
-					#endif
-					params_json = TracesParser::loadFile("./example/params.json");
-					if (params_json.compare("") != 0){
-						#ifdef DEBUG
-						 	osParser << "File found and used for compression and analysis." << std::endl;
-						#endif
-						Call::callMaps.initMaps(params_json, tokens[ind+1]);
-					} else {
-						#ifdef DEBUG
-							osParser << "File not found\nUsing default compression options." << std::endl;
-						#endif
-					}
-				}
 			}
 		}
 		else if (tokens[ind].compare(EXECUTION_END_TIME) == 0) {
@@ -308,19 +273,19 @@ Trace::sp_trace TracesParser::handleLine(const std::string& s) {
 		else if (INCLUDE_EVENTS == 1 && Trace::inArray(tokens[ind].c_str(), Event::concatEventsArr) > -1) {
 			t = new Event(tokens[ind]);
 		}
-		// Gestion des appels dans la cas où le fichier params n'a pas été chargé ou l'appel est inconnu ou c'est un appel de fonction connu sans paramètre
-		else if (Call::callMaps.getCallType(tokens[ind]).compare(CALL_WITH_NO_PARAMS) == 0) {
-			t = new CallWithNoParam(tokens[ind]);
-		}
 		else {
-			// Dans ce cas, nous sommes sur un appel de fonction avec paramètre
 			// On vérifie si une erreur a été générée
 			Call::ErrorType err = Call::getEnumType<Call::ErrorType>(tokens[ind].c_str(),Call::errorsArr);
 			if (err != Call::NONE) {
 				ind++;
 			}
-			// Gestion des appels ne prenant en paramètre un entier
-			if (Call::callMaps.getCallType(tokens[ind]).compare(CALL_WITH_INT_PARAM) == 0) {
+			// Gestion des appels dans la cas où le fichier params n'a pas été chargé ou l'appel est inconnu ou c'est un appel de fonction connu sans paramètre
+			if (Call::callMaps.getCallType(tokens[ind]).compare(CALL_WITH_NO_PARAMS) == 0) {
+				t = new CallWithNoParam(tokens[ind]);
+			}
+			// Dans ce cas, nous sommes sur un appel de fonction avec paramètre
+			// Gestion des appels ne prenant en paramètre qu'un entier
+			else if (Call::callMaps.getCallType(tokens[ind]).compare(CALL_WITH_INT_PARAM) == 0) {
 				int p = (ind+1 <= numTokens-1) ? stoi(tokens[ind+1]) : -1;
 				t = new CallWithIntParam(err,tokens[ind],p);
 			}

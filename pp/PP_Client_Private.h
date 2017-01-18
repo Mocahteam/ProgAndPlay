@@ -29,6 +29,22 @@
 extern "C" {
 #endif
 
+#define SHARED_MEMORY_ERROR -100
+#define NOT_OPENED -101
+#define RELOAD_FAILURE -102
+#define INCONSISTENT_SHARED_MEMORY -103
+#define MUTEX_NOT_LOCKED -104
+#define TYPE_UNDEF -105
+#define NO_GROUP -200
+#define UNIT_NOT_FOUND -1
+#define NOT_UNIT_OWNER -2
+#define INVALID_COALITION -3
+#define TARGET_NOT_FOUND -4
+#define OUT_OF_RANGE -5
+#define INVALID_GROUP -6
+#define POSITION_OUT_OF_BOUNDS -7
+#define FEEDBACK_COUNT_LIMIT -8
+
 /******************************************************************************/
 /* Functions to manage Prog&Play                                              */
 /******************************************************************************/
@@ -68,11 +84,11 @@ int PP_IsGameOver_prim(void);
  */
 int PP_IsGamePaused_prim(void);
 
-/*
- * Retrieve the timestamp updated by the game engine in the shared memory
+/**
+ * \brief Retrieve the timestamp updated by the game engine in the shared memory
  *
- * Returns : the timestamp value on success.
- *           -1 is returned on errors.
+ * \return the timestamp value on success.
+ *         -1 is returned on errors.
  */
 int PP_GetTimestamp_prim(void);
 
@@ -345,10 +361,13 @@ float PP_Unit_PdgCmd_GetParam_prim(PP_Unit unit, int idCmd, int idParam);
 /*
  * Push a message to the game engine in order to write it into log file
  * msg : message to log.
+ * error : error code to log provided by other functions of this library.
+ *           If the error code is a positive or null value, the error code
+ *           will be ignored
  * Returns : 0 is returned on success.
  *           Negative value is returned on errors.
  */
-int PP_PushMessage_prim(const char * msg);
+int PP_PushMessage_prim(const char * msg, const int * error);
 
 #ifdef __cplusplus
 }

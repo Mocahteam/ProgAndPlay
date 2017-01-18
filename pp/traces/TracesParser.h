@@ -77,15 +77,16 @@ public:
 	  */
 	void parseTraceFileOffline(const std::string& dir_path, const std::string& filename);
 
-	/**
-	  * \brief Lancement du parsage d'un fichier de traces brutes.
-	  *
-	  * Cette fonction permet de parser un fichier de traces brutes. Les traces sont simplement ajoutées dans le vecteur TracesParser::traces sans aucune compression.
-	  *
-	  * \param dir_path le chemin d'accès au fichier.
-	  * \param filename le nom du fichier.
-	  */
-	void parseTraceFile(const std::string& dir_path, const std::string& filename);
+//  A SUPPRIMER ???
+// 	/**
+// 	  * \brief Lancement du parsage d'un fichier de traces brutes.
+// 	  *
+// 	  * Cette fonction permet de parser un fichier de traces brutes. Les traces sont simplement ajoutées dans le vecteur TracesParser::traces sans aucune compression.
+// 	  *
+// 	  * \param dir_path le chemin d'accès au fichier.
+// 	  * \param filename le nom du fichier.
+// 	  */
+// 	void parseTraceFile(const std::string& dir_path, const std::string& filename);
 
 	/**
 	  * \brief Affichage des traces contenues dans le vecteur TracesParser::traces.
@@ -232,19 +233,15 @@ public:
 	  */
 	static float stof(const std::string& s);
 
-	/**
-	 * \brief Chargement d'un fichier texte
-	 *
-	 * \param path le chemin d'accès au fichier à charger
-	 *
-	 * \return le contenu du fichier
-	 */
-	static const std::string loadFile(std::string path);
-
 		/**
 		  * Le nom de la mission correspondante aux traces.
 		  */
 		static std::string mission_name;
+
+		/**
+		  * Paramètres de compressions
+			*/
+		static std::string params_json;
 
 private:
 

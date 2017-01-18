@@ -124,7 +124,7 @@ int main(int argc, char *argv[]) {
 		std::cout << "\filename : the complete traces file named filename will be compressed. This file must have the extension .log\n";
 		std::cout << "\tdir_path : path to the directory containing complete traces files (default ./example/)\n";
 		std::cout << "\t-la : launch analysis after compression. If this option is used :\n";
-		std::cout << "\t\t- \"params_[LANGUAGE].json\" has to be present in the example directory. If no params are found for the programming language used in traces, the default compression mod will be used.\n";
+		std::cout << "\t\t- \"params.json\" has to be present in the dir_path directory. If no params file exist, the default compression mod will be used.\n";
 		std::cout << "\t\t- \"feedbacks.xml\" has to be present in the dir_path directory\n";
 		std::cout << "\t\t- \"feedbacks.xml\" in the directory \"[dir_path]/expert/[mission_name]\" can be present to add extra feedbacks for the mission\n";
 		std::cout << "\t\t- there must be at least one solution (an XML file) for the mission in the directory \"[dir_path]/expert/[mission_name]\"\n\n";
@@ -133,6 +133,13 @@ int main(int argc, char *argv[]) {
 	bool analysis = (argc == 3 && strcmp(argv[2],"-la") == 0) || (argc == 4 && strcmp(argv[3],"-la") == 0);
 	if (argc >= 3 && strcmp(argv[2],"-la") != 0)
 		dir_path = argv[2];
+	// load compression params
+	std::cout << "Try to open params.json file from example directory ("+dir_path+"/)" << std::endl;
+	TracesParser::params_json = loadFile(dir_path+"/params.json");
+	if (TracesParser::params_json.compare("") != 0)
+		std::cout << "\tFile found and used for compression and analysis." << std::endl;
+	else
+		std::cout << "\tFile not found." << std::endl;
 	if (strcmp(argv[1], "all") == 0)
 		return compressAllTraces(dir_path);
 	else {

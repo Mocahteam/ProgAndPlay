@@ -147,7 +147,7 @@ private:
 		if (c != NULL)
 			cc = dynamic_cast<CallWithIntParam*>(c);
 		if (error == Call::OUT_OF_RANGE ||
-				error == Call::WRONG_COALITION || (c != NULL && param != cc->param)){
+				error == Call::INVALID_COALITION || (c != NULL && param != cc->param)){
 			if (Call::callMaps.contains(key,"specialAreaId"))
 				ids.push_back("specialAreaId");
 			if (Call::callMaps.contains(key,"resourceId"))
@@ -220,13 +220,13 @@ private:
 	virtual std::string getReadableParams() const {
 		std::string s = "(";
 		if (Call::callMaps.contains(key,"coalitionFirst") || Call::callMaps.contains(key,"indexSecond")){
-			s += (error != Call::WRONG_COALITION && param1 != CallMisc::NONE) ? Call::getEnumLabel<int>(param1,Call::coalitionsArr) : "_";
+			s += (error != Call::INVALID_COALITION && param1 != CallMisc::NONE) ? Call::getEnumLabel<int>(param1,Call::coalitionsArr) : "_";
 			s += ",";
 			s += (param2 != -1) ? boost::lexical_cast<std::string>(param2) : "_";
 		} else if (Call::callMaps.contains(key,"indexFirst") || Call::callMaps.contains(key,"coalitionSecond")){
 			s += (param1 != -1) ? boost::lexical_cast<std::string>(param1) : "_";
 			s += ",";
-			s += (error != Call::WRONG_COALITION && param2 != CallMisc::NONE) ? Call::getEnumLabel<int>(param2,Call::coalitionsArr) : "_";
+			s += (error != Call::INVALID_COALITION && param2 != CallMisc::NONE) ? Call::getEnumLabel<int>(param2,Call::coalitionsArr) : "_";
 		} else { // default case
 			s += (param1 != -1) ? boost::lexical_cast<std::string>(param1) : "_";
 			s += ",";
@@ -241,7 +241,7 @@ private:
 		CallWithIntIntParams *cc;
 		if (c != NULL)
 			cc = dynamic_cast<CallWithIntIntParams*>(c);
-		if (error == Call::WRONG_COALITION ||
+		if (error == Call::INVALID_COALITION ||
 				(Call::callMaps.contains(key,"coalitionFirst") && c != NULL && param1 != cc->param1) ||
 				(Call::callMaps.contains(key,"coalitionSecond") && c != NULL && param2 != cc->param2))
 			ids.push_back("coalition");
@@ -429,7 +429,7 @@ private:
 		// check param
 		if (Call::callMaps.contains(key,"groupId") && (error == Call::OUT_OF_RANGE || (c != NULL && param != cc->param)))
 			ids.push_back("groupId");
-		else if (Call::callMaps.contains(key,"coalition") && (error == Call::WRONG_COALITION || (c != NULL && param != cc->param)))
+		else if (Call::callMaps.contains(key,"coalition") && (error == Call::INVALID_COALITION || (c != NULL && param != cc->param)))
 			ids.push_back("coalition");
 		else if (Call::callMaps.contains(key,"typeToCheck") && c != NULL && param != cc->param)
 			ids.push_back("typeToCheck");

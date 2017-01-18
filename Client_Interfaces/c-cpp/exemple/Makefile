@@ -22,9 +22,9 @@ REP_PP = ../../../pp
 
 all: $(O_FILES)
 
-%.o: %.c $(CONSTANTLIST_FILES) $(REP_PP)/PP_Client.h $(REP_PP)/$(ENTETELIB)pp-client$(LIB)
-	g++ -o $@ -c $< -I. -I$(REP_PP)
-	g++ -o $*$(BIN) $@ -L$(REP_PP) -lpp-client
+%.o: %.c $(CONSTANTLIST_FILES) ../PP_Client.h $(ENTETELIB)pp-client$(LIB)
+	g++ -o $@ -c $< -I. -I.. -I$(REP_PP)
+	g++ -o $*$(BIN) $@ -L. -lpp-client
 
 
 clean:

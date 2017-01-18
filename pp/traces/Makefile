@@ -20,7 +20,7 @@ all: $(EXE)      # all is dependent on $(EXE) to be complete
 $(EXE): $(OBJ)  # $(EXE) is dependent on all of the files in $(OBJ) to exist
 	$(CC) $(OBJ) -o $@
 
-install: $(REP_CONT)/params.json $(REP_CONT)/feedbacks.xml $(REP_TRACES)/TracesParser.cpp $(REP_TRACES)/TracesParser.h $(REP_TRACES)/TracesAnalyser.cpp $(REP_TRACES)/TracesAnalyser.h $(REP_TRACES)/Trace.cpp $(REP_TRACES)/Trace.h $(REP_TRACES)/Sequence.cpp $(REP_TRACES)/Sequence.h $(REP_TRACES)/Call.cpp $(REP_TRACES)/Call.h $(REP_TRACES)/CallDef.h $(REP_TRACES)/Event.cpp $(REP_TRACES)/Event.h $(REP_TRACES)/EventDef.h
+install: $(REP_CONT)/params.json $(REP_CONT)/feedbacks.xml $(REP_TRACES)/TracesParser.cpp $(REP_TRACES)/TracesParser.h $(REP_TRACES)/TracesAnalyser.cpp $(REP_TRACES)/TracesAnalyser.h $(REP_TRACES)/Trace.cpp $(REP_TRACES)/Trace.h $(REP_TRACES)/TraceConstantList.h $(REP_TRACES)/Sequence.cpp $(REP_TRACES)/Sequence.h $(REP_TRACES)/Call.cpp $(REP_TRACES)/Call.h $(REP_TRACES)/CallDef.h $(REP_TRACES)/Event.cpp $(REP_TRACES)/Event.h $(REP_TRACES)/EventDef.h
 
 $(REP_CONT)/params.json: ./example/params.json
 	cp ./example/params.json $(REP_CONT)
@@ -45,6 +45,9 @@ $(REP_TRACES)/Trace.cpp: Trace.cpp
 
 $(REP_TRACES)/Trace.h: Trace.h
 	cp Trace.h $(REP_TRACES)
+
+$(REP_TRACES)/TraceConstantList.h: TraceConstantList.h
+	cp TraceConstantList.h $(REP_TRACES)
 
 $(REP_TRACES)/Sequence.cpp: Sequence.cpp
 	cp Sequence.cpp $(REP_TRACES)

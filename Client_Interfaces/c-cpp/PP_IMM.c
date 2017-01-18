@@ -1,8 +1,7 @@
-#include "PP_Client.h"
 #include "PP_Client_Private.h"
 #include "PP_IMM.h"
 #include "PP_Error.h"
-#include "constantList_KP4.4.h"
+#include "constantList_KP4.1.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,7 +11,7 @@ void PP_Initialisation(void){
 	// initialisation du tirage aléatoire
 	srand ( time(NULL) );
 	// initialisation de l'API
-	if (PP_Open() == -1){
+	if (PP_Open_prim() < 0){
 		printf("Erreur : PP_Initialisation => Le jeu n'est peut être pas lance.\n  \
 %s", PP_GetError());
 		return;
@@ -20,7 +19,7 @@ void PP_Initialisation(void){
 }
 
 void PP_Fin(void){
-	if (PP_Close() == -1){
+	if (PP_Close_prim() < 0){
 		printf("Erreur : PP_Fin => Le jeu n'est peut être pas lance.\n  %s",
 PP_GetError());
 	}
@@ -31,8 +30,8 @@ float PP_NombreAleatoire(float max){
 }
 
 bool PP_PartieTerminee(void){
-	int ret = PP_IsGameOver();
-	if (ret == -1)
+	int ret = PP_IsGameOver_prim();
+	if (ret < 0)
 		printf("  %s", PP_GetError());
 	return ret > 0;
 }
@@ -44,8 +43,8 @@ void PP_ObtenirPions(PP_Pion pions_j [], int* taille_pj,
 	enterCriticalSection();
 		if (pions_j != NULL && taille_pj != NULL){
 			*taille_pj = 0;
-			for (i = 0 ; i < PP_GetNumUnits(MY_COALITION) && i < NB_MAX_PIONS ; i++){
-				u = PP_GetUnitAt(MY_COALITION, i);
+			for (i = 0 ; i < PP_GetNumUnits_prim(MY_COALITION) && i < NB_MAX_PIONS ; i++){
+				u = PP_GetUnitAt_prim(MY_COALITION, i);
 				if (u != -1){
 					pions_j[*taille_pj] = u;
 					(*taille_pj)++;
@@ -54,8 +53,8 @@ void PP_ObtenirPions(PP_Pion pions_j [], int* taille_pj,
 		}
 		if (pions_e != NULL && taille_pe != NULL){
 			*taille_pe = 0;
-			for (i = 0 ; i < PP_GetNumUnits(ENEMY_COALITION) && i < NB_MAX_PIONS ; i++){
-				u = PP_GetUnitAt(ENEMY_COALITION, i);
+			for (i = 0 ; i < PP_GetNumUnits_prim(ENEMY_COALITION) && i < NB_MAX_PIONS ; i++){
+				u = PP_GetUnitAt_prim(ENEMY_COALITION, i);
 				if (u != -1){
 					pions_e[*taille_pe] = u;
 					(*taille_pe)++;
@@ -66,27 +65,27 @@ void PP_ObtenirPions(PP_Pion pions_j [], int* taille_pj,
 }
 
 void PP_Deplacer(PP_Pion pion, PP_Pos pos){
-	if (PP_Unit_ActionOnPosition(pion, MOVE, pos) == -1)
+	if (PP_Unit_ActionOnPosition_prim(pion, MOVE, pos) == -1)
 		printf("  %s", PP_GetError());
 }
 
 void PP_Attaquer(PP_Pion source, PP_Pion cible){
-	if (PP_Unit_ActionOnUnit(source, ATTACK, cible) == -1)
+	if (PP_Unit_ActionOnUnit_prim(source, ATTACK, cible) == -1)
 		printf("  %s", PP_GetError());
 }
 
 void PP_Stopper(PP_Pion p){
-	if (PP_Unit_UntargetedAction(p, STOP, -1.0) == -1)
+	if (PP_Unit_UntargetedAction_prim(p, STOP, -1.0) == -1)
 		printf("  %s", PP_GetError());
 }
 
 float PP_CapitalSante(PP_Pion p){
-	float cur = PP_Unit_GetHealth(p);
+	float cur = PP_Unit_GetHealth_prim(p);
 	if (cur == -1){
 		printf("  %s", PP_GetError());
 		return 0.0;
 	}
-	float max = PP_Unit_GetMaxHealth(p);
+	float max = PP_Unit_GetMaxHealth_prim(p);
 	if (max == -1.0){
 		printf("  %s", PP_GetError());
 		return 0.0;
@@ -95,7 +94,8 @@ float PP_CapitalSante(PP_Pion p){
 }
 
 PP_Pos PP_Position(PP_Pion p){
-	PP_Pos ret = PP_Unit_GetPosition(p);
+	PP_Pos ret;
+	PP_Unit_GetPosition_prim(p, &ret);
 	if (ret.x == -1.0 || ret.y == -1.0){
 		printf("  %s", PP_GetError());
 	}
@@ -104,7 +104,7 @@ PP_Pos PP_Position(PP_Pion p){
 
 bool PP_EnDeplacement(PP_Pion pion, PP_Pos* pos){
 	PP_PendingCommands pdgCmds;
-	if (PP_Unit_GetPendingCommands(pion, &pdgCmds) == -1){
+	if (PP_Unit_GetPendingCommands_prim(pion, &pdgCmds) == -1){
 		printf("  %s", PP_GetError());
 		return false;
 	}
@@ -129,7 +129,7 @@ bool PP_EnDeplacement(PP_Pion pion, PP_Pos* pos){
 
 bool PP_EnAttaque(PP_Pion p, PP_Pion* c){
 	PP_PendingCommands pdgCmds;
-	if (PP_Unit_GetPendingCommands(p, &pdgCmds) == -1){
+	if (PP_Unit_GetPendingCommands_prim(p, &pdgCmds) == -1){
 		printf("  %s", PP_GetError());
 		return false;
 	}
@@ -150,7 +150,7 @@ bool PP_EnAttaque(PP_Pion p, PP_Pion* c){
 
 bool PP_EnAttente(PP_Pion p){
 	PP_PendingCommands pdgCmds;
-	if (PP_Unit_GetPendingCommands(p, &pdgCmds) == -1){
+	if (PP_Unit_GetPendingCommands_prim(p, &pdgCmds) == -1){
 		printf("  %s", PP_GetError());
 		return false;
 	}

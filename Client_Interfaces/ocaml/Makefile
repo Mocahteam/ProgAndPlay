@@ -6,7 +6,8 @@ GCC3.4.5 = MinGW-gcc3.4.5
 PATH := C:\$(GCC3.4.5)\bin;C:\msys\1.0\bin;$(PATH)
 ENTETELIB = 
 LIB = .dll
-INCLUDE_DIRS = -I../../pp -I"C:\OCaml\lib"
+export OCAMLLIB=C:\OCaml\lib
+INCLUDE_DIRS = -I../../pp -I$(OCAMLLIB)
 # In order to find "dllcrt2.o" file
 OPTLIB = -L"C:\$(GCC3.4.5)\lib" -ldopt -noentry
 else

@@ -16,9 +16,9 @@ PP_Unit_GetType 227_4 - 4
 PP_Unit_GetPosition 227_4 - 500 500
 PP_Unit_GetHealth 227_4 - 123.8
 PP_Unit_GetMaxHealth 227_4 - 250
-PP_Unit_GetGroup 227_4 - 3
 PP_Unit_GetPendingCommands 227_4
 PP_Unit_SetGroup 227_4 3
+PP_Unit_GetGroup 227_4 - 3
 PP_Unit_ActionOnUnit 227_4 10 142_7
 PP_Unit_ActionOnPosition 227_4 10 1056 1792
 PP_Unit_UntargetedAction 227_4 50 1.0

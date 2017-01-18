@@ -4,7 +4,7 @@
 std::map<int,std::string> Call::units_id_map; // this map has to be initialised by game engine depending on mod loaded
 std::map<int,std::string> Call::orders_map; // this map has to be initialised by game engine depending on mod loaded
 std::map<int,std::string> Call::resources_map; // this map has to be initialised by game engine depending on mod loaded
-const char* Call::errorsArr[] = {"out_of_range", "wrong_coalition", "wrong_unit", "wrong_target", "wrong_position", NULL};
+const char* Call::errorsArr[] = {UNIT_NOT_FOUND_LABEL, NOT_UNIT_OWNER_LABEL, INVALID_COALITION_LABEL, TARGET_NOT_FOUND_LABEL, OUT_OF_RANGE_LABEL, INVALID_GROUP_LABEL, POSITION_OUT_OF_BOUNDS_LABEL, NULL};
 const char* Call::coalitionsArr[] = {"MY_COALITION", "ALLY_COALITION", "ENEMY_COALITION", NULL};
 CallMaps Call::callMaps;
 

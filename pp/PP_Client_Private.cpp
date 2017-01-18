@@ -23,6 +23,7 @@
 #include "PP_Private.h"
 #include "PP_Client_Private.h"
 #include "PP_Error_Private.h"
+#include "traces/TraceConstantList.h"
 
 #include <signal.h>
 #include <math.h>
@@ -40,6 +41,9 @@
 /* Definition of global variables                                             */
 /******************************************************************************/
 
+/* List of constants tags that produces specific feedback (see feedbacks.xml file and Call.cpp from trace package) */
+static char const *errorsArr[] = {UNIT_NOT_FOUND_LABEL, NOT_UNIT_OWNER_LABEL, INVALID_COALITION_LABEL, TARGET_NOT_FOUND_LABEL, OUT_OF_RANGE_LABEL, INVALID_GROUP_LABEL, POSITION_OUT_OF_BOUNDS_LABEL};
+
 /* Contains all shared data */
 static PP_sharedData shd;
 
@@ -54,22 +58,6 @@ static bool ctrlC = false;
 static int locked = 0;
 /* Stores the number of critical section call */
 static int nbCriticalCall = 0;
-
-/* List of constants tags that produces specific feedback (see feedbacks.xml file from trace package) */
-char const *errorsArr[] = {"unit_not_found ", "not_unit_owner ", "invalid_coalition ", "target_not_found ", "out_of_range ", "invalid_group ", "position_out_of_bounds"};
-#define SHARED_MEMORY_ERROR -100
-#define NOT_OPENED -101
-#define RELOAD_FAILURE -102
-#define INCONSISTENT_SHARED_MEMORY -103
-#define MUTEX_NOT_LOCKED -104
-#define NO_GROUP -200
-#define UNIT_NOT_FOUND -1
-#define NOT_UNIT_OWNER -2
-#define INVALID_COALITION -3
-#define TARGET_NOT_FOUND -4
-#define OUT_OF_RANGE -5
-#define INVALID_GROUP -6
-#define POSITION_OUT_OF_BOUNDS -7
 
 
 /******************************************************************************/
@@ -189,8 +177,8 @@ static void addCommand(PP_Unit unitId, int commandCode,
 void enterCriticalSection(){
 	nbCriticalCall++;
 	if (locked == 0){
-		// make a pause every 4 call to avoid cpu consuming
-		if (nbCriticalCall > 4){
+		// make a pause every 8 call to avoid cpu consuming
+		if (nbCriticalCall > 8){
 			boost::this_thread::sleep(boost::posix_time::milliseconds(1));
 			nbCriticalCall = 0;
 		}
@@ -474,7 +462,7 @@ int PP_Unit_GetType_prim(PP_Unit unit){
 			if (ret == 0){
 				if (u->second.type == -1) {
 					PP_SetError("PP_Unit_GetType : type not found\n");
-					ret = -1;
+					ret = TYPE_UNDEF;
 				}
 				else
 					ret = u->second.type;
@@ -914,7 +902,7 @@ float PP_Unit_PdgCmd_GetParam_prim(PP_Unit unit, int idCmd, int idParam){
 	return ret;
 }
 
-int PP_PushMessage_prim(const char * msg) {
+int PP_PushMessage_prim(const char * msg, const int * error) {
 	int ret;
 	// check if mutex is locked
 	if (locked == 0){
@@ -934,6 +922,12 @@ int PP_PushMessage_prim(const char * msg) {
 				//But the buffer that will hold "msg" parameter is allocated from
 				//shared memory
 				ShString sharedMessage(charAlloc_inst);
+				// set error
+				if (error != NULL && *error < 0){
+					sharedMessage.append(errorsArr[(*error+1)*-1]);
+					sharedMessage.append(" "); // add space
+				}
+				// set message
 				sharedMessage.append(msg);
 
 				//Store the pointer pointing to the buffer into the shared memory
