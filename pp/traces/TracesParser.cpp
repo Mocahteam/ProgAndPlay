@@ -177,35 +177,51 @@ void TracesParser::readTracesOfflineInGame() {
 	std::string line;
 	bool change = false;
 	while (!end) {
+		// we pop all new line included into the input file stream
 		while (std::getline(ifs, line)) {
 			lineNum++;
+			// we build a trace from the current line
 			Trace::sp_trace spt = handleLine(line);
 			if (spt) {
 				Event::sp_event spe;
 				if (spt->isEvent())
 					spe = boost::dynamic_pointer_cast<Event>(spt);
+				// We check if this trace is an event that we can't aggregate
 				if (spe && Trace::inArray(spe->getLabel().c_str(), Event::noConcatEventsArr) > -1) {
+					// We try to detect and compress sequence in previous traces
 					detectSequences();
+					// Then we add the new trace
 					traces.push_back(spe);
+					// And we define the top of the trace as the new starting point
 					start = traces.size();
+					// If we detect a new execution or a new mission we note the changement
 					if (spe->getLabel().compare(NEW_EXECUTION) == 0 || spe->getLabel().compare(START_MISSION) == 0)
 						change = true;
 				}
 				else
+					// The trace is aggegable, so we try to do it
 					handleTraceOffline(spt);
 			}
 		}
+		// check if a new execution or a new mission was detected and if we have to proceed traces
 		if (change && proceed) {
+			// Check if an end mission event have been detected
 			if (spe_eme) {
+				// if so, we try to detect and compress sequences
 				detectSequences();
+				// then we add this end mission event
 				traces.push_back(spe_eme);
 				spe_eme.reset();
+				// And we define the top of the trace as the new starting point
 				start = traces.size();
 			}
+			// Get the last token of the traces
 			Event::sp_event spe;
 			if (traces.back()->isEvent())
 				spe = boost::dynamic_pointer_cast<Event>(traces.back());
+			// Check if this token is not an event or at least not a starting event (mission or execution)
 			if (!spe || (spe->getLabel().compare(START_MISSION) != 0 && spe->getLabel().compare(NEW_EXECUTION) != 0)) {
+				// if so, we try to detect and compress sequences
 				detectSequences();
 				writeFiles(); //inform ProgAndPlay.cpp the compression is done
 				change = false;

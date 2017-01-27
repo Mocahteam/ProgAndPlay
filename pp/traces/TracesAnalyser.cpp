@@ -307,7 +307,12 @@ std::string TracesAnalyser::constructFeedback(const std::string& learner_xml, co
 				}
 			}
 		} else{
-			osAnalyser << "No expert trace match to analyse "+learner_gi.nee->getProgrammingLangageUsed()+" learner solution." << std::endl;
+			std::string lang;
+			if (learner_gi.nee != NULL)
+				lang = learner_gi.nee->getProgrammingLangageUsed();
+			else
+				lang ="undefined";
+			osAnalyser << "No expert trace match to analyse " << lang << " learner solution." << std::endl;
 		}
 	}
 	rapidjson::StringBuffer s;
