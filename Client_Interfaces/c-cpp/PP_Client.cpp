@@ -22,16 +22,19 @@
 
 #include "PP_Client.h"
 #include "PP_Client_Private.h"
+#include "traces/TraceConstantList.h"
 #include <sstream>
 
 int PP_Open(){
 	if (PP_Open_prim() == 0){
 		// notify function call to Spring
 		enterCriticalSection();
-			std::ostringstream oss(std::ostringstream::out);
-			oss << "execution_start_time " << PP_GetTimestamp_prim();
-			PP_PushMessage_prim(oss.str().c_str(), NULL);
-			PP_PushMessage_prim("programming_language_used C", NULL);
+			std::ostringstream oss_start(std::ostringstream::out);
+			oss_start << EXECUTION_START_TIME << " " << PP_GetTimestamp_prim();
+			PP_PushMessage_prim(oss_start.str().c_str(), NULL);
+			std::ostringstream oss_lang(std::ostringstream::out);
+			oss_lang << PROGRAMMING_LANGUAGE_USED << " C";
+			PP_PushMessage_prim(oss_lang.str().c_str(), NULL);
 			PP_PushMessage_prim("PP_Open", NULL);
 		exitCriticalSection();
 		return 0;
@@ -46,7 +49,7 @@ int PP_Close (){
 	enterCriticalSection();
 		PP_PushMessage_prim("PP_Close", NULL);
 		std::ostringstream oss(std::ostringstream::out);
-		oss << "execution_end_time " << PP_GetTimestamp_prim();
+		oss << EXECUTION_END_TIME << " " << PP_GetTimestamp_prim();
 		PP_PushMessage_prim(oss.str().c_str(), NULL);
 	exitCriticalSection();
 	if (PP_Close_prim() == 0){

@@ -1251,7 +1251,7 @@ void TracesAnalyser::setFeedbackInfo(Feedback& f, Feedback& ref_f) const {
 			Call::sp_call learner_spc = boost::dynamic_pointer_cast<Call>(f.learner_spt);
 			std::vector<std::string> ids = learner_spc->getListIdWrongParams();
 			if (!ids.empty())
-				s = ids.at(0);
+				s = "\"" + ids.at(0) + "\"";
 		}
 		else if (s.compare("n") == 0) {
 			s = "\n";

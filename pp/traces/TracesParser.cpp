@@ -204,7 +204,7 @@ void TracesParser::readTracesOfflineInGame() {
 			}
 		}
 		// check if a new execution or a new mission was detected and if we have to proceed traces
-		if (change && proceed) {
+		if (spe_eme || (change && proceed)) {
 			// Check if an end mission event have been detected
 			if (spe_eme) {
 				// if so, we try to detect and compress sequences
@@ -225,12 +225,11 @@ void TracesParser::readTracesOfflineInGame() {
 				detectSequences();
 				writeFiles(); //inform ProgAndPlay.cpp the compression is done
 				change = false;
+				proceed = false;
 			}
 		}
 		if (!ifs.eof())
 			end = true; // Ensure end of read was EOF.
-		else
-			//Sleep(500);
 		ifs.clear();
 	}
 }
@@ -758,19 +757,19 @@ void TracesParser::display(std::ostream &os) {
 				if (num_start++ > 0)
 					os << std::endl;
 				StartMissionEvent *sme = dynamic_cast<StartMissionEvent*>(e);
-				os << "mission name : " << sme->getMissionName() << std::endl << "mission start time : " << sme->getStartTime() << std::endl;
+				os << GAME_START << " : " << sme->getMissionName() << std::endl << MISSION_START_TIME << " : " << sme->getStartTime() << std::endl;
 			}
 			else if (e->getLabel().compare(END_MISSION) == 0) {
 				EndMissionEvent *eme = dynamic_cast<EndMissionEvent*>(e);
-				os << "status : " << eme->getStatus() << std::endl << "mission end time : " << eme->getEndTime() << std::endl;
+				os << "status : " << eme->getStatus() << std::endl << MISSION_END_TIME << " : " << eme->getEndTime() << std::endl;
 			}
 			else if (e->getLabel().compare(NEW_EXECUTION) == 0) {
 				NewExecutionEvent *nee = dynamic_cast<NewExecutionEvent*>(e);
-				os << "\texecution start time : " << nee->getStartTime() << std::endl << "\tprogramming_language_used " << nee->getProgrammingLangageUsed() << std::endl;
+				os << "\t" << EXECUTION_START_TIME << " : " << nee->getStartTime() << std::endl << "\t" << PROGRAMMING_LANGUAGE_USED << " " << nee->getProgrammingLangageUsed() << std::endl;
 				e->numTab = 1;
 			}
 			else if (e->getLabel().compare(END_EXECUTION) == 0) {
-				os << "\texecution end time : " << dynamic_cast<EndExecutionEvent*>(e)->getEndTime() << std::endl;
+				os << "\t" << EXECUTION_END_TIME << " : " << dynamic_cast<EndExecutionEvent*>(e)->getEndTime() << std::endl;
 				e->numTab = 0;
 			}
 		}
