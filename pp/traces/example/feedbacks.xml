@@ -235,6 +235,22 @@
 				<info>Check the value of the third parameter.</info>
 			</infos>
 		</message>
+		<message id="synchronous">
+			<infos lang="fr">
+				<info>Peut être devriez-vous effectuer un appel bloquant.</info>
+			</infos>
+			<infos lang="en">
+				<info>Maybe you should make a blocking call.</info>
+			</infos>
+		</message>
+		<message id="asynchronous">
+			<infos lang="fr">
+				<info>Peut être devriez-vous effectuer un appel non bloquant.</info>
+			</infos>
+			<infos lang="en">
+				<info>Maybe you should make a non-blocking call.</info>
+			</infos>
+		</message>
 		<message id="idCmd">
 			<infos lang="fr">
 				<info>Vérifiez l'identifiant de la commande que vous passez à la fonction.</info>

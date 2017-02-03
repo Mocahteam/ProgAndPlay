@@ -302,48 +302,51 @@
 		"unitType": false
 	},
 	"PP_Unit_ActionOnUnit": {
-		"call_type": "CallWithUnitIntUnitParams",
+		"call_type": "CallWithUnitIntUnitIntParams",
 		"C_public_label": "PP_Unit_ActionOnUnit",
 		"Python_public_label": "PP_Unit_ActionOnUnit",
 		"Ada_public_label": "CarryOutCommand",
 		"OCaml_public_label": "actionOnEntity",
-		"Scratch_public_label": "command unit id _ to _ on unit id _ ",
+		"Scratch_public_label": "command unit id _ to _ on unit id _ and _",
 		"Java_public_label": "Unit::command",
 		"unitId": false,
 		"unitType": false,
 		"action": true,
 		"targetId": false,
-		"targetType": false
+		"targetType": false,
+		"synchronized": true
 	},
 	"PP_Unit_ActionOnPosition": {
-		"call_type": "CallWithUnitIntPosParams",
+		"call_type": "CallWithUnitIntPosIntParams",
 		"C_public_label": "PP_Unit_ActionOnPosition",
 		"Python_public_label": "PP_Unit_ActionOnPosition",
 		"Ada_public_label": "CarryOutCommand",
 		"OCaml_public_label": "actionOnPosition",
-		"Scratch_public_label": "command unit id _ to _ to x: _ y: _ ",
+		"Scratch_public_label": "command unit id _ to _ to x: _ y: _ and _",
 		"Java_public_label": "Unit::command",
 		"unitId": false,
 		"unitType": false,
 		"action": true,
-		"position": false
+		"position": false,
+		"synchronized": true
 	},
 	"PP_Unit_UntargetedAction": {
-		"call_type": "CallWithUnitIntFloatParams",
+		"call_type": "CallWithUnitIntFloatIntParams",
 		"C_public_label": "PP_Unit_UntargetedAction",
 		"Python_public_label": "PP_Unit_UntargetedAction",
 		"Ada_public_label": "CarryOutCommand",
 		"OCaml_public_label": "untargetedAction",
-		"Scratch_public_label": "command unit id _ to set _ to _ ",
+		"Scratch_public_label": "command unit id _ to set _ to _",
 		"Java_public_label": "Unit::command",
 		"unitId": false,
 		"unitType": false,
 		"action": true,
-		"param": false
+		"param": false,
+		"synchronized": true
 	},
 	"PP_Unit_UntargetedActionWithoutParam": {
 		"call_type": "CallWithUnitIntParams",
-		"Scratch_public_label": "command unit id _ to _ ",
+		"Scratch_public_label": "command unit id _ to _",
 		"unitId": false,
 		"unitType": false,
 		"action": true

@@ -19,9 +19,9 @@ PP_Unit_GetMaxHealth 227_4 - 250
 PP_Unit_GetPendingCommands 227_4
 PP_Unit_SetGroup 227_4 3
 PP_Unit_GetGroup 227_4 - 3
-PP_Unit_ActionOnUnit 227_4 10 142_7
-PP_Unit_ActionOnPosition 227_4 10 1056 1792
-PP_Unit_UntargetedAction 227_4 50 1.0
+PP_Unit_ActionOnUnit 227_4 10 142_7 0
+PP_Unit_ActionOnPosition 227_4 10 1056 1792 1
+PP_Unit_UntargetedAction 227_4 50 1.0 1
 PP_Close
 execution_end_time 1463495075
 mission_end_time 1463495080

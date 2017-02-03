@@ -737,281 +737,67 @@ private:
 
 };
 
-class CallWithUnitIntUnitParams : public Call {
+class CallWithUnitIntUnitIntParams : public Call {
 
 public:
 
-	CallWithUnitIntUnitParams(ErrorType error, std::string key, int unitId, int unitType, int param, int targetId, int targetType): Call(key,error), param(param) {
+	CallWithUnitIntUnitIntParams(ErrorType error, std::string key, int unitId, int unitType, int param1, int targetId, int targetType, int param2): Call(key,error), param1(param1), param2(param2) {
 		unit.id = unitId;
 		unit.type = unitType;
 		target.id = targetId;
 		target.type = targetType;
 	}
 
-	CallWithUnitIntUnitParams(const CallWithUnitIntUnitParams *c) : Call(c) {
-		unit.id = c->unit.id;
-		unit.type = c->unit.type;
-		param = c->param;
-		target.id = c->target.id;
-		target.type = c->target.type;
-	}
-
-	virtual Trace::sp_trace clone() const {
-		return boost::make_shared<CallWithUnitIntUnitParams>(this);
-	}
-
-private:
-
-	CallMisc::Unit unit;
-	int param;
-	CallMisc::Unit target;
-
-	virtual bool compare(const Call *c) const {
-		const CallWithUnitIntUnitParams *cc = dynamic_cast<const CallWithUnitIntUnitParams*>(c);
-		if ((Call::callMaps.contains(key,"unitId") && unit.id != cc->unit.id) || (Call::callMaps.contains(key,"unitType") && unit.type != cc->unit.type) || (Call::callMaps.contains(key,"action") && param != cc->param) || (Call::callMaps.contains(key,"targetId") && target.id != cc->target.id) || (Call::callMaps.contains(key,"targetType") && target.type != cc->target.type))
-			return false;
-		return true;
-	}
-
-	virtual void filter(const Call *c) {
-		const CallWithUnitIntUnitParams *cc = dynamic_cast<const CallWithUnitIntUnitParams*>(c);
-		if (!Call::callMaps.contains(key,"unitId") && unit.id != cc->unit.id && unit.id != -1)
-			unit.id = -1;
-		if (!Call::callMaps.contains(key,"unitType") && unit.type != cc->unit.type && unit.type != -1)
-			unit.type = -1;
-		if (!Call::callMaps.contains(key,"action") && param != cc->param && param != -1)
-			param = -1;
-		if (!Call::callMaps.contains(key,"targetId") && target.id != cc->target.id && target.id != -1)
-			target.id = -1;
-		if (!Call::callMaps.contains(key,"targetType") && target.type != cc->target.type && target.type != -1)
-			target.type = -1;
-	}
-
-	virtual std::pair<int,int> distance(const Call *c) const {
-		const CallWithUnitIntUnitParams *cc = dynamic_cast<const CallWithUnitIntUnitParams*>(c);
-		int sc = 0;
-		if (unit.type != cc->unit.type)
-			sc++;
-		if (param != cc->param)
-			sc++;
-		if (target.type != cc->target.type)
-			sc++;
-		return std::make_pair<int,int>(sc,3);
-	}
-
-	virtual std::string getParams() const {
-		std::string s = "";
-		s += (unit.id == -1) ? "?" : boost::lexical_cast<std::string>(unit.id);
-		s += "_";
-		s += (unit.type == -1) ? "?" : boost::lexical_cast<std::string>(unit.type);
-		s += " ";
-		s += (param == -1) ? "?" : boost::lexical_cast<std::string>(param);
-		s += " ";
-		s += (target.id == -1) ? "?" : boost::lexical_cast<std::string>(target.id);
-		s += "_";
-		s += (target.type == -1) ? "?" : boost::lexical_cast<std::string>(target.type);
-		return s;
-	}
-
-	virtual std::string getReadableParams() const {
-		std::string s = "(";
-		// Ugly!!! check if the label contains "Unit::" this means it is an object oriented langage
-		// and then the first parameter is the object used to call this function. So display
-		// unit attributes only for non object oriented langages.
-		if (Call::callMaps.getLabel(key).find("Unit::") == std::string::npos){
-			s += (Call::units_id_map.find(unit.type) != Call::units_id_map.end()) ? Call::units_id_map.at(unit.type)+" unit" : "_";
-			s += ",";
-		}
-		s += (Call::orders_map.find(param) != Call::orders_map.end()) ? Call::orders_map.at(param) : "_";
-		s += ",";
-		s += (Call::units_id_map.find(target.type) != Call::units_id_map.end()) ? Call::units_id_map.at(target.type)+" unit" : "_";
-		s += ")";
-		return s;
-	}
-
-	virtual std::vector<std::string> id_wrong_params(Call *c) const {
-		std::vector<std::string> ids;
-		CallWithUnitIntUnitParams *cc;
-		if (c != NULL)
-			cc = dynamic_cast<CallWithUnitIntUnitParams*>(c);
-		// check unit
-		if (c != NULL && unit.type != cc->unit.type)
-			ids.push_back("unitType");
-		// check param
-		if (c != NULL && param != cc->param)
-			ids.push_back("action");
-		// check target
-		if (c != NULL && target.type != cc->target.type)
-			ids.push_back("targetType");
-		return ids;
-	}
-};
-
-class CallWithUnitIntPosParams : public Call {
-
-public:
-
-	CallWithUnitIntPosParams(ErrorType error, std::string key, int unitId, int unitType, int param, float x, float y): Call(key,error), param(param) {
-		unit.id = unitId;
-		unit.type = unitType;
-		pos.x = x;
-		pos.y = y;
-	}
-
-	CallWithUnitIntPosParams(const CallWithUnitIntPosParams *c) : Call(c) {
-		unit.id = c->unit.id;
-		unit.type = c->unit.type;
-		param = c->param;
-		pos.x = c->pos.x;
-		pos.y = c->pos.y;
-	}
-
-	virtual Trace::sp_trace clone() const {
-		return boost::make_shared<CallWithUnitIntPosParams>(this);
-	}
-
-private:
-
-	CallMisc::Unit unit;
-	int param;
-	CallMisc::Position pos;
-
-	virtual bool compare(const Call *c) const {
-		const CallWithUnitIntPosParams *cc = dynamic_cast<const CallWithUnitIntPosParams*>(c);
-		if ((Call::callMaps.contains(key,"unitId") && unit.id != cc->unit.id) || (Call::callMaps.contains(key,"unitType") && unit.type != cc->unit.type) || (Call::callMaps.contains(key,"action") && param != cc->param) || (Call::callMaps.contains(key,"position") && pos != cc->pos))
-			return false;
-		return true;
-	}
-
-	virtual void filter(const Call *c) {
-		const CallWithUnitIntPosParams *cc = dynamic_cast<const CallWithUnitIntPosParams*>(c);
-		if (!Call::callMaps.contains(key,"unitId") && unit.id != cc->unit.id && unit.id != -1)
-			unit.id = -1;
-		if (!Call::callMaps.contains(key,"unitType") && unit.type != cc->unit.type && unit.type != -1)
-			unit.type = -1;
-		if (!Call::callMaps.contains(key,"action") && param != cc->param && param != -1)
-			param = -1;
-		if (!Call::callMaps.contains(key,"position") && pos.x != cc->pos.x && pos.x != -1)
-			pos.x = -1;
-		if (!Call::callMaps.contains(key,"position") && pos.y != cc->pos.y && pos.y != -1)
-			pos.y = -1;
-	}
-
-	virtual std::pair<int,int> distance(const Call *c) const {
-		const CallWithUnitIntPosParams *cc = dynamic_cast<const CallWithUnitIntPosParams*>(c);
-		int sc = 0;
-		if (unit.type != cc->unit.type)
-			sc++;
-		if (param != cc->param)
-			sc++;
-		if (pos.x != cc->pos.x)
-			sc++;
-		if (pos.y != cc->pos.y)
-			sc++;
-		return std::make_pair<int,int>(sc,4);
-	}
-
-	virtual std::string getParams() const {
-		std::string s = "";
-		s += (unit.id == -1) ? "?" : boost::lexical_cast<std::string>(unit.id);
-		s += "_";
-		s += (unit.type == -1) ? "?" : boost::lexical_cast<std::string>(unit.type);
-		s += " ";
-		s += (param == -1) ? "?" : boost::lexical_cast<std::string>(param);
-		s += " ";
-		s += (pos.x == -1) ? "?" : boost::lexical_cast<std::string>(pos.x);
-		s += " ";
-		s += (pos.y == -1) ? "?" : boost::lexical_cast<std::string>(pos.y);
-		return s;
-	}
-
-	virtual std::string getReadableParams() const {
-		std::string s = "(";
-		// Ugly!!! check if the label contains "Unit::" this means it is an object oriented langage
-		// and then the first parameter is the object used to call this function. So display
-		// unit attributes only for non object oriented langages.
-		if (Call::callMaps.getLabel(key).find("Unit::") == std::string::npos){
-			s += (Call::units_id_map.find(unit.type) != Call::units_id_map.end()) ? Call::units_id_map.at(unit.type)+" unit" : "_";
-			s += ",";
-		}
-		s += (Call::orders_map.find(param) != Call::orders_map.end()) ? Call::orders_map.at(param) : "_";
-		s += ",";
-		s += (pos.x != -1) ? boost::lexical_cast<std::string>(pos.x) : "_";
-		s += ",";
-		s += (pos.y != -1) ? boost::lexical_cast<std::string>(pos.y) : "_";
-		s += ")";
-		return s;
-	}
-
-	virtual std::vector<std::string> id_wrong_params(Call *c) const {
-		std::vector<std::string> ids;
-		CallWithUnitIntPosParams *cc;
-		if (c != NULL)
-			cc = dynamic_cast<CallWithUnitIntPosParams*>(c);
-		// check unit
-		if (c != NULL && unit.type != cc->unit.type)
-			ids.push_back("unitType");
-		// check param
-		if (c != NULL && param != cc->param)
-			ids.push_back("action");
-		// check position
-		if (c != NULL && pos != cc->pos)
-			ids.push_back("position");
-		return ids;
-	}
-};
-
-class CallWithUnitIntFloatParams : public Call {
-
-public:
-
-	CallWithUnitIntFloatParams(ErrorType error, std::string key, int unitId, int unitType, int param1, float param2): Call(key,error), param1(param1), param2(param2) {
-		unit.id = unitId;
-		unit.type = unitType;
-	}
-
-	CallWithUnitIntFloatParams(const CallWithUnitIntFloatParams *c) : Call(c) {
+	CallWithUnitIntUnitIntParams(const CallWithUnitIntUnitIntParams *c) : Call(c) {
 		unit.id = c->unit.id;
 		unit.type = c->unit.type;
 		param1 = c->param1;
+		target.id = c->target.id;
+		target.type = c->target.type;
 		param2 = c->param2;
 	}
 
 	virtual Trace::sp_trace clone() const {
-		return boost::make_shared<CallWithUnitIntFloatParams>(this);
+		return boost::make_shared<CallWithUnitIntUnitIntParams>(this);
 	}
 
 private:
 
 	CallMisc::Unit unit;
-	int param1;
-	float param2;
+	int param1, param2;
+	CallMisc::Unit target;
 
 	virtual bool compare(const Call *c) const {
-		const CallWithUnitIntFloatParams *cc = dynamic_cast<const CallWithUnitIntFloatParams*>(c);
-		if ((Call::callMaps.contains(key,"unitId") && unit.id != cc->unit.id) || (Call::callMaps.contains(key,"unitType") && unit.type != cc->unit.type) || (Call::callMaps.contains(key,"action") && param1 != cc->param1) || (Call::callMaps.contains(key,"param") && param2 != cc->param2))
+		const CallWithUnitIntUnitIntParams *cc = dynamic_cast<const CallWithUnitIntUnitIntParams*>(c);
+		if ((Call::callMaps.contains(key,"unitId") && unit.id != cc->unit.id) || (Call::callMaps.contains(key,"unitType") && unit.type != cc->unit.type) || (Call::callMaps.contains(key,"action") && param1 != cc->param1) || (Call::callMaps.contains(key,"targetId") && target.id != cc->target.id) || (Call::callMaps.contains(key,"targetType") && target.type != cc->target.type) || (Call::callMaps.contains(key,"synchronized") && param2 != cc->param2))
 			return false;
 		return true;
 	}
 
 	virtual void filter(const Call *c) {
-		const CallWithUnitIntFloatParams *cc = dynamic_cast<const CallWithUnitIntFloatParams*>(c);
+		const CallWithUnitIntUnitIntParams *cc = dynamic_cast<const CallWithUnitIntUnitIntParams*>(c);
 		if (!Call::callMaps.contains(key,"unitId") && unit.id != cc->unit.id && unit.id != -1)
 			unit.id = -1;
 		if (!Call::callMaps.contains(key,"unitType") && unit.type != cc->unit.type && unit.type != -1)
 			unit.type = -1;
 		if (!Call::callMaps.contains(key,"action") && param1 != cc->param1 && param1 != -1)
 			param1 = -1;
-		if (!Call::callMaps.contains(key,"param") && param2 != cc->param2 && param2 != -1)
+		if (!Call::callMaps.contains(key,"targetId") && target.id != cc->target.id && target.id != -1)
+			target.id = -1;
+		if (!Call::callMaps.contains(key,"targetType") && target.type != cc->target.type && target.type != -1)
+			target.type = -1;
+		if (!Call::callMaps.contains(key,"synchronized") && param2 != cc->param2 && param2 != -1)
 			param2 = -1;
 	}
 
 	virtual std::pair<int,int> distance(const Call *c) const {
-		const CallWithUnitIntFloatParams *cc = dynamic_cast<const CallWithUnitIntFloatParams*>(c);
+		const CallWithUnitIntUnitIntParams *cc = dynamic_cast<const CallWithUnitIntUnitIntParams*>(c);
 		int sc = 0;
 		if (unit.type != cc->unit.type)
 			sc++;
 		if (param1 != cc->param1)
+			sc++;
+		if (target.type != cc->target.type)
 			sc++;
 		if (param2 != cc->param2)
 			sc++;
@@ -1025,6 +811,10 @@ private:
 		s += (unit.type == -1) ? "?" : boost::lexical_cast<std::string>(unit.type);
 		s += " ";
 		s += (param1 == -1) ? "?" : boost::lexical_cast<std::string>(param1);
+		s += " ";
+		s += (target.id == -1) ? "?" : boost::lexical_cast<std::string>(target.id);
+		s += "_";
+		s += (target.type == -1) ? "?" : boost::lexical_cast<std::string>(target.type);
 		s += " ";
 		s += (param2 == -1) ? "?" : boost::lexical_cast<std::string>(param2);
 		return s;
@@ -1041,16 +831,282 @@ private:
 		}
 		s += (Call::orders_map.find(param1) != Call::orders_map.end()) ? Call::orders_map.at(param1) : "_";
 		s += ",";
-		s += (param2 != -1) ? boost::lexical_cast<std::string>(param2) : "_";
+		s += (Call::units_id_map.find(target.type) != Call::units_id_map.end()) ? Call::units_id_map.at(target.type)+" unit" : "_";
+		s += ",";
+		// Ugly!!! only Scratch labels include " _ " token to describe parameters position. We use this
+		// trick to define how to display last parameter.
+		if (Call::callMaps.getLabel(key).find(" _ ") != std::string::npos)
+			s += (param2 != 0) ? "WAIT" : "CONTINUE";
+		else
+			s += (param2 != 0) ? "true" : "false";
 		s += ")";
 		return s;
 	}
 
 	virtual std::vector<std::string> id_wrong_params(Call *c) const {
 		std::vector<std::string> ids;
-		CallWithUnitIntFloatParams *cc;
+		CallWithUnitIntUnitIntParams *cc;
 		if (c != NULL)
-			cc = dynamic_cast<CallWithUnitIntFloatParams*>(c);
+			cc = dynamic_cast<CallWithUnitIntUnitIntParams*>(c);
+		// check unit
+		if (c != NULL && unit.type != cc->unit.type)
+			ids.push_back("unitType");
+		// check param1
+		if (c != NULL && param1 != cc->param1)
+			ids.push_back("action");
+		// check target
+		if (c != NULL && target.type != cc->target.type)
+			ids.push_back("targetType");
+		// check synchronized
+		if (c != NULL && param2 != cc->param2){
+			if (param2 == 0)
+				ids.push_back("synchronous");
+			else
+				ids.push_back("asynchronous");
+		}
+		return ids;
+	}
+};
+
+class CallWithUnitIntPosIntParams : public Call {
+
+public:
+
+	CallWithUnitIntPosIntParams(ErrorType error, std::string key, int unitId, int unitType, int param1, float x, float y, int param2): Call(key,error), param1(param1), param2(param2) {
+		unit.id = unitId;
+		unit.type = unitType;
+		pos.x = x;
+		pos.y = y;
+	}
+
+	CallWithUnitIntPosIntParams(const CallWithUnitIntPosIntParams *c) : Call(c) {
+		unit.id = c->unit.id;
+		unit.type = c->unit.type;
+		param1 = c->param1;
+		pos.x = c->pos.x;
+		pos.y = c->pos.y;
+		param2 = c->param2;
+	}
+
+	virtual Trace::sp_trace clone() const {
+		return boost::make_shared<CallWithUnitIntPosIntParams>(this);
+	}
+
+private:
+
+	CallMisc::Unit unit;
+	int param1, param2;
+	CallMisc::Position pos;
+
+	virtual bool compare(const Call *c) const {
+		const CallWithUnitIntPosIntParams *cc = dynamic_cast<const CallWithUnitIntPosIntParams*>(c);
+		if ((Call::callMaps.contains(key,"unitId") && unit.id != cc->unit.id) || (Call::callMaps.contains(key,"unitType") && unit.type != cc->unit.type) || (Call::callMaps.contains(key,"action") && param1 != cc->param1) || (Call::callMaps.contains(key,"position") && pos != cc->pos) || (Call::callMaps.contains(key,"synchronized") && param2 != cc->param2))
+			return false;
+		return true;
+	}
+
+	virtual void filter(const Call *c) {
+		const CallWithUnitIntPosIntParams *cc = dynamic_cast<const CallWithUnitIntPosIntParams*>(c);
+		if (!Call::callMaps.contains(key,"unitId") && unit.id != cc->unit.id && unit.id != -1)
+			unit.id = -1;
+		if (!Call::callMaps.contains(key,"unitType") && unit.type != cc->unit.type && unit.type != -1)
+			unit.type = -1;
+		if (!Call::callMaps.contains(key,"action") && param1 != cc->param1 && param1 != -1)
+			param1 = -1;
+		if (!Call::callMaps.contains(key,"position") && pos.x != cc->pos.x && pos.x != -1)
+			pos.x = -1;
+		if (!Call::callMaps.contains(key,"position") && pos.y != cc->pos.y && pos.y != -1)
+			pos.y = -1;
+		if (!Call::callMaps.contains(key,"synchronized") && param2 != cc->param2 && param2 != -1)
+			param2 = -1;
+	}
+
+	virtual std::pair<int,int> distance(const Call *c) const {
+		const CallWithUnitIntPosIntParams *cc = dynamic_cast<const CallWithUnitIntPosIntParams*>(c);
+		int sc = 0;
+		if (unit.type != cc->unit.type)
+			sc++;
+		if (param1 != cc->param1)
+			sc++;
+		if (pos.x != cc->pos.x)
+			sc++;
+		if (pos.y != cc->pos.y)
+			sc++;
+		if (param2 != cc->param2)
+			sc++;
+		return std::make_pair<int,int>(sc,4);
+	}
+
+	virtual std::string getParams() const {
+		std::string s = "";
+		s += (unit.id == -1) ? "?" : boost::lexical_cast<std::string>(unit.id);
+		s += "_";
+		s += (unit.type == -1) ? "?" : boost::lexical_cast<std::string>(unit.type);
+		s += " ";
+		s += (param1 == -1) ? "?" : boost::lexical_cast<std::string>(param1);
+		s += " ";
+		s += (pos.x == -1) ? "?" : boost::lexical_cast<std::string>(pos.x);
+		s += " ";
+		s += (pos.y == -1) ? "?" : boost::lexical_cast<std::string>(pos.y);
+		s += " ";
+		s += (param2 == -1) ? "?" : boost::lexical_cast<std::string>(param2);
+		return s;
+	}
+
+	virtual std::string getReadableParams() const {
+		std::string s = "(";
+		// Ugly!!! check if the label contains "Unit::" this means it is an object oriented langage
+		// and then the first parameter is the object used to call this function. So display
+		// unit attributes only for non object oriented langages.
+		if (Call::callMaps.getLabel(key).find("Unit::") == std::string::npos){
+			s += (Call::units_id_map.find(unit.type) != Call::units_id_map.end()) ? Call::units_id_map.at(unit.type)+" unit" : "_";
+			s += ",";
+		}
+		s += (Call::orders_map.find(param1) != Call::orders_map.end()) ? Call::orders_map.at(param1) : "_";
+		s += ",";
+		s += (pos.x != -1) ? boost::lexical_cast<std::string>(pos.x) : "_";
+		s += ",";
+		s += (pos.y != -1) ? boost::lexical_cast<std::string>(pos.y) : "_";
+		s += ",";
+		// Ugly!!! only Scratch labels include " _ " token to describe parameters position. We use this
+		// trick to define how to display last parameter.
+		if (Call::callMaps.getLabel(key).find(" _ ") != std::string::npos)
+			s += (param2 != 0) ? "WAIT" : "CONTINUE";
+		else
+			s += (param2 != 0) ? "true" : "false";
+		s += ")";
+		return s;
+	}
+
+	virtual std::vector<std::string> id_wrong_params(Call *c) const {
+		std::vector<std::string> ids;
+		CallWithUnitIntPosIntParams *cc;
+		if (c != NULL)
+			cc = dynamic_cast<CallWithUnitIntPosIntParams*>(c);
+		// check unit
+		if (c != NULL && unit.type != cc->unit.type)
+			ids.push_back("unitType");
+		// check param1
+		if (c != NULL && param1 != cc->param1)
+			ids.push_back("action");
+		// check position
+		if (c != NULL && pos != cc->pos)
+			ids.push_back("position");
+		// check synchronized
+		if (c != NULL && param2 != cc->param2){
+			if (param2 == 0)
+				ids.push_back("synchronous");
+			else
+				ids.push_back("asynchronous");
+		}
+		return ids;
+	}
+};
+
+class CallWithUnitIntFloatIntParams : public Call {
+
+public:
+
+	CallWithUnitIntFloatIntParams(ErrorType error, std::string key, int unitId, int unitType, int param1, float param2, int param3): Call(key,error), param1(param1), param2(param2), param3(param3) {
+		unit.id = unitId;
+		unit.type = unitType;
+	}
+
+	CallWithUnitIntFloatIntParams(const CallWithUnitIntFloatIntParams *c) : Call(c) {
+		unit.id = c->unit.id;
+		unit.type = c->unit.type;
+		param1 = c->param1;
+		param2 = c->param2;
+		param3 = c->param3;
+	}
+
+	virtual Trace::sp_trace clone() const {
+		return boost::make_shared<CallWithUnitIntFloatIntParams>(this);
+	}
+
+private:
+
+	CallMisc::Unit unit;
+	int param1;
+	float param2;
+	int param3;
+
+	virtual bool compare(const Call *c) const {
+		const CallWithUnitIntFloatIntParams *cc = dynamic_cast<const CallWithUnitIntFloatIntParams*>(c);
+		if ((Call::callMaps.contains(key,"unitId") && unit.id != cc->unit.id) || (Call::callMaps.contains(key,"unitType") && unit.type != cc->unit.type) || (Call::callMaps.contains(key,"action") && param1 != cc->param1) || (Call::callMaps.contains(key,"param") && param2 != cc->param2) || (Call::callMaps.contains(key,"synchronized") && param3 != cc->param3))
+			return false;
+		return true;
+	}
+
+	virtual void filter(const Call *c) {
+		const CallWithUnitIntFloatIntParams *cc = dynamic_cast<const CallWithUnitIntFloatIntParams*>(c);
+		if (!Call::callMaps.contains(key,"unitId") && unit.id != cc->unit.id && unit.id != -1)
+			unit.id = -1;
+		if (!Call::callMaps.contains(key,"unitType") && unit.type != cc->unit.type && unit.type != -1)
+			unit.type = -1;
+		if (!Call::callMaps.contains(key,"action") && param1 != cc->param1 && param1 != -1)
+			param1 = -1;
+		if (!Call::callMaps.contains(key,"param") && param2 != cc->param2 && param2 != -1)
+			param2 = -1;
+		if (!Call::callMaps.contains(key,"synchronized") && param3 != cc->param3 && param3 != -1)
+			param3 = -1;
+	}
+
+	virtual std::pair<int,int> distance(const Call *c) const {
+		const CallWithUnitIntFloatIntParams *cc = dynamic_cast<const CallWithUnitIntFloatIntParams*>(c);
+		int sc = 0;
+		if (unit.type != cc->unit.type)
+			sc++;
+		if (param1 != cc->param1)
+			sc++;
+		if (param2 != cc->param2)
+			sc++;
+		if (param3 != cc->param3)
+			sc++;
+		return std::make_pair<int,int>(sc,3);
+	}
+
+	virtual std::string getParams() const {
+		std::string s = "";
+		s += (unit.id == -1) ? "?" : boost::lexical_cast<std::string>(unit.id);
+		s += "_";
+		s += (unit.type == -1) ? "?" : boost::lexical_cast<std::string>(unit.type);
+		s += " ";
+		s += (param1 == -1) ? "?" : boost::lexical_cast<std::string>(param1);
+		s += " ";
+		s += (param2 == -1) ? "?" : boost::lexical_cast<std::string>(param2);
+		s += " ";
+		s += (param3 == -1) ? "?" : boost::lexical_cast<std::string>(param3);
+		return s;
+	}
+
+	virtual std::string getReadableParams() const {
+		std::string s = "(";
+		// Ugly!!! check if the label contains "Unit::" this means it is an object oriented langage
+		// and then the first parameter is the object used to call this function. So display
+		// unit attributes only for non object oriented langages.
+		if (Call::callMaps.getLabel(key).find("Unit::") == std::string::npos){
+			s += (Call::units_id_map.find(unit.type) != Call::units_id_map.end()) ? Call::units_id_map.at(unit.type)+" unit" : "_";
+			s += ",";
+		}
+		s += (Call::orders_map.find(param1) != Call::orders_map.end()) ? Call::orders_map.at(param1) : "_";
+		s += ",";
+		s += (param2 != -1) ? boost::lexical_cast<std::string>(param2) : "_";
+		// Ugly!!! only Scratch labels include " _ " token to describe parameters position. We use this
+		// trick to define if we have to display last parameter. For Scratch, we don't want to show it
+		if (Call::callMaps.getLabel(key).find(" _ ") == std::string::npos){
+			s += ",";
+			s += (param3 != 0) ? "true" : "false";
+		}
+		s += ")";
+		return s;
+	}
+
+	virtual std::vector<std::string> id_wrong_params(Call *c) const {
+		std::vector<std::string> ids;
+		CallWithUnitIntFloatIntParams *cc;
+		if (c != NULL)
+			cc = dynamic_cast<CallWithUnitIntFloatIntParams*>(c);
 		// check unit
 		if (c != NULL && unit.type != cc->unit.type)
 			ids.push_back("unitType");
@@ -1060,6 +1116,13 @@ private:
 		// check param
 		if (c != NULL && param2 != cc->param2)
 			ids.push_back("param3");
+		// check synchronized
+		if (c != NULL && param3 != cc->param3){
+			if (param3 == 0)
+				ids.push_back("synchronous");
+			else
+				ids.push_back("asynchronous");
+		}
 		return ids;
 	}
 };

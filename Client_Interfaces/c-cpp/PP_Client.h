@@ -236,47 +236,50 @@ int PP_Unit_GetPendingCommands(PP_Unit unit, PP_PendingCommands * cmd);
 /**
  * \brief Commands a unit to carry out action on a specified unit.
  *
- * Only units controled by the player can receive this command. 
- * \warning This function call is not blocking. When the function returns this
- * means that the command is sent and not that the order is carried out. Carry
- * out an action can take time, keep this in mind.
+ * Only units controled by the player can receive this command.
  * \param unit to command.
  * \param action to carry out.
  * \param target unit.
+ * \param synchronized: 0 means this function call is not blocking (when the
+ *      function returns this means that the command is sent and not that the
+ *      order is carried out); otherwise (positiove or negative value) this
+ *      means this function call is blocking until the order is carried out.
  * \return 0 on success. -1 is returned on errors.
  * \see constantList_KP4.1.h - available unit actions depending on the unit type id.
  */
-int PP_Unit_ActionOnUnit(PP_Unit unit, int action, PP_Unit target);
+int PP_Unit_ActionOnUnit(PP_Unit unit, int action, PP_Unit target, int synchronized);
 
 /**
  * \brief Commands a unit to carry out action on a specified position.
  *
  * Only units controled by the player can receive this command.
- * \warning This function call is not blocking. When the function returns this
- * means that the command is sent and not that the order is carried out. Carry
- * out an action can take time, keep this in mind.
  * \param unit to command.
  * \param action to carry out.
  * \param pos target position.
+ * \param synchronized: 0 means this function call is not blocking (when the
+ *      function returns this means that the command is sent and not that the
+ *      order is carried out); otherwise (positiove or negative value) this
+ *      means this function call is blocking until the order is carried out.
  * \return 0 on success. -1 is returned on errors.
  * \see constantList_KP4.1.h - available unit actions depending on the unit type id.
  */
-int PP_Unit_ActionOnPosition(PP_Unit unit, int action, PP_Pos pos);
+int PP_Unit_ActionOnPosition(PP_Unit unit, int action, PP_Pos pos, int synchronized);
 
 /**
  * \brief Commands a unit to carry out an untargeted action.
  *
  * Only units controled by the player can receive this command.
- * \warning This function call is not blocking. When the function returns this
- * means that the command is sent and not that the order is carried out. Carry
- * out an action can take time, keep this in mind.
  * \param unit to command.
  * \param action to carry out.
  * \param param : parameter to the action. If any parameter required, put -1.0 instead.
+ * \param synchronized: 0 means this function call is not blocking (when the
+ *      function returns this means that the command is sent and not that the
+ *      order is carried out); otherwise (positiove or negative value) this
+ *      means this function call is blocking until the order is carried out.
  * \return 0 on success. -1 is returned on errors.
  * \see constantList_KP4.1.h - available unit actions depending on the unit type id.
  */
-int PP_Unit_UntargetedAction(PP_Unit unit, int action, float param);
+int PP_Unit_UntargetedAction(PP_Unit unit, int action, float param, int synchronized);
 
 #ifdef __cplusplus
 }

@@ -367,7 +367,19 @@ int PP_Unit_SetGroup(PP_Unit unit, int group){
 	return ret;
 }
 
-int PP_Unit_ActionOnUnit(PP_Unit unit, int action, PP_Unit target){
+bool orderFound(PP_Unit unit, int action){
+	bool orderFound = false;
+	// Check all pending commands
+	PP_PendingCommands pdgCmd;
+	int ret = PP_Unit_GetPendingCommands_prim(unit, &pdgCmd);
+	for (int i = 0 ; i < pdgCmd.nbCmds ; i++){
+		if (pdgCmd.cmd[i].code == action)
+			orderFound = true;
+	}
+	return orderFound;
+}
+
+int PP_Unit_ActionOnUnit(PP_Unit unit, int action, PP_Unit target, int synchronized){
 	int ret = PP_Unit_ActionOnUnit_prim (unit, action, target);
 	if (ret > FEEDBACK_COUNT_LIMIT) {
 		// notify function call to Spring
@@ -381,15 +393,26 @@ int PP_Unit_ActionOnUnit(PP_Unit unit, int action, PP_Unit target){
 			int targetType = PP_Unit_GetType_prim(target);
 			if (targetType >= 0)
 				oss << "_" << targetType;
+			// normalize synchronized
+			if (synchronized == 0)
+				oss << " false";
+			else
+				oss << " true";
 			PP_PushMessage_prim(oss.str().c_str(), &ret);
 		exitCriticalSection();
+		if (synchronized != 0){
+			// waiting that the order is adding into pending commands
+			while (!orderFound(unit, action));
+			// waiting that the order is over pending commands
+			while (orderFound(unit, action));
+		}
 	}
 	if (ret < 0)
 		ret = -1;
 	return ret;
 }
 
-int PP_Unit_ActionOnPosition(PP_Unit unit, int action, PP_Pos pos){
+int PP_Unit_ActionOnPosition(PP_Unit unit, int action, PP_Pos pos, int synchronized){
 	int ret = PP_Unit_ActionOnPosition_prim (unit, action, pos);
 	if (ret > FEEDBACK_COUNT_LIMIT) {
 		// notify function call to Spring
@@ -400,15 +423,26 @@ int PP_Unit_ActionOnPosition(PP_Unit unit, int action, PP_Pos pos){
 			if (unitType >= 0)
 				oss << "_" << unitType;
 			oss << " " << action << " " << pos.x << " " << pos.y;
+			// normalize synchronized
+			if (synchronized == 0)
+				oss << " false";
+			else
+				oss << " true";
 			PP_PushMessage_prim(oss.str().c_str(), &ret);
 		exitCriticalSection();
+		if (synchronized != 0){
+			// waiting that the order is adding into pending commands
+			while (!orderFound(unit, action));
+			// waiting that the order is over pending commands
+			while (orderFound(unit, action));
+		}
 	}
 	if (ret < 0)
 		ret = -1;
 	return ret;
 }
 
-int PP_Unit_UntargetedAction(PP_Unit unit, int action, float param){
+int PP_Unit_UntargetedAction(PP_Unit unit, int action, float param, int synchronized){
 	int ret = PP_Unit_UntargetedAction_prim (unit, action, param);
 	if (ret > FEEDBACK_COUNT_LIMIT) {
 		// notify function call to Spring
@@ -419,8 +453,19 @@ int PP_Unit_UntargetedAction(PP_Unit unit, int action, float param){
 			if (unitType >= 0)
 				oss << "_" << unitType;
 			oss << " " << action << " " << param;
+			// normalize synchronized
+			if (synchronized == 0)
+				oss << " false";
+			else
+				oss << " true";
 			PP_PushMessage_prim(oss.str().c_str(), &ret);
 		exitCriticalSection();
+		if (synchronized != 0){
+			// waiting that the order is adding into pending commands
+			while (!orderFound(unit, action));
+			// waiting that the order is over pending commands
+			while (orderFound(unit, action));
+		}
 	}
 	if (ret < 0)
 		ret = -1;

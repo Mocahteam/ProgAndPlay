@@ -744,7 +744,7 @@ void TracesAnalyser::displayAlignment(const std::vector<Trace::sp_trace>& l, con
 }
 
 void TracesAnalyser::bindFeedbacks() {
-	osAnalyser << "bind feedbacks" << std::endl;
+	osAnalyser << "bind feedbacks begin" << std::endl;
 	for (unsigned int i = 0; i < feedbacks.size(); i++) {
 		int ind_max = -1;
 		double max_score = 0;
@@ -773,6 +773,7 @@ void TracesAnalyser::bindFeedbacks() {
 		// Set defined to true if the feedback is a personnalised feedback (and not a default one)
 		feedbacks.at(i).defined = ref_feedbacks.at(ind_max).learner_spt || ref_feedbacks.at(ind_max).expert_spt;
 	}
+	osAnalyser << "bind feedbacks end" << std::endl;
 }
 
 double TracesAnalyser::getFeedbackScore(const Feedback& f, int j) {
@@ -1176,8 +1177,9 @@ void TracesAnalyser::setFeedbackInfo(Feedback& f, Feedback& ref_f) const {
 			Call::sp_call expert_spc = boost::dynamic_pointer_cast<Call>(f.expert_spt);
 			std::vector<std::string> ids = learner_spc->getListIdWrongParams(expert_spc.get());
 			s = "";
-			for (unsigned int j = 0; j < ids.size(); j++)
+			for (unsigned int j = 0; j < ids.size(); j++){
 				s += "\t" + messages_map.at(ids.at(j)) + "\n";
+			}
 		}
 		else if (s.compare("list_calls") == 0 && feedbackTypeIn(f.type, 3, SEQ_EXTRA, IND_SEQ_NUM, DIST_SEQ_NUM)) {
 			Sequence::sp_sequence sps = boost::dynamic_pointer_cast<Sequence>(f.learner_spt);
