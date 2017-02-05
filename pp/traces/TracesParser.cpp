@@ -1067,7 +1067,7 @@ int TracesParser::stoi(const std::string& s) {
 	}
 	catch(const boost::bad_lexical_cast &) {
 		#ifdef DEBUG
-		 	osParser << "error boost::lexical_cast<int>" << std::endl;
+		 	osParser << "error boost::lexical_cast<int>(" << s << ")" << std::endl;
 		#endif
 		exit(EXIT_FAILURE);
 	}

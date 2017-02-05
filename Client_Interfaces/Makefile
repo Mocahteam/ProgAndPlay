@@ -1,7 +1,7 @@
 
 .PHONY: all clean
 
-all: compile_c compile_java compile_compalgo compile_ocaml compile_ada compile_scratch
+all: compile_c compile_java compile_compalgo compile_ocaml compile_ada compile_python compile_scratch
 
 compile_c:
 	@echo "C interface ----------------------------------------------------\
@@ -28,6 +28,11 @@ compile_ada:
 --------------"
 	@(cd ./ada && $(MAKE) && $(MAKE) install)
 
+compile_python:
+	@echo "Python interface --------------------------------------------------\
+--------------"
+	@(cd ./python && $(MAKE) && $(MAKE) install)
+
 compile_scratch:
 	@echo "Scratch interface ----------------------------------------------\
 --------------"
@@ -49,6 +54,9 @@ clean:
 	@echo "Ada interface cleaning -----------------------------------------\
 --------------"
 	@(cd ./ada && $(MAKE) $@)
+	@echo "Python interface cleaning -----------------------------------------\
+--------------"
+	@(cd ./python && $(MAKE) $@)
 	@echo "Scratch interface cleaning -------------------------------------\
 --------------"
 	@(cd ./scratch1.4 && $(MAKE) $@)

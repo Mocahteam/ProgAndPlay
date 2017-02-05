@@ -358,7 +358,7 @@ def PP_Unit_GetPendingCommands (unit):
     # returns list of available commands
     return cmds
 
-def PP_Unit_ActionOnUnit (unit, action, target, synchronized):
+def PP_Unit_ActionOnUnit (unit, action, target, synchronized=False):
     """ int * int * int * bool -> int
     Commands a unit to carry out action on a specified unit. Only units controled by the
     player can receive this command.
@@ -384,7 +384,7 @@ def PP_Unit_ActionOnUnit (unit, action, target, synchronized):
     # call C function and return result
     return pplib.PP_Unit_ActionOnUnit(unit, action, target, synchronized)
     
-def PP_Unit_ActionOnPosition (unit, action, pos, synchronized):
+def PP_Unit_ActionOnPosition (unit, action, pos, synchronized=False):
     """ int * int * PP_Pos * bool -> int
     Commands a unit to carry out action on a specified position. Only units controled by
     the player can receive this command.
@@ -408,7 +408,7 @@ def PP_Unit_ActionOnPosition (unit, action, pos, synchronized):
     # call C function and return result
     return pplib.PP_Unit_ActionOnPosition(unit, action, pos, synchronized)
     
-def PP_Unit_UntargetedAction (unit, action, param=-1.0, synchronized):
+def PP_Unit_UntargetedAction (unit, action, param=-1.0, synchronized=False):
     """ int * int * float * bool -> int
     Commands a unit to carry out an untargeted action. Only units controled by the player
     can receive this command. WARNING: This function call is not blocking. When the
