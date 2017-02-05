@@ -12,7 +12,7 @@ int main (){
 	// récupérer la première unité
 	PP_Unit u = PP_GetUnitAt(MY_COALITION, 0);
 	// ordonner à mon unité courante de se déplacer
-	PP_Unit_ActionOnPosition(u, MOVE, p);
+	PP_Unit_ActionOnPosition(u, MOVE, p, 0);
 	// fermer le jeu
 	PP_Close();
 }

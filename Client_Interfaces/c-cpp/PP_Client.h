@@ -240,9 +240,9 @@ int PP_Unit_GetPendingCommands(PP_Unit unit, PP_PendingCommands * cmd);
  * \param unit to command.
  * \param action to carry out.
  * \param target unit.
- * \param synchronized: 0 means this function call is not blocking (when the
+ * \param synchronized: 0 means this function call is non blocking (when the
  *      function returns this means that the command is sent and not that the
- *      order is carried out); otherwise (positiove or negative value) this
+ *      order is carried out); otherwise (positive or negative value) this
  *      means this function call is blocking until the order is carried out.
  * \return 0 on success. -1 is returned on errors.
  * \see constantList_KP4.1.h - available unit actions depending on the unit type id.
@@ -256,9 +256,9 @@ int PP_Unit_ActionOnUnit(PP_Unit unit, int action, PP_Unit target, int synchroni
  * \param unit to command.
  * \param action to carry out.
  * \param pos target position.
- * \param synchronized: 0 means this function call is not blocking (when the
+ * \param synchronized: 0 means this function call is non blocking (when the
  *      function returns this means that the command is sent and not that the
- *      order is carried out); otherwise (positiove or negative value) this
+ *      order is carried out); otherwise (positive or negative value) this
  *      means this function call is blocking until the order is carried out.
  * \return 0 on success. -1 is returned on errors.
  * \see constantList_KP4.1.h - available unit actions depending on the unit type id.
@@ -272,9 +272,9 @@ int PP_Unit_ActionOnPosition(PP_Unit unit, int action, PP_Pos pos, int synchroni
  * \param unit to command.
  * \param action to carry out.
  * \param param : parameter to the action. If any parameter required, put -1.0 instead.
- * \param synchronized: 0 means this function call is not blocking (when the
+ * \param synchronized: 0 means this function call is non blocking (when the
  *      function returns this means that the command is sent and not that the
- *      order is carried out); otherwise (positiove or negative value) this
+ *      order is carried out); otherwise (positive or negative value) this
  *      means this function call is blocking until the order is carried out.
  * \return 0 on success. -1 is returned on errors.
  * \see constantList_KP4.1.h - available unit actions depending on the unit type id.

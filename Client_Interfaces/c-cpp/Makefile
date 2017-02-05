@@ -2,7 +2,7 @@
 .PHONY: all clean
 
 IMM_LIBNAME = ppimm
-CLASSIC_LIBNAME = pp-client
+CLASSIC_LIBNAME = pp-client-c
 
 SPRING_VERSION = spring-0.82.5.1
 
@@ -50,7 +50,7 @@ PP_IMM.o: PP_IMM.c PP_IMM.h $(PP_DIR)/PP_Client_Private.h $(PP_DIR)/PP.h $(PP_DI
 $(TARGETLIB_CLASSIC): PP_Client.o $(PP_DIR)/PP_Client_Private.o $(PP_DIR)/PP_Error.o
 	g++ -shared -o $@ $^ $(OPTLIB_CLASSIC)
 
-PP_Client.o: PP_Client.cpp PP_Client.h $(PP_DIR)/PP_Client_Private.h $(PP_DIR)/PP.h $(PP_DIR)/PP_Error.h
+PP_Client.o: PP_Client.cpp PP_Client.h $(PP_DIR)/PP_Client_Private.h $(PP_DIR)/PP.h $(PP_DIR)/PP_Error.h $(PP_DIR)/traces/TraceConstantList.h
 	g++ -c $< $(INCLUDES) $(OPT)
 	
 clean:

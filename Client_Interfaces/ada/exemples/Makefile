@@ -13,8 +13,6 @@ LIB = .so
 PATH_GNAT = $(PATH)
 endif
 
-PP_DIR = ../../../pp
-
 ADB_FILES = $(wildcard ./*.adb)
 ALI_FILES = $(ADB_FILES:.adb=.ali)
 O_FILES = $(ADB_FILES:.adb=.o)
@@ -24,8 +22,8 @@ CONSTANTLIST_FILES = $(wildcard ../constantlist*.ads)
 
 all: $(O_FILES)
 
-%.o: %.adb ../pp.ads ../pp.adb $(CONSTANTLIST_FILES) ../$(ENTETELIB)adaDevice$(LIB) $(PP_DIR)/$(ENTETELIB)pp-client$(LIB)
-	@gnatmake -I.. -L$(PP_DIR) -L.. $< -largs -ladaDevice -largs -lpp-client
+%.o: %.adb ../pp.ads ../pp.adb $(CONSTANTLIST_FILES) $(ENTETELIB)pp-client-ada$(LIB)
+	@gnatmake -I.. -L. $< -largs -lpp-client-ada
 
 clean:
 	rm $(BIN_FILES) $(O_FILES) $(ALI_FILES)

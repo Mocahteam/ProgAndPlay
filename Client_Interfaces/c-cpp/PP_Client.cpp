@@ -395,9 +395,9 @@ int PP_Unit_ActionOnUnit(PP_Unit unit, int action, PP_Unit target, int synchroni
 				oss << "_" << targetType;
 			// normalize synchronized
 			if (synchronized == 0)
-				oss << " false";
+				oss << " 0";
 			else
-				oss << " true";
+				oss << " 1";
 			PP_PushMessage_prim(oss.str().c_str(), &ret);
 		exitCriticalSection();
 		if (synchronized != 0){
@@ -425,9 +425,9 @@ int PP_Unit_ActionOnPosition(PP_Unit unit, int action, PP_Pos pos, int synchroni
 			oss << " " << action << " " << pos.x << " " << pos.y;
 			// normalize synchronized
 			if (synchronized == 0)
-				oss << " false";
+				oss << " 0";
 			else
-				oss << " true";
+				oss << " 1";
 			PP_PushMessage_prim(oss.str().c_str(), &ret);
 		exitCriticalSection();
 		if (synchronized != 0){
@@ -455,9 +455,9 @@ int PP_Unit_UntargetedAction(PP_Unit unit, int action, float param, int synchron
 			oss << " " << action << " " << param;
 			// normalize synchronized
 			if (synchronized == 0)
-				oss << " false";
+				oss << " 0";
 			else
-				oss << " true";
+				oss << " 1";
 			PP_PushMessage_prim(oss.str().c_str(), &ret);
 		exitCriticalSection();
 		if (synchronized != 0){

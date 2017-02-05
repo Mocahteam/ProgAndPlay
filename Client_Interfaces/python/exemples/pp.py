@@ -6,7 +6,7 @@
 #
 
 from ctypes import *
-pplib = CDLL("./pp-client.dll")
+pplib = CDLL("./pp-client-python.dll")
 
 ###################################
 # List of available coalition ids #
@@ -51,7 +51,7 @@ def PP_Open ():
 
     """
     # call C function and return result
-    return pplib.PP_Open()
+    return pplib.Python_Open()
 
 def PP_Close ():
     """ -> int
@@ -358,18 +358,20 @@ def PP_Unit_GetPendingCommands (unit):
     # returns list of available commands
     return cmds
 
-def PP_Unit_ActionOnUnit (unit, action, target):
-    """ int * int * int -> int
+def PP_Unit_ActionOnUnit (unit, action, target, synchronized):
+    """ int * int * int * bool -> int
     Commands a unit to carry out action on a specified unit. Only units controled by the
-    player can receive this command. WARNING: This function call is not blocking. When the
-    function returns this means that the command is sent and not that the order is carried
-    out. Carry out an action can take time, keep this in mind.
+    player can receive this command.
 
     Keyword arguments:
     unit -- unit id to command (returned by PP_GetUnitAt with coalition == MY_COALITION).
     action -- action id to carry out (See list form constantList_KP4_1.py of available
               order ids depending on unit ids).
     target -- target unit id (returned by PP_GetUnitAt).
+	synchronized -- true means this function is synchronized this call is blocking until
+					the order is over, false means this function is non-blocking (when the
+					function returns this means that the command is sent and not that the
+					order is carried out).
     
     Returns 0 on success. -1 is returned on errors.
     
@@ -378,34 +380,36 @@ def PP_Unit_ActionOnUnit (unit, action, target):
 
     """
     # specify arg types of C function
-    pplib.PP_Unit_ActionOnUnit.argtypes = [c_int, c_int, c_int]
+    pplib.PP_Unit_ActionOnUnit.argtypes = [c_int, c_int, c_int, c_int]
     # call C function and return result
-    return pplib.PP_Unit_ActionOnUnit(unit, action, target)
+    return pplib.PP_Unit_ActionOnUnit(unit, action, target, synchronized)
     
-def PP_Unit_ActionOnPosition (unit, action, pos):
-    """ int * int * PP_Pos -> int
+def PP_Unit_ActionOnPosition (unit, action, pos, synchronized):
+    """ int * int * PP_Pos * bool -> int
     Commands a unit to carry out action on a specified position. Only units controled by
-    the player can receive this command. WARNING: This function call is not blocking. When
-    the function returns this means that the command is sent and not that the order is
-    carried out. Carry out an action can take time, keep this in mind.
+    the player can receive this command.
     
     Keyword arguments:
     unit -- unit id to command (returned by PP_GetUnitAt with coalition == MY_COALITION).
     action -- action id to carry out (See list form constantList_KP4_1.py of available
               order ids depending on unit ids).
     pos -- target position.
+	synchronized -- true means this function is synchronized this call is blocking until
+					the order is over, false means this function is non-blocking (when the
+					function returns this means that the command is sent and not that the
+					order is carried out).
 
     Returns 0 on success. -1 is returned on errors.
 
     See constantList_KP4_1.py - available unit actions depending on the unit type id.
     See PP_GetUnitAt"""
     # specify arg types of C function
-    pplib.PP_Unit_ActionOnPosition.argtypes = [c_int, c_int, PP_Pos]
+    pplib.PP_Unit_ActionOnPosition.argtypes = [c_int, c_int, PP_Pos, c_int]
     # call C function and return result
-    return pplib.PP_Unit_ActionOnPosition(unit, action, pos)
+    return pplib.PP_Unit_ActionOnPosition(unit, action, pos, synchronized)
     
-def PP_Unit_UntargetedAction (unit, action, param=-1.0):
-    """ int * int * float -> int
+def PP_Unit_UntargetedAction (unit, action, param=-1.0, synchronized):
+    """ int * int * float * bool -> int
     Commands a unit to carry out an untargeted action. Only units controled by the player
     can receive this command. WARNING: This function call is not blocking. When the
     function returns this means that the command is sent and not that the order is carried
@@ -416,7 +420,11 @@ def PP_Unit_UntargetedAction (unit, action, param=-1.0):
     action -- action id to carry out (See list form constantList_KP4_1.py of available
               order ids depending on unit ids).
     param -- parameter to the action (if required). If any parameter required, put -1.0
-    instead.
+			 instead.
+	synchronized -- true means this function is synchronized this call is blocking until
+					the order is over, false means this function is non-blocking (when the
+					function returns this means that the command is sent and not that the
+					order is carried out).
     
     Returns 0 on success. -1 is returned on errors.
     
@@ -425,9 +433,9 @@ def PP_Unit_UntargetedAction (unit, action, param=-1.0):
 
     """
     # specify arg types of C function
-    pplib.PP_Unit_UntargetedAction.argtypes = [c_int, c_int, c_float]
+    pplib.PP_Unit_UntargetedAction.argtypes = [c_int, c_int, c_float, c_int]
     # call C function and return result
-    return pplib.PP_Unit_UntargetedAction(unit, action, param)
+    return pplib.PP_Unit_UntargetedAction(unit, action, param, synchronized)
 
 #####################################################
 # Functions to manage errors generated by Prog&Play #

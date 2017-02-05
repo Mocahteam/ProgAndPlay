@@ -11,16 +11,16 @@ package body PP is
 		enterCriticalSection;
 			pendingCmd.Clear;
 			i := 0;
-			ret := GetNumPdgCmds(u);
-			while i < GetNumPdgCmds(u) and ret /= -1 loop
-				ret := PdgCmd_GetCode(u, i);
+			ret := PP_Unit_GetNumPdgCmds_prim(u);
+			while i < PP_Unit_GetNumPdgCmds_prim(u) and ret /= -1 loop
+				ret := PP_Unit_PdgCmd_GetCode_prim(u, i);
 				if ret /= -1 then
 					cmd.code := ret;
 					cmd.param.Clear;
 					j := 0;
-					ret := PdgCmd_GetNumParams(u, i);
-					while j < PdgCmd_GetNumParams(u, i) and ret /= -1 loop
-						retF := PdgCmd_GetParam(u, i, j);
+					ret := PP_Unit_PdgCmd_GetNumParams_prim(u, i);
+					while j < PP_Unit_PdgCmd_GetNumParams_prim(u, i) and ret /= -1 loop
+						retF := PP_Unit_PdgCmd_GetParam_prim(u, i, j);
 						if retF /= -1.0 then
 							cmd.param.Append(retF);
 						else
@@ -36,24 +36,24 @@ package body PP is
 		return pendingCmd;
 	end;
 
-	procedure CarryOutCommand (u : in Unit; c : in CommandCode; t : in Unit) is
+	procedure CarryOutCommand (u : in Unit; c : in CommandCode; t : in Unit; s : in Boolean := False) is
 	begin
-		ActionOnUnit(u, c, t);
+		PP_Unit_ActionOnUnit(u, c, t, s);
 	end;
 
-	procedure CarryOutCommand (u : in Unit; c : in CommandCode; t : in Position) is
+	procedure CarryOutCommand (u : in Unit; c : in CommandCode; t : in Position; s : in Boolean := False) is
 	begin
-		ActionOnPosition (u, c, t.x, t.y);
+		Ada_ActionOnPosition (u, c, t.x, t.y, s);
 	end;
 
-	procedure CarryOutCommand (u : in Unit; c : in CommandCode; p : in Float := -1.0) is
+	procedure CarryOutCommand (u : in Unit; c : in CommandCode; p : in Float := -1.0; s : in Boolean := False) is
 	begin
-		UntargetedAction (u, c, p);
+		PP_Unit_UntargetedAction (u, c, p, s);
 	end;
 	
 	procedure PrintError is
 	begin
-		Ada.Text_io.put(Interfaces.C.Strings.Value(GetError));
-		ClearError;
+		Ada.Text_io.put(Interfaces.C.Strings.Value(PP_GetError));
+		PP_ClearError;
 	end;
 end PP;

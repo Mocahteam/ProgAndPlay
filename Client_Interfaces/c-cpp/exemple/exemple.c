@@ -12,7 +12,7 @@ int main (){
 	// parcours de toutes mes unités
 	for (i = 0 ; i < PP_GetNumUnits (MY_COALITION) ; i++){
 		// ordonner à mon unité courante de se déplacer
-		PP_Unit_ActionOnPosition(PP_GetUnitAt(MY_COALITION, i), MOVE, p);
+		PP_Unit_ActionOnPosition(PP_GetUnitAt(MY_COALITION, i), MOVE, p, 0);
 	}
 	// fermer le jeu
 	PP_Close();
