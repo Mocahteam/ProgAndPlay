@@ -78,6 +78,16 @@ def PP_IsGameOver ():
     # call C function and return result
     return pplib.PP_IsGameOver()
 
+def PP_IsGamePaused ():
+    """ -> int
+    Checks if the game is paused.
+    
+    Returns positive value if the game is paused and 0 if not. -1 is returned on errors.
+
+    """
+    # call C function and return result
+    return pplib.PP_IsGamePaused()
+
 def PP_GetMapSize ():
     """ -> PP_Pos
     Map size is store into a PP_Pos as the max values available.

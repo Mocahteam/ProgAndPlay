@@ -18,7 +18,7 @@ public class Mission1 {
 			// recuperation de l'unite courante
 			Unit u = pp.getUnitAt(PP.Coalition.MY_COALITION, 0);
 			// ordonner a cette unite de se deplacer sur la cible
-			u.command(ConstantList_KP_4_1.MOVE, p);
+			u.command(ConstantList_KP_4_1.MOVE, p, false);
 			// fermer le jeu
 			pp.close();
 		} catch (Exception e){

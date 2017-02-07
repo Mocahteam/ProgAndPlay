@@ -29,13 +29,6 @@
 extern "C" {
 #endif
 
-#define SHARED_MEMORY_ERROR -100
-#define NOT_OPENED -101
-#define RELOAD_FAILURE -102
-#define INCONSISTENT_SHARED_MEMORY -103
-#define MUTEX_NOT_LOCKED -104
-#define TYPE_UNDEF -105
-#define NO_GROUP -200
 #define UNIT_NOT_FOUND -1
 #define NOT_UNIT_OWNER -2
 #define INVALID_COALITION -3
@@ -44,6 +37,13 @@ extern "C" {
 #define INVALID_GROUP -6
 #define POSITION_OUT_OF_BOUNDS -7
 #define FEEDBACK_COUNT_LIMIT -8
+#define SHARED_MEMORY_ERROR -100
+#define NOT_OPENED -101
+#define RELOAD_FAILURE -102
+#define INCONSISTENT_SHARED_MEMORY -103
+#define MUTEX_NOT_LOCKED -104
+#define TYPE_UNDEF -105
+#define NO_GROUP -200
 
 /******************************************************************************/
 /* Functions to manage Prog&Play                                              */
@@ -243,8 +243,8 @@ int PP_Unit_GetGroup_prim(PP_Unit unit);
  *
  * Only units controled by the player can receive this command.
  * \param unit to command.
- * \param group : allocation group. group >= -1. If group == -1 then the specified unit
- *        is freed from its group.
+ * \param group: allocation group. group >= -1. If group == -1 then the
+ *               specified unit is freed from its group.
  * \return 0 on success. Negative value is returned on errors.
  */
 int PP_Unit_SetGroup_prim(PP_Unit unit, int group);
@@ -314,58 +314,63 @@ void exitCriticalSection(void);
 /******************************************************************************/
 
 /*
- * Returns the number of pending commands for a unit. Only units controled by
- * the player can give this data.
- * unit : unit to consult.
- * Returns : the number of pending commands of this unit.
- *           Negative value is returned on errors.
+ * \brief Returns the number of pending commands for a unit. Only units
+ *        controled by the player can give this data.
+ * \param unit: unit to consult.
+ * \return the number of pending commands of this unit. Negative value is
+ *         returned on errors.
  */
 int PP_Unit_GetNumPdgCmds_prim(PP_Unit unit);
 
 /*
- * Returns the nth pending command code of a unit. Only units controled by the
- * player can give this data.
- * unit : unit to consult.
- * idCmd : id of the pending command of unit "unit", must be included meanwhile
- *         [0;n[ where n is the number of pending commands of this unit.
- * Returns : command code at the specified index on success.
- *           Negative value is returned on errors.
+ * \brief Sets the nth pending command code of a unit. Only units controled
+ *        by the player can give this data.
+ * \param unit: unit to consult.
+ * \param idCmd: id of the pending command of unit "unit", must be included
+ *        meanwhile [0;n[ where n is the number of pending commands of this
+ *        unit.
+ * \param cmdCode points to the Integer that will be filled in. It doesn't need
+ *        to be set before calling this, but it must be allocated in memory.
+ * \return 0 on success. Negative value is returned on errors.
  */
-int PP_Unit_PdgCmd_GetCode_prim(PP_Unit unit, int idCmd);
+int PP_Unit_PdgCmd_GetCode_prim(PP_Unit unit, int idCmd, int * cmdCode);
 
 /*
- * Returns the number of parameters of the nth pending command code of a unit.
- * Only units controled by the player can give this data.
- * unit : unit to consult.
- * idCmd : id of the pending command of unit "unit", must be included meanwhile
- *         [0;n[ where n is the number of pending commands of this unit.
- * Returns : number of parameters of command at the specified index on success.
- *           Negative value is returned on errors.
+ * \brief Returns the number of parameters of the nth pending command code of a
+ *        unit. Only units controled by the player can give this data.
+ * \param unit: unit to consult.
+ * \param idCmd: id of the pending command of unit "unit", must be included
+ *        meanwhile [0;n[ where n is the number of pending commands of this
+ *        unit.
+ * \return number of parameters of command at the specified index on success.
+ *         Negative value is returned on errors.
  */
 int PP_Unit_PdgCmd_GetNumParams_prim(PP_Unit unit, int idCmd);
 
 /*
- * Returns the nth parameter of a pending command code of a unit. Only units
- * controled by the player can give this data.
- * unit : unit to consult.
- * idCmd : id of the pending command of unit "unit", must be included meanwhile
- *         [0;n[ where n is the number of pending commands of this unit.
- * idParam : id of the parameter of the command identified by "idCmd", must be
- *           included meanwhile [0;n[ where n is the number of parameters for
- *           this pending command of this unit.
- * Returns : parameter at the specified index on success.
- *           Negative value is returned on errors.
+ * \brief Sets the nth parameter of a pending command code of a unit. Only units
+ *        controled by the player can give this data.
+ * \param unit: unit to consult.
+ * \param idCmd: id of the pending command of unit "unit", must be included
+ *        meanwhile [0;n[ where n is the number of pending commands of this
+ *        unit.
+ * \param idParam: id of the parameter of the command identified by "idCmd",
+ *        must be included meanwhile [0;n[ where n is the number of parameters
+ *        for this pending command of this unit.
+ * \param paramValue points to the float that will be filled in. It doesn't need
+ *        to be set before calling this, but it must be allocated in memory.
+ * \return 0 on success. Negative value is returned on errors.
  */
-float PP_Unit_PdgCmd_GetParam_prim(PP_Unit unit, int idCmd, int idParam);
+int PP_Unit_PdgCmd_GetParam_prim(PP_Unit unit, int idCmd, int idParam,
+		float * paramValue);
 
 /*
- * Push a message to the game engine in order to write it into log file
- * msg : message to log.
- * error : error code to log provided by other functions of this library.
- *           If the error code is a positive or null value, the error code
- *           will be ignored
- * Returns : 0 is returned on success.
- *           Negative value is returned on errors.
+ * \brief Push a message to the game engine in order to write it into log file
+ * \param msg: message to log.
+ * \param error: error code to log provided by other functions of this library.
+ *        If the error code is a positive or null value, the error code will be
+ *        ignored
+ * \return 0 is returned on success. Negative value is returned on errors.
  */
 int PP_PushMessage_prim(const char * msg, const int * error);
 

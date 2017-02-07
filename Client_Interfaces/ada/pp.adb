@@ -4,27 +4,26 @@ with Interfaces.C.Strings;
 package body PP is
 	function GetPendingCommands (u : in Unit) return Cmd_Container.Vector is
 		i, j, ret : Integer;
-		retF: Float;
+		cmdCode : aliased Integer;
+		paramValue : aliased Float;
 		cmd : Command;
 		pendingCmd : Cmd_Container.Vector;
 	begin
 		enterCriticalSection;
 			pendingCmd.Clear;
 			i := 0;
-			ret := PP_Unit_GetNumPdgCmds_prim(u);
-			while i < PP_Unit_GetNumPdgCmds_prim(u) and ret /= -1 loop
-				ret := PP_Unit_PdgCmd_GetCode_prim(u, i);
-				if ret /= -1 then
-					cmd.code := ret;
+			ret := 0;
+			while i < PP_Unit_GetNumPdgCmds_prim(u) and ret >= 0 loop
+				ret := PP_Unit_PdgCmd_GetCode_prim(u, i, cmdCode'Access);
+				if ret = 0 then
+					cmd.code := cmdCode;
 					cmd.param.Clear;
 					j := 0;
 					ret := PP_Unit_PdgCmd_GetNumParams_prim(u, i);
-					while j < PP_Unit_PdgCmd_GetNumParams_prim(u, i) and ret /= -1 loop
-						retF := PP_Unit_PdgCmd_GetParam_prim(u, i, j);
-						if retF /= -1.0 then
-							cmd.param.Append(retF);
-						else
-							ret := -1;
+					while j < PP_Unit_PdgCmd_GetNumParams_prim(u, i) and ret >= 0 loop
+						ret := PP_Unit_PdgCmd_GetParam_prim(u, i, j, paramValue'Access);
+						if ret = 0 then
+							cmd.param.Append(paramValue);
 						end if;
 						j := j + 1;
 					end loop;

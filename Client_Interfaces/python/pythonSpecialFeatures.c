@@ -20,7 +20,6 @@
     mathieu.muratet@lip6.fr
 */
 
-#include "PP_Client.h"
 #include "PP_Client_Private.h"
 #include "traces/TraceConstantList.h"
 #include <sstream>

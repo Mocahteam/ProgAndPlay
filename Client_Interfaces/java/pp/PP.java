@@ -102,6 +102,20 @@ public class PP extends Thread{
 	}
 	
 	/**
+	 * @return <code>true</code> if the game is paused and <code>false</code> if
+	 * not.
+	 *
+	 * @throws PPException on errors linked with Prog&Play.
+	 */
+	public boolean isGamePaused () throws PPException {
+		switch (PPNative.IsGamePaused()){
+			case 0 : return false;
+			case -1 : throw new PPException ("isGamePaused -> "+PPNative.GetError());
+			default : return true;
+		}
+	}
+	
+	/**
 	 * @return map size on success.
 	 *
 	 * @throws PPException on errors linked with Prog&Play.

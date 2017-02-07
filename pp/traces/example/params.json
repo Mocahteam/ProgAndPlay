@@ -4,6 +4,7 @@
 		"C_public_label": "PP_Open",
 		"Python_public_label": "PP_Open",
 		"Ada_public_label": "Open",
+		"OCaml_public_label": "openConnexion",
 		"Scratch_public_label": "open Prog&Play",
 		"Java_public_label": "PP::open"
 	},
@@ -12,6 +13,7 @@
 		"C_public_label": "PP_Close",
 		"Python_public_label": "PP_Close",
 		"Ada_public_label": "Close",
+		"OCaml_public_label": "closeConnexion",
 		"Scratch_public_label": "close Prog&Play",
 		"Java_public_label": "PP::close"
 	},
@@ -23,6 +25,16 @@
 		"OCaml_public_label": "isGameOver",
 		"Scratch_public_label": "is game over?",
 		"Java_public_label": "PP::isGameOver",
+		"return": false
+	},
+	"PP_IsGamePaused": {
+		"call_type": "CallWithNoParam",
+		"C_public_label": "PP_IsGamePaused",
+		"Python_public_label": "PP_IsGamePaused",
+		"Ada_public_label": "IsGamePaused",
+		"OCaml_public_label": "isGamePaused",
+		"Scratch_public_label": "is game paused?",
+		"Java_public_label": "PP::isGamePaused",
 		"return": false
 	},
 	"PP_GetMapSize": {
@@ -297,7 +309,6 @@
 	"PP_Unit_RemoveFromGroup": {
 		"call_type": "CallWithUnitParam",
 		"Java_public_label": "Unit::removeFromGroup",
-		"return": false,
 		"unitId": false,
 		"unitType": false
 	},

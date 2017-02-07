@@ -22,7 +22,7 @@ public class Exemple {
 				// récupération de l'unité courante
 				Unit u = pp.getUnitAt(PP.Coalition.MY_COALITION, i);
 				// ordonner à cette unité de se déplacer sur la cible
-				u.command(ConstantList_KP_4_1.MOVE, p);
+				u.command(ConstantList_KP_4_1.MOVE, p, false);
 			}
 			// fermer le jeu
 			pp.close();

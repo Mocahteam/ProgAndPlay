@@ -1,6 +1,7 @@
 
 #include "PP_Client.h"
 #include "PP_Client_Private.h"
+#include "traces/TraceConstantList.h"
 #include "PP_Error.h"
 
 #ifdef __cplusplus
@@ -15,14 +16,12 @@ extern "C" {
 #include <cstring>
 #include <cstdio>
 
-int openned = 0;
-
 // analyse le code "code" et lève une exception si besoin
 // retourne le code si rien à signaler
 int try_catch (int code, const char * source){
 	char str[100];
 	strcpy (str, source);
-	if (code == -1){
+	if (code < 0){
 		strcat (str, " -> ");
 		strcat (str, PP_GetError());
 		PP_ClearError();
@@ -31,28 +30,15 @@ int try_catch (int code, const char * source){
 	return code;
 }
 
-void needOpenned (const char * source){
-	if (!openned){
-		try_catch (PP_Open(), source); // ouverture
-		openned = 1;
-	}
-}
-
-void needClosed (const char * source){
-	if (openned){
-		try_catch (PP_Close(), source); // ouverture
-		openned = 0;
-	}
-}
-
 typedef value (*getData) (value, value);
 
 value getSpecialAreaPosition (value id, value unit){
 	CAMLparam2 (id, unit);
 	CAMLlocal1 (pos);
 	// récupération de la position
-	PP_Pos p = PP_GetSpecialAreaPosition (Int_val(id));
-	try_catch((int)p.x, "Pp.getSpecialAreas");
+	PP_Pos p;
+	int ret = PP_GetSpecialAreaPosition_prim (Int_val(id), &p);
+	try_catch(ret, "Pp.getSpecialAreas");
 	pos = caml_alloc_tuple(2);
 	Store_field(pos, 0, caml_copy_double(p.x));
 	Store_field(pos, 1, caml_copy_double(p.y));
@@ -63,7 +49,7 @@ value getEntity (value id, value coalition){
 	CAMLparam2 (id, coalition);
 	// récupération de la coalition
 	PP_Coalition c = (PP_Coalition)Int_val(coalition);
-	int val = try_catch(PP_GetUnitAt(c, Int_val(id)), "Pp.getEntities");
+	int val = try_catch(PP_GetUnitAt_prim(c, Int_val(id)), "Pp.getEntities");
 	CAMLreturn (Val_int(val));
 }
 
@@ -92,8 +78,9 @@ value constructListParam (value idUnit, value idCmd, value idParam, value nbPara
 		// création du couple représentant la liste
 		list = caml_alloc_tuple(2);
 		// insertion de la donnée dans le premier élément du couple
-		float cParam = PP_Unit_PdgCmd_GetParam((PP_Unit)Int_val(idUnit), Int_val(idCmd), cId);
-		try_catch((int)cParam, "Pp.getPendingCommands");
+		float cParam;
+		int ret = PP_Unit_PdgCmd_GetParam_prim((PP_Unit)Int_val(idUnit), Int_val(idCmd), cId, &cParam);
+		try_catch(ret, "Pp.getPendingCommands");
 		Store_field(list, 0, caml_copy_double(cParam));
 		// insertion de la queue de la liste dans le deuxième élément du couple
 		Store_field(list, 1, constructListParam(idUnit, idCmd, Val_int(cId+1), nbParam));
@@ -110,62 +97,88 @@ value getPendingCommand (value idCmd, value entity){
 	PP_Unit e = (PP_Unit)Int_val(entity);
 	cmd = caml_alloc_tuple(2);
 	// insertion du code de la commande
-	Store_field(cmd, 0, Val_int(try_catch(PP_Unit_PdgCmd_GetCode((PP_Unit)Int_val(entity), Int_val(idCmd)), "Pp.getPendingCommands")));
+	int cmdCode;
+	int ret = PP_Unit_PdgCmd_GetCode_prim((PP_Unit)Int_val(entity), Int_val(idCmd), &cmdCode);
+	try_catch(ret, "Pp.getPendingCommands");
+	Store_field(cmd, 0, Val_int(cmdCode));
 	// insertion de la liste des paramètres comme second élément du couple
-	Store_field(cmd, 1, constructListParam(entity, idCmd, Val_int(0), Val_int(try_catch(PP_Unit_PdgCmd_GetNumParams((PP_Unit)Int_val(entity), Int_val(idCmd)), "Pp.getPendingCommands"))));
+	Store_field(cmd, 1, constructListParam(entity, idCmd, Val_int(0), Val_int(try_catch(PP_Unit_PdgCmd_GetNumParams_prim((PP_Unit)Int_val(entity), Int_val(idCmd)), "Pp.getPendingCommands"))));
 	CAMLreturn (cmd);
+}
+
+value OCaml_OpenConnexion (value unit) {
+	CAMLparam1 (unit);
+	int retour = try_catch (PP_Open_prim(), "Pp.openConnexion");
+	if (retour == 0){
+		// notify function call to Spring
+		enterCriticalSection();
+			char msg [100];
+			sprintf(msg, "%s %d", EXECUTION_START_TIME, PP_GetTimestamp_prim());
+			PP_PushMessage_prim(msg, NULL);
+			sprintf(msg, "%s OCaml", PROGRAMMING_LANGUAGE_USED);
+			PP_PushMessage_prim(msg, NULL);
+			PP_PushMessage_prim("PP_Open", NULL);
+		exitCriticalSection();
+	}
+	CAMLreturn (Val_bool(retour == 0));
+}
+
+value OCaml_CloseConnexion (value unit) {
+	CAMLparam1 (unit);
+	int retour = try_catch (PP_Close(), "Pp.closeConnexion");
+	CAMLreturn (Val_bool(retour == 0));
 }
 
 value OCaml_IsGameOver (value unit) {
 	CAMLparam1 (unit);
-	needOpenned("Pp.isGameOver");
 	int retour = try_catch (PP_IsGameOver(), "Pp.isGameOver");
-	needClosed("Pp.isGameOver");
+	CAMLreturn (Val_bool(retour > 0));
+}
+
+value OCaml_IsGamePaused (value unit) {
+	CAMLparam1 (unit);
+	int retour = try_catch (PP_IsGamePaused(), "Pp.isGamePaused");
 	CAMLreturn (Val_bool(retour > 0));
 }
 
 value OCaml_GetMapSize (value unit) {
 	CAMLparam1 (unit);
 	CAMLlocal1 (pos);
-	needOpenned("Pp.getMapSize");
 	PP_Pos p = PP_GetMapSize ();
 	try_catch ((int)p.x, "Pp.getMapSize");
 	pos = caml_alloc_tuple(2);
 	Store_field(pos, 0, caml_copy_double(p.x));
 	Store_field(pos, 1, caml_copy_double(p.y));
-	needClosed("Pp.getMapSize");
 	CAMLreturn (pos);
 }
 
 value OCaml_GetStartPosition (value unit) {
 	CAMLparam1 (unit);
 	CAMLlocal1 (pos);
-	needOpenned("Pp.getStartPosition");
 	PP_Pos p = PP_GetStartPosition ();
 	try_catch ((int)p.x, "Pp.getStartPosition");
 	pos = caml_alloc_tuple(2);
 	Store_field(pos, 0, caml_copy_double(p.x));
 	Store_field(pos, 1, caml_copy_double(p.y));
-	needClosed("Pp.getStartPosition");
 	CAMLreturn (pos);
 }
 
 value OCaml_GetSpecialAreas (value unit) {
 	CAMLparam1 (unit);
 	CAMLlocal1 (list);
-	needOpenned("Pp.getSpecialAreas");
-	int nbElem = try_catch(PP_GetNumSpecialAreas(), "Pp.getSpecialAreas");
+	int nbElem = try_catch(PP_GetNumSpecialAreas_prim(), "Pp.getSpecialAreas");
 	list = constructList(Val_int(0), Val_int(nbElem), Val_unit,
 		getSpecialAreaPosition);
-	needClosed("Pp.getSpecialAreas");
+	// notify function call to Spring
+	enterCriticalSection();
+		PP_PushMessage_prim("PP_GetSpecialAreas", NULL);
+	exitCriticalSection();
 	CAMLreturn (list);
 }
 
 value OCaml_GetResource (value resource) {
 	CAMLparam1 (resource);
-	needOpenned("Pp.getResource");
 	int retour = try_catch(PP_GetResource(Int_val(resource)), "Pp.getResource");
-	needClosed("Pp.getResource");
 	CAMLreturn (Val_int(retour));
 }
 
@@ -174,81 +187,64 @@ value OCaml_GetEntities (value coalition) {
 	CAMLlocal1 (list);
 	// récupération de la coalition
 	PP_Coalition c = (PP_Coalition)Int_val(coalition);
-	needOpenned("Pp.getEntities");
-	enterCriticalSection();
-	int nbElem = try_catch(PP_GetNumUnits(c), "Pp.getEntities");
+	int nbElem = try_catch(PP_GetNumUnits_prim(c), "Pp.getEntities");
 	list = constructList(Val_int(0), Val_int(nbElem), coalition, getEntity);
+	enterCriticalSection();
+		char msg [100];
+		sprintf(msg, "PP_GetUnits %d", c);
+		PP_PushMessage_prim(msg, NULL);
 	exitCriticalSection();
-	needClosed("Pp.getEntities");
 	CAMLreturn (list);
 }
 
 value OCaml_Unit_GetCoalition (value entity) {
 	CAMLparam1 (entity);
-	needOpenned("Pp.getCoalition");
 	int retour = try_catch(PP_Unit_GetCoalition(Int_val(entity)), "Pp.getCoalition");
-	needClosed("Pp.getCoalition");
 	CAMLreturn (Val_int(retour));
 }
 
 value OCaml_Unit_GetType (value entity) {
 	CAMLparam1 (entity);
-	needOpenned("Pp.getType");
-	char str[100];
-	sprintf (str, "Pp.getType %d", Int_val(entity));
-	int val = try_catch(PP_Unit_GetType(Int_val(entity)), str);
-	needClosed("Pp.getType");
+	int val = try_catch(PP_Unit_GetType(Int_val(entity)), "Pp.getType");
 	CAMLreturn (Val_int(val));
 }
 
 value OCaml_Unit_GetPosition (value entity) {
 	CAMLparam1 (entity);
 	CAMLlocal1 (pos);
-	needOpenned("Pp.getPosition");
 	PP_Pos p = PP_Unit_GetPosition (Int_val(entity));
 	try_catch((int)p.x, "Pp.getPosition");
 	pos = caml_alloc_tuple(2);
 	Store_field(pos, 0, caml_copy_double(p.x));
 	Store_field(pos, 1, caml_copy_double(p.y));
-	needClosed("Pp.getPosition");
 	CAMLreturn (pos);
 }
 
 value OCaml_Unit_GetHealth (value entity) {
 	CAMLparam1 (entity);
-	needOpenned("Pp.getHealth");
 	float retour = PP_Unit_GetHealth (Int_val(entity));
 	try_catch((int)retour, "Pp.getHealth");
-	needClosed("Pp.getHealth");
 	CAMLreturn (caml_copy_double(retour));
 }
 
 value OCaml_Unit_GetMaxHealth (value entity) {
 	CAMLparam1 (entity);
-	needOpenned("Pp.getMaxHealth");
 	float retour = PP_Unit_GetMaxHealth (Int_val(entity));
 	try_catch((int)retour, "Pp.getMaxHealth");
-	needClosed("Pp.getMaxHealth");
 	CAMLreturn (caml_copy_double(retour));
 }
 
 value OCaml_Unit_GetGroup (value entity) {
 	CAMLparam1 (entity);
-	needOpenned("Pp.getGroup");
 	int retour = try_catch(PP_Unit_GetGroup(Int_val(entity)), "Pp.getGroup");
-	needClosed("Pp.getGroup");
 	CAMLreturn (Val_int(retour));
 }
 
 value OCaml_Unit_SetGroup (value couple) {
-/*	CAMLparam2 (entity, g);
-	CAMLreturn (Val_bool(PP_Unit_SetGroup(Int_val(entity), Int_val(g)) == 0));*/
 	CAMLparam1 (couple);
 	int entity = Int_val(Field(couple, 0));
 	int g = Int_val(Field(couple, 1));
-	needOpenned("Pp.setGroup");
 	int retour = try_catch(PP_Unit_SetGroup(entity, g), "Pp.setGroup");
-	needClosed("Pp.setGroup");
 	CAMLreturn (Val_bool(retour == 0));
 }
 
@@ -257,60 +253,51 @@ value OCaml_Unit_GetPendingCommands (value entity) {
 	CAMLlocal1 (list);
 	// récupération de l'id de l'unité
 	PP_Unit e = (PP_Unit)Int_val(entity);
-	needOpenned("Pp.getPendingCommands");
 	enterCriticalSection();
-	int nbElem = try_catch(PP_Unit_GetNumPdgCmds(e), "Pp.getPendingCommands");
+	int nbElem = try_catch(PP_Unit_GetNumPdgCmds_prim(e), "Pp.getPendingCommands");
 	list = constructList(Val_int(0), Val_int(nbElem), entity, getPendingCommand);
+	// notify function call to Spring
+	char msg [100];
+	int type = PP_Unit_GetType_prim(e);
+	if (type >= 0)
+		sprintf(msg, "PP_Unit_GetPendingCommands %d_%d", e, type);
+	else
+		sprintf(msg, "PP_Unit_GetPendingCommands %d", e);
+	PP_PushMessage_prim(msg, NULL);
 	exitCriticalSection();
-	needClosed("Pp.getPendingCommands");
 	CAMLreturn (list);
 }
 
-value OCaml_Unit_ActionOnUnit (value triplet) {
-/*	CAMLparam3 (src, action, target);
-	int cAction = Int_val(action);
-	int cSrc = Int_val(src);
-	int cTarget = Int_val(target);
-	CAMLreturn (Val_bool(PP_Unit_ActionOnUnit(cSrc, cAction, cTarget) == 0));*/
-	CAMLparam1 (triplet);
-	int cSrc = Int_val(Field(triplet, 0));
-	int cAction = Int_val(Field(triplet, 1));
-	int cTarget = Int_val(Field(triplet, 2));
-	needOpenned("Pp.actionOnEntity");
-	int retour = try_catch(PP_Unit_ActionOnUnit(cSrc, cAction, cTarget), "Pp.actionOnEntity");
-	needClosed("Pp.actionOnEntity");
+value OCaml_Unit_ActionOnUnit (value quadruplet) {
+	CAMLparam1 (quadruplet);
+	int cSrc = Int_val(Field(quadruplet, 0));
+	int cAction = Int_val(Field(quadruplet, 1));
+	int cTarget = Int_val(Field(quadruplet, 2));
+	int synchro = Int_val(Field(quadruplet, 3));
+	int retour = try_catch(PP_Unit_ActionOnUnit(cSrc, cAction, cTarget, synchro), "Pp.actionOnEntity");
 	CAMLreturn (Val_bool(retour == 0));
 	
 }
 
-value OCaml_Unit_ActionOnPosition (value triplet) {
-/*	CAMLparam3 (src, action, pos);
+value OCaml_Unit_ActionOnPosition (value quadruplet) {
+	CAMLparam1 (quadruplet);
+	int cSrc = Int_val(Field(quadruplet, 0));
+	int cAction = Int_val(Field(quadruplet, 1));
 	PP_Pos p;
-	p.x = Double_val(Field(pos, 0));
-	p.y = Double_val(Field(pos, 1));
-	int cAction = Int_val(action);
-	int cSrc = Int_val(src);
-	CAMLreturn (Val_bool(PP_Unit_ActionOnPosition(cSrc, cAction, p) == 0));*/
-	CAMLparam1 (triplet);
-	int cSrc = Int_val(Field(triplet, 0));
-	int cAction = Int_val(Field(triplet, 1));
-	PP_Pos p;
-	p.x = Double_val(Field(Field(triplet, 2), 0));
-	p.y = Double_val(Field(Field(triplet, 2), 1));
-	needOpenned("Pp.actionOnPosition");
-	int retour = try_catch(PP_Unit_ActionOnPosition(cSrc, cAction, p), "Pp.actionOnPosition");
-	needClosed("Pp.actionOnPosition");
+	p.x = Double_val(Field(Field(quadruplet, 2), 0));
+	p.y = Double_val(Field(Field(quadruplet, 2), 1));
+	int synchro = Int_val(Field(quadruplet, 3));
+	int retour = try_catch(PP_Unit_ActionOnPosition(cSrc, cAction, p, synchro), "Pp.actionOnPosition");
 	CAMLreturn (Val_bool(retour == 0));
 }
 
-value OCaml_Unit_UntargetedAction (value triplet) {
-	CAMLparam1 (triplet);
-	int cSrc = Int_val(Field(triplet, 0));
-	int cAction = Int_val(Field(triplet, 1));
-	float param = Double_val(Field(triplet, 2));
-	needOpenned("Pp.untargetedAction");
-	int retour = try_catch(PP_Unit_UntargetedAction(cSrc, cAction, param), "Pp.untargetedAction");
-	needClosed("Pp.untargetedAction");
+value OCaml_Unit_UntargetedAction (value quadruplet) {
+	CAMLparam1 (quadruplet);
+	int cSrc = Int_val(Field(quadruplet, 0));
+	int cAction = Int_val(Field(quadruplet, 1));
+	float param = Double_val(Field(quadruplet, 2));
+	int synchro = Int_val(Field(quadruplet, 3));
+	int retour = try_catch(PP_Unit_UntargetedAction(cSrc, cAction, param, synchro), "Pp.untargetedAction");
 	CAMLreturn (Val_bool(retour == 0));
 }
 

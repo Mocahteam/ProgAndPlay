@@ -784,7 +784,7 @@ int PP_Unit_GetNumPdgCmds_prim(PP_Unit unit){
 	return ret;
 }
 
-int PP_Unit_PdgCmd_GetCode_prim(PP_Unit unit, int idCmd){
+int PP_Unit_PdgCmd_GetCode_prim(PP_Unit unit, int idCmd, int * cmdCode){
 	int ret;
 	// check if mutex is locked
 	if (locked == 0){
@@ -810,7 +810,8 @@ int PP_Unit_PdgCmd_GetCode_prim(PP_Unit unit, int idCmd){
 					try{
 						// Returns directly data. If idCmd is inaccurate, an
 						// exception will be thrown
-						ret = commandQueue->at(idCmd).code;
+						*cmdCode = commandQueue->at(idCmd).code;
+						ret = 0;
 					} catch (std::out_of_range e) {
 						PP_SetError("PP_Unit_PdgCmd_GetCode : idCmd out of range\n");
 						ret = OUT_OF_RANGE;
@@ -860,8 +861,8 @@ int PP_Unit_PdgCmd_GetNumParams_prim(PP_Unit unit, int idCmd){
 	return ret;
 }
 
-float PP_Unit_PdgCmd_GetParam_prim(PP_Unit unit, int idCmd, int idParam){
-	float ret;
+int PP_Unit_PdgCmd_GetParam_prim(PP_Unit unit, int idCmd, int idParam, float * paramValue){
+	int ret;
 	// check if mutex is locked
 	if (locked == 0){
 		PP_SetError("PP_Unit_PdgCmd_GetParam : Mutex is not locked\n");
@@ -869,10 +870,10 @@ float PP_Unit_PdgCmd_GetParam_prim(PP_Unit unit, int idCmd, int idParam){
 	}
 	else{
 		ret = isInitialized("PP_Unit_PdgCmd_GetParam");
-		if ((int)ret == 0){
+		if (ret == 0){
 			ShMapUnits::iterator u = shd.units->find(unit);
 			ret = checkParams("PP_Unit_PdgCmd_GetParam", &u, true);
-			if ((int)ret == 0){
+			if (ret == 0){
 				// Find vector of params for pendingCommands found in shared
 				// memory (do not use directly the pointer
 				// u->second.commandQueue->at(idCmd).param because it is only
@@ -886,7 +887,8 @@ float PP_Unit_PdgCmd_GetParam_prim(PP_Unit unit, int idCmd, int idParam){
 					try{
 						// Returns directly data. If idParam is inaccurate, an
 						// exception will be thrown
-						ret = params->at(idParam);
+						*paramValue = params->at(idParam);
+						ret = 0;
 					} catch (std::out_of_range e) {
 						PP_SetError("PP_Unit_PdgCmd_GetParam : idParam out of range\n");
 						ret = OUT_OF_RANGE;

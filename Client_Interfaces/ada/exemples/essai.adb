@@ -30,7 +30,7 @@ begin
 	-- Es_Reels.put(p.x);
 	-- Es_Reels.put(p.y);
 	-- Es_Entiers.put(GetNumUnits(MyCoalition));
-	-- u := GetUnitAt(MyCoalition, 0);
+	u := GetUnitAt(MyCoalition, 0);
 	-- ES_Coalition.put(GetCoalition(u));
 	-- Es_Entiers.put(GetType(u));
 	-- p := GetPosition (u);
@@ -38,14 +38,14 @@ begin
 	-- Es_Reels.put(p.y);
 	-- Es_Reels.put(GetHealth(u));
 	-- Es_Reels.put(GetMaxHealth(u));
-	-- pdgCmds := GetPendingCommands(u);
-	-- Es_Counter.put(pdgCmds.Length);
-	-- for i in pdgCmds.First_Index .. pdgCmds.Last_Index loop
-		-- Es_Entiers.put(pdgCmds.Element(i).code);
-		-- for j in pdgCmds.Element(i).param.First_Index .. pdgCmds.Element(i).param.Last_Index loop
-			-- Es_Reels.put(pdgCmds.Element(i).param.Element(j));
-		-- end loop;
-	-- end loop;
+	pdgCmds := GetPendingCommands(u);
+	Es_Counter.put(pdgCmds.Length);
+	for i in pdgCmds.First_Index .. pdgCmds.Last_Index loop
+		Es_Entiers.put(pdgCmds.Element(i).code);
+		for j in pdgCmds.Element(i).param.First_Index .. pdgCmds.Element(i).param.Last_Index loop
+			Es_Reels.put(pdgCmds.Element(i).param.Element(j));
+		end loop;
+	end loop;
 	-- Es_Entiers.put(GetGroup(u));
 	-- SetGroup(u, 1);
 	-- p.x := 100.0;
@@ -55,11 +55,11 @@ begin
 	-- CarryOutCommand(GetUnitAt(MyCoalition, 1), Move, p);
 	-- CarryOutCommand(GetUnitAt(MyCoalition, 1), Stop, -1.0);
 	-- CarryOutCommand(u, StopBuiding, -1.0);
-	p.x := 1983.0;
-	p.y := 1279.0;
-	for i in 0 .. GetNumUnits(MyCoalition) - 1 loop
-		u := GetUnitAt(MyCoalition, i);
-		CarryOutCommand(u, MOVE, p, False);
-	end loop;
+	-- p.x := 1983.0;
+	-- p.y := 1279.0;
+	-- for i in 0 .. GetNumUnits(MyCoalition) - 1 loop
+		-- u := GetUnitAt(MyCoalition, i);
+		-- CarryOutCommand(u, MOVE, p, False);
+	-- end loop;
 	Close;
 end essai;

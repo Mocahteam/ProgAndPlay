@@ -58,7 +58,7 @@ clean:
 
 install: $(INSTALL_CLIENT)
 
-install_client: exemples/projet/$(TARGETLIB_IMM) exemples/$(TARGETLIB_CLASSIC) exemples/projet/$(TARGETLIB_CLASSIC) 
+install_client: exemples/projet/$(TARGETLIB_IMM) exemples/$(TARGETLIB_CLASSIC) exemples/projet/$(TARGETLIB_CLASSIC) ../ocaml/$(TARGETLIB_CLASSIC)
 
 exemples/projet/$(TARGETLIB_IMM): $(TARGETLIB_IMM)
 	cp $(TARGETLIB_IMM) exemple/projet
@@ -68,3 +68,6 @@ exemples/$(TARGETLIB_CLASSIC): $(TARGETLIB_CLASSIC)
 
 exemples/projet/$(TARGETLIB_CLASSIC): $(TARGETLIB_CLASSIC)
 	cp $(TARGETLIB_CLASSIC) exemple/projet
+
+../ocaml/$(TARGETLIB_CLASSIC): $(TARGETLIB_CLASSIC)
+	cp $(TARGETLIB_CLASSIC) ../ocaml

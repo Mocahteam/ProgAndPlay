@@ -191,15 +191,12 @@ private
 	pragma import (C, exitCriticalSection, "exitCriticalSection");
 	function PP_Unit_GetNumPdgCmds_prim (u : in Unit) return Integer;
 	pragma import (C, PP_Unit_GetNumPdgCmds_prim, "PP_Unit_GetNumPdgCmds_prim");
-	function PP_Unit_PdgCmd_GetCode_prim(u : in Unit; idCmd : in Integer) return Integer;
+	function PP_Unit_PdgCmd_GetCode_prim(u : in Unit; idCmd : in Integer; cmdCode : access Integer) return Integer;
 	pragma import (C, PP_Unit_PdgCmd_GetCode_prim, "PP_Unit_PdgCmd_GetCode_prim");
 	function PP_Unit_PdgCmd_GetNumParams_prim(u : in Unit; idCmd : in Integer) return Integer;
 	pragma import (C, PP_Unit_PdgCmd_GetNumParams_prim, "PP_Unit_PdgCmd_GetNumParams_prim");
-	function PP_Unit_PdgCmd_GetParam_prim(u : in Unit; idCmd : in Integer; idParam : in Integer) return Float;
+	function PP_Unit_PdgCmd_GetParam_prim(u : in Unit; idCmd : in Integer; idParam : in Integer; paramValue : access Float) return Integer;
 	pragma import (C, PP_Unit_PdgCmd_GetParam_prim, "PP_Unit_PdgCmd_GetParam_prim");
-	
-	function PP_PushMessage_prim(msg : in Interfaces.C.Strings.chars_ptr; error : access Interfaces.C.int) return Integer;
-	pragma import (C, PP_PushMessage_prim, "PP_PushMessage_prim");
 	
 	function PP_GetError return Interfaces.C.Strings.chars_ptr;
 	pragma import (C, PP_GetError, "PP_GetError");

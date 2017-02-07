@@ -18,8 +18,17 @@ type action = command
 (* pending command definition. It is represented by an action and a list of parameters *)
 type pdgCmd = (action * float list)
 
+(* Returns true if the connexion with the game is openned and false if not. *)
+external openConnexion : unit -> bool = "OCaml_OpenConnexion"
+
+(* Returns true if the connexion with the game is closed and false if not. *)
+external closeConnexion : unit -> bool = "OCaml_CloseConnexion"
+
 (* Returns true if the game is over and false if not. *)
 external isGameOver : unit -> bool = "OCaml_IsGameOver"
+
+(* Returns true if the game is paused and false if not. *)
+external isGamePaused : unit -> bool = "OCaml_IsGamePaused"
 
 (* Return the map size of the game as a position (lower right corner). *)
 external getMapSize : unit -> pos = "OCaml_GetMapSize"
@@ -60,15 +69,15 @@ external setGroup : entity * int -> bool = "OCaml_Unit_SetGroup"
 (* "getPendingCommands e" returns a list of pending commands of e. *)
 external getPendingCommands : entity -> pdgCmd list = "OCaml_Unit_GetPendingCommands"
 
-(* "actionOnEntity (e, a, t)" command e to carry out action a on the target t. Return true if the command is set up and false otherwise. *)
-external actionOnEntity : entity * command * entity -> bool = "OCaml_Unit_ActionOnUnit"
+(* "actionOnEntity (e, a, t, s)" command e to carry out action a on the target t. If s is set to false this function call is non blocking (when the function returns this means that the command is sent and not that the order is carried out); If s is set to true this function call is blocking until the order is carried out. Return true if the command is set up and false otherwise. *)
+external actionOnEntity : entity * command * entity * bool -> bool = "OCaml_Unit_ActionOnUnit"
 
-(* "actionOnPosition (e, a, p)" command e to carry out action a at the position p. Return true if the command is set up and false otherwise. *)
-external actionOnPosition : entity * command * pos -> bool = "OCaml_Unit_ActionOnPosition"
+(* "actionOnPosition (e, a, p, s)" command e to carry out action a at the position p.  If s is set to false this function call is non blocking (when the function returns this means that the command is sent and not that the order is carried out); If s is set to true this function call is blocking until the order is carried out. Return true if the command is set up and false otherwise. *)
+external actionOnPosition : entity * command * pos * bool -> bool = "OCaml_Unit_ActionOnPosition"
 
 
-(* "untargetedAction (e, a, p)" command e to carry out action a with the parameter p. Return true if the command is set up and false otherwise. *)
-external untargetedAction : entity * command * float -> bool = "OCaml_Unit_UntargetedAction"
+(* "untargetedAction (e, a, p, s)" command e to carry out action a with the parameter p.  If s is set to false this function call is non blocking (when the function returns this means that the command is sent and not that the order is carried out); If s is set to true this function call is blocking until the order is carried out. Return true if the command is set up and false otherwise. *)
+external untargetedAction : entity * command * float * bool -> bool = "OCaml_Unit_UntargetedAction"
 
 (* "waitUnitProp u p" returns true when (p u) = true and waits otherwise. Returns false if a problem occurs during waiting. *)
 let rec waitUnitProp = function (u, p) ->

@@ -136,7 +136,7 @@ public class Unit {
 	 * @throws PPException on errors linked with Prog&Play.
 	 */
 	public void removeFromGroup () throws PPException{
-		if (PPNative.Unit_SetGroup (id, -1) == -1)
+		if (PPNative.Unit_RemoveFromGroup (id) == -1)
 			throw new PPException ("removeFromGroup -> "+PPNative.GetError());
 	}
 
@@ -150,22 +150,27 @@ public class Unit {
 	 */
 	public ArrayList<PendingCommand> getPendingCommands() throws PPException {
 		PPNative.EnterCriticalSection();
-			int size = PPNative.Unit_GetNumPdgCmds(this.id);
-			if (size == -1)
-				throw new PPException ("getPendingCommands -> "+PPNative.GetError());
+			int size = PPNative.Unit_GetNumPdgCmds_prim(this.id);
+			int ret = size;
 			ArrayList<PendingCommand> pdgCmds = new ArrayList<PendingCommand>();
-			for (int cmd = 0 ; cmd < size ; cmd++){
-				int code = PPNative.Unit_PdgCmd_GetCode (this.id, cmd);
-				if (code == -1)
-					throw new PPException ("getPendingCommands -> "+PPNative.GetError());
-				pdgCmds.add(new PendingCommand(code));
-				for (int param = 0 ; param < PPNative.Unit_PdgCmd_GetNumParams(this.id, cmd) ; param++){
-					float p = PPNative.Unit_PdgCmd_GetParam(this.id, cmd, param);
-					if (p == -1.0)
-						throw new PPException ("getPendingCommands -> "+PPNative.GetError());
-					pdgCmds.get(cmd).addParam(p);
+			for (int cmd = 0 ; cmd < size && ret >= 0 ; cmd++){
+				int [] cmdCode = PPNative.Unit_PdgCmd_GetCode_prim (this.id, cmd);
+				ret = cmdCode[0];
+				if (ret == 0){
+					pdgCmds.add(new PendingCommand(cmdCode[1]));
+					int nbParams = PPNative.Unit_PdgCmd_GetNumParams_prim(this.id, cmd);
+					ret = nbParams;
+					for (int param = 0 ; param < nbParams && ret >= 0 ; param++){
+						float [] paramValue = PPNative.Unit_PdgCmd_GetParam_prim(this.id, cmd, param);
+						ret = (int)paramValue[0];
+						if (ret == 0)
+							pdgCmds.get(cmd).addParam(paramValue[1]);
+					}
 				}
 			}
+			PPNative.pushMessageForGetPendingCommands(this.id, ret);
+			if (ret < 0)
+				throw new PPException ("getPendingCommands -> "+PPNative.GetError());
 		PPNative.ExitCriticalSection();
 		return pdgCmds;
 	}
@@ -176,11 +181,15 @@ public class Unit {
 	 *
 	 * @param action action to carry out.
 	 * @param target target unit.
+	 * @param locked: false means this function call is non blocking (when the
+     *        function returns this means that the command is sent and not that
+	 *        the order is carried out); true means this function call is
+	 *        blocking until the order is carried out.
 	 *
 	 * @throws PPException on errors linked with Prog&Play.
 	 */
-	public void command (int action, Unit target) throws PPException{
-		if (PPNative.Unit_ActionOnUnit (id, action, target.getId()) == -1)
+	public void command (int action, Unit target, boolean locked) throws PPException{
+		if (PPNative.Unit_ActionOnUnit (id, action, target.getId(), locked) == -1)
 			throw new PPException ("command -> "+PPNative.GetError());
 	}
 
@@ -190,11 +199,15 @@ public class Unit {
 	 *
 	 * @param action action to carry out.
 	 * @param target target position.
+	 * @param locked: false means this function call is non blocking (when the
+     *        function returns this means that the command is sent and not that
+	 *        the order is carried out); true means this function call is
+	 *        blocking until the order is carried out.
 	 *
 	 * @throws PPException on errors linked with Prog&Play.
 	 */
-	public void command (int action, Point2D target) throws PPException{
-		if (PPNative.Unit_ActionOnPosition (id, action, (float)target.getX(), (float)target.getY()) == -1)
+	public void command (int action, Point2D target, boolean locked) throws PPException{
+		if (PPNative.Unit_ActionOnPosition (id, action, (float)target.getX(), (float)target.getY(), locked) == -1)
 			throw new PPException ("command -> "+PPNative.GetError());
 	}
 
@@ -205,11 +218,15 @@ public class Unit {
 	 * @param action action to carry out.
 	 * @param param parameter to the action. If any parameter required, put -1.0
 	 *              instead.
+	 * @param locked: false means this function call is non blocking (when the
+     *        function returns this means that the command is sent and not that
+	 *        the order is carried out); true means this function call is
+	 *        blocking until the order is carried out.
 	 *
 	 * @throws PPException on errors linked with Prog&Play.
 	 */
-	public void command (int action, float param) throws PPException{
-		if (PPNative.Unit_UntargetedAction (id, action, param) == -1)
+	public void command (int action, float param, boolean locked) throws PPException{
+		if (PPNative.Unit_UntargetedAction (id, action, param, locked) == -1)
 			throw new PPException ("command -> "+PPNative.GetError());
 	}
 }
