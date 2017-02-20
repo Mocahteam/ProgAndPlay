@@ -442,6 +442,103 @@ private:
 
 };
 
+class CallWithUnitIntIntParams : public Call {
+
+public:
+
+	CallWithUnitIntIntParams(ErrorType error, std::string key, int unitId, int unitType, int param1, int param2): Call(key,error), param1(param1), param2(param2) {
+		unit.id = unitId;
+		unit.type = unitType;
+	}
+
+	CallWithUnitIntIntParams(const CallWithUnitIntIntParams *c) : Call(c) {
+		unit.id = c->unit.id;
+		unit.type = c->unit.type;
+		param1 = c->param1;
+		param2 = c->param2;
+	}
+
+	virtual Trace::sp_trace clone() const {
+		return boost::make_shared<CallWithUnitIntIntParams>(this);
+	}
+
+private:
+
+	CallMisc::Unit unit;
+	int param1, param2;
+
+	virtual bool compare(const Call *c) const {
+		const CallWithUnitIntIntParams *cc = dynamic_cast<const CallWithUnitIntIntParams*>(c);
+		if ((Call::callMaps.contains(key,"unitId") && unit.id != cc->unit.id) || (Call::callMaps.contains(key,"unitType") && unit.type != cc->unit.type) || (Call::callMaps.contains(key,"action") && param1 != cc->param1) || (Call::callMaps.contains(key,"synchronized") && param2 != cc->param2))
+			return false;
+		return true;
+	}
+
+	virtual void filter(const Call *c) {
+		const CallWithUnitIntIntParams *cc = dynamic_cast<const CallWithUnitIntIntParams*>(c);
+		if (!Call::callMaps.contains(key,"unitId") && unit.id != cc->unit.id && unit.id != -1)
+			unit.id = -1;
+		if (!Call::callMaps.contains(key,"unitType") && unit.type != cc->unit.type && unit.type != -1)
+			unit.type = -1;
+		if (!Call::callMaps.contains(key,"action") && param1 != cc->param1 && param1 != -1)
+			param1 = -1;
+		if (!Call::callMaps.contains(key,"synchronized") && param2 != cc->param2 && param2 != -1)
+			param2 = -1;
+	}
+
+	virtual std::pair<int,int> distance(const Call *c) const {
+		const CallWithUnitIntIntParams *cc = dynamic_cast<const CallWithUnitIntIntParams*>(c);
+		int sc = 0;
+		if (unit.type != cc->unit.type)
+			sc++;
+		if (param1 != cc->param1)
+			sc++;
+		if (param2 != cc->param2)
+			sc++;
+		return std::make_pair<int,int>(sc,3);
+	}
+
+	virtual std::string getParams() const {
+		std::string s = "";
+		s += (unit.id == -1) ? "?" : boost::lexical_cast<std::string>(unit.id);
+		s += "_";
+		s += (unit.type == -1) ? "?" : boost::lexical_cast<std::string>(unit.type);
+		s += " ";
+		s += (param1 == -1) ? "?" : boost::lexical_cast<std::string>(param1);
+		s += " ";
+		s += (param2 == -1) ? "?" : boost::lexical_cast<std::string>(param2);
+		return s;
+	}
+
+	virtual std::string getReadableParams() const {
+		std::string s = "(";
+		s += (Call::units_id_map.find(unit.type) != Call::units_id_map.end()) ? Call::units_id_map.at(unit.type)+" unit" : "_";
+		s += ",";
+		s += (param1 != -1 && Call::orders_map.find(param1) != Call::orders_map.end()) ? Call::orders_map.at(param1) : "_";
+		s += ",";
+		s += (param2 != -1) ? boost::lexical_cast<std::string>(param2) : "_";
+		s += ")";
+		return s;
+	}
+
+	virtual std::vector<std::string> id_wrong_params(Call *c) const {
+		std::vector<std::string> ids;
+		CallWithUnitIntIntParams *cc;
+		if (c != NULL)
+			cc = dynamic_cast<CallWithUnitIntIntParams*>(c);
+		// check unit
+		if (c != NULL && unit.type != cc->unit.type)
+			ids.push_back("unitType");
+		// check params
+		else if (Call::callMaps.contains(key,"action") && c != NULL && param1 != cc->param1)
+			ids.push_back("action");
+		else if (Call::callMaps.contains(key,"synchronized") && c != NULL && param2 != cc->param2)
+			ids.push_back("synchronized");
+		return ids;
+	}
+
+};
+
 class CallWithIntUnitParams : public Call {
 
 public:
@@ -1093,11 +1190,12 @@ private:
 		s += ",";
 		s += (param2 != -1) ? boost::lexical_cast<std::string>(param2) : "_";
 		// Ugly!!! only Scratch labels include " _ " token to describe parameters position. We use this
-		// trick to define if we have to display last parameter. For Scratch, we don't want to show it
-		if (Call::callMaps.getLabel(key).find(" _ ") == std::string::npos){
-			s += ",";
+		// trick to define how to display last parameter.
+		s += ",";
+		if (Call::callMaps.getLabel(key).find(" _ ") != std::string::npos)
+			s += (param3 != 0) ? "WAIT" : "CONTINUE";
+		else
 			s += (param3 != 0) ? "true" : "false";
-		}
 		s += ")";
 		return s;
 	}

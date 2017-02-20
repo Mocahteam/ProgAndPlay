@@ -367,38 +367,6 @@ int PP_Unit_SetGroup(PP_Unit unit, int group){
 	return ret;
 }
 
-bool orderWithOneParamFound(PP_Unit unit, int action, float param){
-	bool orderFound = false;
-	// Check all pending commands
-	PP_PendingCommands pdgCmd;
-	int ret = PP_Unit_GetPendingCommands_prim(unit, &pdgCmd);
-	for (int i = 0 ; i < pdgCmd.nbCmds ; i++){
-		// Check the code of this action
-		if (pdgCmd.cmd[i].code == action){
-			// Check parameter
-			if (pdgCmd.cmd[i].nbParams == 1 && pdgCmd.cmd[i].param[0] == param)
-				orderFound = true;
-		}
-	}
-	return orderFound;
-}
-
-bool orderOnPositionFound(PP_Unit unit, int action, PP_Pos target){
-	bool orderFound = false;
-	// Check all pending commands
-	PP_PendingCommands pdgCmd;
-	int ret = PP_Unit_GetPendingCommands_prim(unit, &pdgCmd);
-	for (int i = 0 ; i < pdgCmd.nbCmds ; i++){
-		// Check the code of this action
-		if (pdgCmd.cmd[i].code == action){
-			// Check parameters 
-			if (pdgCmd.cmd[i].nbParams == 3 && pdgCmd.cmd[i].param[0] == target.x && pdgCmd.cmd[i].param[2] == target.y)
-				orderFound = true;
-		}
-	}
-	return orderFound;
-}
-
 int PP_Unit_ActionOnUnit(PP_Unit unit, int action, PP_Unit target, int synchronized){
 	int ret = PP_Unit_ActionOnUnit_prim (unit, action, target);
 	if (ret > FEEDBACK_COUNT_LIMIT) {
@@ -423,8 +391,9 @@ int PP_Unit_ActionOnUnit(PP_Unit unit, int action, PP_Unit target, int synchroni
 		if (synchronized != 0){
 			// waiting that the order is adding into pending commands. We wait approximately
 			// 1000ms. We know that for each 8 entrance in critical section Prog&Play makes a
-			// a pause (1ms) to avoid cpu consuming. In orderOnUnitFound function only 1 call
-			// of Prog&Play was done and so 1000 * 8 = 8000. 
+			// a pause (1ms) to avoid cpu consuming. In orderWithOneParamFound function only 1 call
+			// of Prog&Play was done and so 8000 calls of this function will consume 1000ms in the
+			// better case. 
 			int cpt = 0;
 			while (!orderWithOneParamFound(unit, action, target) && cpt < 8000)
 				cpt++;
@@ -460,8 +429,9 @@ int PP_Unit_ActionOnPosition(PP_Unit unit, int action, PP_Pos pos, int synchroni
 		if (synchronized != 0){
 			// waiting that the order is adding into pending commands. We wait approximately
 			// 1000ms. We know that for each 8 entrance in critical section Prog&Play makes a
-			// a pause (1ms) to avoid cpu consuming. In orderOnUnitFound function only 1 call
-			// of Prog&Play was done and so 1000 * 8 = 8000. 
+			// a pause (1ms) to avoid cpu consuming. In orderOnPositionFound function only 1 call
+			// of Prog&Play was done and so 8000 calls of this function will consume 1000ms in the
+			// better case. 
 			int cpt = 0;
 			while (!orderOnPositionFound(unit, action, pos) && cpt < 8000)
 				cpt++;
@@ -497,8 +467,9 @@ int PP_Unit_UntargetedAction(PP_Unit unit, int action, float param, int synchron
 		if (synchronized != 0){
 			// waiting that the order is adding into pending commands. We wait approximately
 			// 1000ms. We know that for each 8 entrance in critical section Prog&Play makes a
-			// a pause (1ms) to avoid cpu consuming. In orderOnUnitFound function only 1 call
-			// of Prog&Play was done and so 1000 * 8 = 8000. 
+			// a pause (1ms) to avoid cpu consuming. In orderWithOneParamFound function only 1 call
+			// of Prog&Play was done and so 8000 calls of this function will consume 1000ms in the
+			// better case. 
 			int cpt = 0;
 			while (!orderWithOneParamFound(unit, action, param) && cpt < 8000)
 				cpt++;

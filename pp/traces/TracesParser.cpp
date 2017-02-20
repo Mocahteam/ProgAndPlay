@@ -370,6 +370,12 @@ Trace::sp_trace TracesParser::handleLine(const std::string& s) {
 					int p = (ind+2 <= numTokens-1) ? stoi(tokens[ind+2]) : -1;
 					t = new CallWithUnitIntParams(err,tokens[ind],unitId,unitType,p);
 				}
+				// Gestion des appel prenant une unité et deux entiers en paramètre
+				else if (Call::callMaps.getCallType(tokens[ind]).compare(CALL_WITH_UNIT_INT_INT_PARAMS) == 0) {
+					int p1 = (ind+2 <= numTokens-1) ? stoi(tokens[ind+2]) : -1;
+					int p2 = (ind+3 <= numTokens-1) ? stoi(tokens[ind+3]) : -1;
+					t = new CallWithUnitIntIntParams(err,tokens[ind],unitId,unitType,p1,p2);
+				}
 				// Gestion des appel prenant une unité, un entier, une seconde unité et un second entier en paramètre
 				else if (Call::callMaps.getCallType(tokens[ind]).compare(CALL_WITH_UNIT_INT_UNIT_INT_PARAMS) == 0) {
 					int p1 = (ind+2 <= numTokens-1) ? stoi(tokens[ind+2]) : -1, targetId = -1, targetType = -1;
@@ -394,7 +400,7 @@ Trace::sp_trace TracesParser::handleLine(const std::string& s) {
 				else if (Call::callMaps.getCallType(tokens[ind]).compare(CALL_WITH_UNIT_INT_FLOAT_INT_PARAMS) == 0) {
 					int p1 = (ind+2 <= numTokens-1) ? stoi(tokens[ind+2]) : -1;
 					float p2 = (ind+3 <= numTokens-1) ? stof(tokens[ind+3]) : -1;
-					int p3 = (ind+4 <= numTokens-1) ? stof(tokens[ind+4]) : -1;
+					int p3 = (ind+4 <= numTokens-1) ? stoi(tokens[ind+4]) : -1;
 					t = new CallWithUnitIntFloatIntParams(err,tokens[ind],unitId,unitType,p1,p2,p3);
 				}
 			}

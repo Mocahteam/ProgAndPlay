@@ -86,6 +86,7 @@ public class LooksPrims {
 		// Muratet ---
 		primTable['PP_Open']					= prim_PP_Open;
 		primTable['PP_IsGameOver']				= prim_PP_IsGameOver;
+		primTable['PP_IsGamePaused']			= prim_PP_IsGamePaused;
 		primTable['PP_GetMapWidth']				= prim_PP_GetMapWidth;
 		primTable['PP_GetMapHeight']			= prim_PP_GetMapHeight;
 		primTable['PP_GetStartPosX']			= prim_PP_GetStartPosX;
@@ -96,7 +97,7 @@ public class LooksPrims {
 		primTable['PP_GetResource']				= prim_PP_GetResource;
 		primTable['PP_GetNumUnits']				= prim_PP_GetNumUnits;
 		primTable['PP_GetUnitAt']				= prim_PP_GetUnitAt;
-		primTable['PP_Unit_IsCoalition']		= prim_PP_Unit_IsCoalition;
+		primTable['PP_Unit_BelongTo']			= prim_PP_Unit_BelongTo;
 		primTable['PP_Unit_IsType']				= prim_PP_Unit_IsType;
 		primTable['PP_Unit_GetPositionX']		= prim_PP_Unit_GetPositionX;
 		primTable['PP_Unit_GetPositionY']		= prim_PP_Unit_GetPositionY;
@@ -105,7 +106,7 @@ public class LooksPrims {
 		primTable['PP_Unit_GetGroup']			= prim_PP_Unit_GetGroup;
 		primTable['PP_Unit_SetGroup']			= prim_PP_Unit_SetGroup;
 		primTable['PP_Unit_GetNumPendingCmds']	= prim_PP_Unit_GetNumPendingCmds;
-		primTable['PP_Unit_IsPendingCmdAt']		= prim_PP_Unit_IsPendingCmdAt;
+		primTable['PP_Unit_PdgCmd_IsEqualTo']	= prim_PP_Unit_PdgCmd_IsEqualTo;
 		primTable['PP_Unit_PdgCmd_GetNumParams']= prim_PP_Unit_PdgCmd_GetNumParams;
 		primTable['PP_Unit_PdgCmd_GetParamAt']	= prim_PP_Unit_PdgCmd_GetParamAt;
 		primTable['PP_Unit_ActionOnPosition']	= prim_PP_Unit_ActionOnPosition;
@@ -113,6 +114,8 @@ public class LooksPrims {
 		primTable['PP_Unit_ActionSetState']		= prim_PP_Unit_ActionSetState;
 		primTable['PP_Unit_UntargetedAction']	= prim_PP_Unit_UntargetedAction;
 		primTable['PP_Close']					= prim_PP_Close;
+		primTable['PP_GetError']				= prim_PP_GetError;
+		primTable['PP_ClearError']				= prim_PP_ClearError;
 		// ---
 	}
 
@@ -135,6 +138,12 @@ public class LooksPrims {
 	private function prim_PP_IsGameOver(b:Block):Boolean {
  		if (ppExt)
 			return ppExt.PP_IsGameOver_ext();
+		return false;
+	}
+	
+	private function prim_PP_IsGamePaused(b:Block):Boolean {
+ 		if (ppExt)
+			return ppExt.PP_IsGamePaused_ext();
 		return false;
 	}
 	
@@ -221,19 +230,19 @@ public class LooksPrims {
 			var id:int = interp.arg(b, 0) as int;
 			var coalition:int = getCodeFromName(Specs.pp_coalitionsList, interp.arg(b, 1) as String);
 			if (coalition != -1)
-				return ppExt.PP_GetUnitAt_ext(coalition, id);
+				return ppExt.PP_GetUnitAt_ext(id, coalition);
 			else
 				return -1;
 		}
 		return -1;
 	}
 	
-	private function prim_PP_Unit_IsCoalition(b:Block):Boolean {
+	private function prim_PP_Unit_BelongTo(b:Block):Boolean {
  		if (ppExt){
 			var unitId:int = interp.arg(b, 0) as int;
 			var coalition:int = getCodeFromName(Specs.pp_coalitionsList, interp.arg(b, 1) as String);
 			if (coalition != -1)
-				return ppExt.PP_Unit_GetCoalition_ext(unitId) == coalition;
+				return ppExt.PP_Unit_BelongTo_ext(unitId, coalition);
 			else
 				return false;
 		}
@@ -245,7 +254,7 @@ public class LooksPrims {
 			var unitId:int = interp.arg(b, 0) as int;
 			var unitType:int = getCodeFromName(Specs.pp_unitsList, interp.arg(b, 1) as String);
 			if (unitType != -1)
-				return ppExt.PP_Unit_GetType_ext(unitId) == unitType;
+				return ppExt.PP_Unit_IsType_ext(unitId, unitType);
 			else
 				return false;
 		}
@@ -308,7 +317,7 @@ public class LooksPrims {
 		return -1;
 	}
 	
-	private function prim_PP_Unit_IsPendingCmdAt(b:Block):Boolean {
+	private function prim_PP_Unit_PdgCmd_IsEqualTo(b:Block):Boolean {
  		if (ppExt){
 			var cmdId:int = interp.arg(b, 0) as int;
 			var unitId:int = interp.arg(b, 1) as int;
@@ -323,7 +332,7 @@ public class LooksPrims {
 				return false
 			else
 				// we found a code, then we compare it with Prog&Play call result
-				return ppExt.PP_Unit_GetPendingCmdAt_ext(cmdId, unitId) == cmdCode;
+				return ppExt.PP_Unit_PdgCmd_IsEqualTo_ext(cmdId, unitId, cmdCode);
 		}
 		return false;
 	}
@@ -358,7 +367,11 @@ public class LooksPrims {
 			if (cmdCode != -1){
 				var x:Number = interp.arg(b, 2) as Number;
 				var y:Number = interp.arg(b, 3) as Number;
-				ppExt.PP_Unit_ActionOnPosition_ext(unitId, cmdCode, x, y);
+				var synchroName:String = interp.arg(b, 4) as String;
+				var synchroCode:int = getCodeFromName(Specs.pp_synchroList, synchroName);
+				if (synchroCode == -1)
+					synchroCode = 0;
+				ppExt.PP_Unit_ActionOnPosition_ext(unitId, cmdCode, x, y, synchroCode);
 			}
 		}
 	}
@@ -373,7 +386,11 @@ public class LooksPrims {
 				cmdCode = getCodeFromName(Specs.pp_specificCommandsList, cmdName);
 			if (cmdCode != -1){
 				var targetId:int = interp.arg(b, 2) as int;
-				ppExt.PP_Unit_ActionOnUnit_ext(unitId, cmdCode, targetId);
+				var synchroName:String = interp.arg(b, 3) as String;
+				var synchroCode:int = getCodeFromName(Specs.pp_synchroList, synchroName);
+				if (synchroCode == -1)
+					synchroCode = 0;
+				ppExt.PP_Unit_ActionOnUnit_ext(unitId, cmdCode, targetId, synchroCode);
 			}
 		}
 	}
@@ -388,7 +405,11 @@ public class LooksPrims {
 				cmdCode = getCodeFromName(Specs.pp_specificCommandsList, cmdName);
 			if (cmdCode != -1){
 				var param:Number = interp.arg(b, 2) as Number;
-				ppExt.PP_Unit_UntargetedAction_ext(unitId, cmdCode, param);
+				var synchroName:String = interp.arg(b, 3) as String;
+				var synchroCode:int = getCodeFromName(Specs.pp_synchroList, synchroName);
+				if (synchroCode == -1)
+					synchroCode = 0;
+				ppExt.PP_Unit_UntargetedAction_ext(unitId, cmdCode, param, synchroCode);
 			}
 		}
 	}
@@ -401,9 +422,26 @@ public class LooksPrims {
 			if (cmdCode == -1)
 				// we didn't find in standard commands, then we try to find this command name on specific commands
 				cmdCode = getCodeFromName(Specs.pp_specificCommandsList, cmdName);
-			if (cmdCode != -1)
-				ppExt.PP_Unit_UntargetedAction_ext(unitId, cmdCode);
+			if (cmdCode != -1){
+				var synchroName:String = interp.arg(b, 2) as String;
+				var synchroCode:int = getCodeFromName(Specs.pp_synchroList, synchroName);
+				if (synchroCode == -1)
+					synchroCode = 0;
+				ppExt.PP_Unit_UntargetedActionWithoutParam_ext(unitId, cmdCode, synchroCode);
+			}
 		}
+	}
+	
+	private function prim_PP_GetError(b:Block):String {
+ 		if (ppExt)
+			return ppExt.PP_GetError_ext();
+		else
+			return "Call \"open Prog&Play\" block first";
+	}
+	
+	private function prim_PP_ClearError(b:Block):void {
+ 		if (ppExt)
+			ppExt.PP_ClearError_ext();
 	}
 		
 	// ---

@@ -308,6 +308,22 @@ void enterCriticalSection(void);
 void exitCriticalSection(void);
 
 /******************************************************************************/
+/* Check orders                                                               */
+/******************************************************************************/
+
+/*
+ * Check if unit with id "unitId" has the pending command "actionId" with the
+ * parameter "param" defined
+ */
+bool orderWithOneParamFound(PP_Unit unitId, int actionId, float param);
+
+/*
+ * Check if unit with id "unitId" has the pending command "actionId" with the
+ * target position "target" defined
+ */
+bool orderOnPositionFound(PP_Unit unitId, int actionId, PP_Pos target);
+
+/******************************************************************************/
 /* WARNING !!! Following function has to be used after a first call of        */
 /* "enterCriticalSection()". Don't forget to call "exitCriticalSection()" when*/
 /* you finish to use these functions.                                         */

@@ -62,7 +62,10 @@ clean:
 	@(cd ./traces && $(MAKE) $@)
 	
 compile_traces:
-	@echo "compilation de pp-traces ============================================="
+	@echo ""
+	@echo "-------------------------------------------------------------------------------"
+	@echo "| Compilation de pp-trace                                                     |"
+	@echo "-------------------------------------------------------------------------------"
 	@(cd ./traces && $(MAKE))
 	
 install: install_supplier install_traces
@@ -127,5 +130,8 @@ $(REP_CLIENT)/python/$(CIBLE_CLIENT): $(CIBLE_CLIENT)
 	cp $(CIBLE_CLIENT) ./test
 	
 install_traces:
-	@echo "installation de pp-traces ============================================="
+	@echo ""
+	@echo "-------------------------------------------------------------------------------"
+	@echo "| Installation de pp-trace                                                    |"
+	@echo "-------------------------------------------------------------------------------"
 	@(cd ./traces && $(MAKE) install)

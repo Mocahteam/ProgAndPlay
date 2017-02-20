@@ -1,5 +1,5 @@
 
-.PHONY: all clean doc jar
+.PHONY: all clean doc exemples
 
 LIBNAME = pp-client-java
 
@@ -34,7 +34,7 @@ INCLUDE_DIRS = -I. -I$(PP_DIR) -I$(PP_CLIENT) $(INCLUDE_OS)
 JAVA_FILES = $(wildcard ./pp/*.java) $(wildcard ./pp/exceptions/*.java)
 CLASS_FILES = $(JAVA_FILES:.java=.class)
 
-all: $(CLASS_FILES) $(CIBLE) jar
+all: $(CIBLE) pp.jar
 
 $(CIBLE): PP_jni.o $(PP_DIR)/PP_Client_Private.o $(PP_DIR)/PP_Error.o $(PP_CLIENT)/PP_Client.o
 	g++ -shared -o $@ $^ $(OPTLIB)
@@ -59,11 +59,17 @@ JAVA_EXCEP_FILES = $(wildcard ./pp/exceptions/*.java)
 javadoc/index.html: pp/PP.java pp/Unit.java pp/PendingCommand.java $(JAVA_EXCEP_FILES)
 	javadoc -docencoding "ISO-8859-15" -d javadoc -author pp/PP.java pp/Unit.java pp/PendingCommand.java pp/exceptions/*.java
 
-jar: pp.jar
-
 pp.jar: $(CLASS_FILES)
 	jar cf pp.jar pp/*.class pp/exceptions/*.class
 
+# liste des fichiers exemples
+EXEMPLES_JAVA_FILES = $(wildcard ./exemple/*.java)
+EXEMPLES_CLASS_FILES = $(EXEMPLES_JAVA_FILES:.java=.class)
+exemples: $(EXEMPLES_CLASS_FILES)
+
+exemple/%.class: exemple/%.java pp.jar $(CIBLE)
+	javac $<
+	
 install: $(INSTALL_CLIENT)
 
 install_client: ../compalgo/$(CIBLE)

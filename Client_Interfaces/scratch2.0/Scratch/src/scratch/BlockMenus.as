@@ -103,6 +103,7 @@ public class BlockMenus implements DragClient {
 		if (menuName == 'videoState') menuHandler.videoStateMenu(evt);
 		// Muratet ---
 		if (menuName == 'resource')  menuHandler.resourceMenu(evt);
+		if (menuName == 'synchro')  menuHandler.synchroMenu(evt);
 		if (menuName == 'coalition')  menuHandler.coalitionMenu(evt);
 		if (menuName == 'units')  menuHandler.unitsMenu(evt);
 		if (menuName == 'commands')  menuHandler.commandsMenu(evt);
@@ -156,6 +157,7 @@ public class BlockMenus implements DragClient {
 			// Muratet ---
 			handler.coalitionMenu(evt);
 			handler.resourceMenu(evt);
+			handler.synchroMenu(evt);
 			handler.unitsMenu(evt);
 			handler.commandsMenu(evt);
 			handler.commandsOnPositionMenu(evt);
@@ -544,6 +546,13 @@ public class BlockMenus implements DragClient {
 		var m:Menu = new Menu(setBlockArg, 'resource');
 		for (var i:int = 0 ; i < Specs.pp_resourcesList.length ; i++)
 			m.addItem(Specs.pp_resourcesList[i].name);
+		showMenu(m);
+	}
+	
+	private function synchroMenu(evt:MouseEvent):void {
+		var m:Menu = new Menu(setBlockArg, 'synchro');
+		for (var i:int = 0 ; i < Specs.pp_synchroList.length ; i++)
+			m.addItem(Specs.pp_synchroList[i].name);
 		showMenu(m);
 	}
 	

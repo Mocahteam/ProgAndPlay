@@ -1,11 +1,15 @@
 
 .PHONY: all clean
 
+FLASH_DEV_DIR = C:\Users\mmuratet\AppData\Local\FlashDevelop\Apps\flexairsdk\4.6.0+19.0.0\bin
+
 LIB_NAME = ProgAndPlayExtension
+SPRING_VERSION = spring-0.82.5.1
 PATH := C:\msys\1.0\bin;$(PATH)
+OPTLIB = -L../../../../../../SpringPP/$(SPRING_VERSION)/mingwlibs/lib -lboost_thread-mt
 PP_DIR = ../../../../../pp
-#OPTLIB = -Wl,--add-stdcall-alias,--output-def,$(LIB_NAME).def,--out-implib,lib$(LIB_NAME).a
-INCLUDE_DIRS = . $(PP_DIR)
+PP_CLIENT = ../../../../c-cpp
+INCLUDE_DIRS = . $(PP_DIR) $(PP_CLIENT)
 
 CIBLE = $(LIB_NAME).ane
 
@@ -19,11 +23,11 @@ all: $(CIBLE)
 $(LIB_NAME).o: $(LIB_NAME).cpp
 	g++ -c $< $(INCLUDES)
 	
-$(LIB_NAME).dll: $(LIB_NAME).o $(PP_DIR)/pp-client.dll FlashRuntimeExtensions.lib
-	g++ -shared -o $@ $(LIB_NAME).o FlashRuntimeExtensions.lib -L$(PP_DIR) -lpp-client
+$(LIB_NAME).dll: $(LIB_NAME).o FlashRuntimeExtensions.lib $(PP_DIR)/PP_Client_Private.o $(PP_DIR)/PP_Error.o $(PP_CLIENT)/PP_Client.o
+	g++ -shared -o $@ $^ $(OPTLIB)
 	
 $(CIBLE): ProgAndPlayANE.swc extensionDescriptor.xml library.swf $(LIB_NAME).dll
-	C:\Users\mmuratet\AppData\Local\FlashDevelop\Apps\flexairsdk\4.6.0+19.0.0\bin\adt -package -target ane $(CIBLE) extensionDescriptor.xml -swc ProgAndPlayANE.swc -platform Windows-x86 library.swf $(LIB_NAME).dll
+	$(FLASH_DEV_DIR)\adt -package -target ane $(CIBLE) extensionDescriptor.xml -swc ProgAndPlayANE.swc -platform Windows-x86 library.swf $(LIB_NAME).dll
 	
 library.swf: ProgAndPlayANE.swc
 	7za e -y ProgAndPlayANE.swc library.swf

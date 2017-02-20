@@ -48,7 +48,7 @@ public class PP extends Thread{
 	}
 
 	/**
-	 * Close Prog&Play API when the jvm stop. This method makes sure of PP is
+	 * Close ProgAndPlay API when the jvm stop. This method makes sure of PP is
 	 * correctly closed by the user and closes it if not.
 	 *
 	 * @see #close()
@@ -64,10 +64,10 @@ public class PP extends Thread{
 	}
 	
 	/**
-	 * Opens Prog&Play API. This must be called before using other functions in
+	 * Opens ProgAndPlay API. This must be called before using other functions in
 	 * this library.
 	 *
-	 * @throws PPException on errors linked with Prog&Play.
+	 * @throws PPException on errors linked with ProgAndPlay.
 	 */
 	public void open() throws PPException {
 		if (PPNative.Open() == -1)
@@ -75,11 +75,11 @@ public class PP extends Thread{
 		open = true;
 	}
 	/**
-	 * Shutdown and cleanup Prog&Play API.
-	 * After calling this Prog&Play functions should not be used. You may, of
+	 * Shutdown and cleanup ProgAndPlay API.
+	 * After calling this ProgAndPlay functions should not be used. You may, of
 	 * course, use PP_Open to use the functionality again.
 	 *
-	 * @throws PPException on errors linked with Prog&Play.
+	 * @throws PPException on errors linked with ProgAndPlay.
 	 */
 	public void close () throws PPException {
 		if (PPNative.Close () == -1)
@@ -91,7 +91,7 @@ public class PP extends Thread{
 	 * @return <code>true</code> if the game is ended and <code>false</code> if
 	 * not.
 	 *
-	 * @throws PPException on errors linked with Prog&Play.
+	 * @throws PPException on errors linked with ProgAndPlay.
 	 */
 	public boolean isGameOver () throws PPException {
 		switch (PPNative.IsGameOver()){
@@ -105,7 +105,7 @@ public class PP extends Thread{
 	 * @return <code>true</code> if the game is paused and <code>false</code> if
 	 * not.
 	 *
-	 * @throws PPException on errors linked with Prog&Play.
+	 * @throws PPException on errors linked with ProgAndPlay.
 	 */
 	public boolean isGamePaused () throws PPException {
 		switch (PPNative.IsGamePaused()){
@@ -118,7 +118,7 @@ public class PP extends Thread{
 	/**
 	 * @return map size on success.
 	 *
-	 * @throws PPException on errors linked with Prog&Play.
+	 * @throws PPException on errors linked with ProgAndPlay.
 	 * @throws InstantiationException on allocation problem.
 	 */
 	public Point2D getMapSize () throws InstantiationException, PPException{
@@ -134,7 +134,7 @@ public class PP extends Thread{
 	/**
 	 * @return start position on success.
 	 *
-	 * @throws PPException on errors linked with Prog&Play.
+	 * @throws PPException on errors linked with ProgAndPlay.
 	 * @throws InstantiationException on allocation problem.
 	 */
 	public Point2D getStartPosition () throws InstantiationException,
@@ -151,7 +151,7 @@ public class PP extends Thread{
 	/**
 	 * @return the number of special areas on success.
 	 *
-	 * @throws PPException on errors linked with Prog&Play.
+	 * @throws PPException on errors linked with ProgAndPlay.
 	 */
 	public int getNumSpecialAreas() throws PPException {
 		int ret = PPNative.GetNumSpecialAreas ();
@@ -166,13 +166,13 @@ public class PP extends Thread{
 	 *            {@link #getNumSpecialAreas getNumSpecialAreas}.
 	 * @return the position of this special area on success.
 	 *
-	 * @throws PPException on errors linked with Prog&Play.
+	 * @throws PPException on errors linked with ProgAndPlay.
 	 * @throws InstantiationException on allocation problem.
 	 * @see #getNumSpecialAreas
 	 */
-	public Point2D getSpecialAreasPosition (int z)
+	public Point2D getSpecialAreasPosition (int num)
 			throws InstantiationException, PPException{
-		float [] position = PPNative.GetSpecialAreaPosition (z);
+		float [] position = PPNative.GetSpecialAreaPosition (num);
 		if (position == null || position.length != 2)
 			throw new InstantiationException ("getSpecialAreasPosition -> memory allocation error");
 		else if (position[0] == -1 && position[1] == -1)
@@ -184,7 +184,7 @@ public class PP extends Thread{
 	 * @param id id of resource that you want know level.
 	 * @return the current level of "id" resource.
 	 *
-	 * @throws PPException on errors linked with Prog&Play.
+	 * @throws PPException on errors linked with ProgAndPlay.
 	 */
 	public int getResource (int id) throws PPException{
 		int ret = PPNative.GetResource (id);
@@ -200,7 +200,7 @@ public class PP extends Thread{
 	 * @param c coalition to consult.
 	 * @return the number of units (visible by the player) from this coalition.
 	 *
-	 * @throws PPException on errors linked with Prog&Play.
+	 * @throws PPException on errors linked with ProgAndPlay.
 	 */
 	public int getNumUnits (Coalition c) throws PPException{
 		int ret = PPNative.GetNumUnits (c.getValue());
@@ -218,7 +218,7 @@ public class PP extends Thread{
 	 *          by {@link #getNumUnits getNumUnits}).
 	 * @return unit at the specified index on success.
 	 *
-	 * @throws PPException on errors linked with Prog&Play.
+	 * @throws PPException on errors linked with ProgAndPlay.
 	 * @see #getNumUnits
 	 */
 	public Unit getUnitAt (Coalition c, int i) throws PPException{

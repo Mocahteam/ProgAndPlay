@@ -185,7 +185,8 @@ void enterCriticalSection(){
 		// intercept SIGINT signal in critical section
 		signal(SIGINT, manageSignal);
 		// takes mutex
-		shd.mutex->lock();
+		if (opened) // we don't use "isInitialized(...)" function because we don't want building a PP error message on error here
+			shd.mutex->lock();
 	}
 	locked++;
 }
@@ -196,7 +197,8 @@ void enterCriticalSection(){
 void exitCriticalSection(){
 	if (locked == 1){
 		// releases the mutex
-		shd.mutex->unlock();
+		if (opened) // we don't use "isInitialized(...)" function because we don't want building a PP error message on error here
+			shd.mutex->unlock();
 		// putting signal back
 		signal (SIGINT, SIG_DFL);
 		// if a signal has been received in critical section, resend it now
@@ -216,6 +218,46 @@ static bool between(PP_Pos p, PP_Pos b1, PP_Pos b2){
 	double d2 = (b2.x-p.x)*(b2.x-p.x)+(b2.y-p.y)*(b2.y-p.y);
 
 	return (d1 <= d && d2 <= d);
+}
+
+/*
+ * Check if unit with id "unitId" has the pending command "actionId" with the
+ * parameter "param" defined
+ */
+bool orderWithOneParamFound(PP_Unit unitId, int actionId, float param){
+	bool orderFound = false;
+	// Check all pending commands
+	PP_PendingCommands pdgCmd;
+	int ret = PP_Unit_GetPendingCommands_prim(unitId, &pdgCmd);
+	for (int i = 0 ; i < pdgCmd.nbCmds ; i++){
+		// Check the code of this action
+		if (pdgCmd.cmd[i].code == actionId){
+			// Check parameter
+			if (pdgCmd.cmd[i].nbParams == 1 && pdgCmd.cmd[i].param[0] == param)
+				orderFound = true;
+		}
+	}
+	return orderFound;
+}
+
+/*
+ * Check if unit with id "unitId" has the pending command "actionId" with the
+ * target position "target" defined
+ */
+bool orderOnPositionFound(PP_Unit unitId, int actionId, PP_Pos target){
+	bool orderFound = false;
+	// Check all pending commands
+	PP_PendingCommands pdgCmd;
+	int ret = PP_Unit_GetPendingCommands_prim(unitId, &pdgCmd);
+	for (int i = 0 ; i < pdgCmd.nbCmds ; i++){
+		// Check the code of this action
+		if (pdgCmd.cmd[i].code == actionId){
+			// Check parameters 
+			if (pdgCmd.cmd[i].nbParams == 3 && pdgCmd.cmd[i].param[0] == target.x && pdgCmd.cmd[i].param[2] == target.y)
+				orderFound = true;
+		}
+	}
+	return orderFound;
 }
 
 /******************************************************************************/
@@ -251,7 +293,7 @@ int PP_Open_prim(){
 			shd.resources = segment->find<ShIntVector>("resources").first;
 			shd.history = segment->find<ShStringList>("history").first;
 		} catch (...){
-			PP_SetError("PP_Open : open shared memory error\n");
+			PP_SetError("PP_Open : open shared memory error. Is the game running?\n");
 			delete segment;
 			segment = NULL;
 //#if (defined BOOST_WINDOWS) && !(defined BOOST_DISABLE_WIN32)
@@ -912,28 +954,31 @@ int PP_PushMessage_prim(const char * msg, const int * error) {
 		ret = MUTEX_NOT_LOCKED;
 	}
 	else{
-		if (*(shd.tracePlayer) > 0) {
-			ret = PP_IsGamePaused_prim();
-			if (ret == 0) {
-				//Create allocators
-				const ShCharAllocator charAlloc_inst(segment->get_segment_manager());
-				const ShStringAllocator stringAlloc_inst(segment->get_segment_manager());
+		ret = isInitialized("PP_PushMessage");
+		if (ret == 0){
+			if (*(shd.tracePlayer) > 0) {
+				ret = PP_IsGamePaused_prim();
+				if (ret == 0) {
+					//Create allocators
+					const ShCharAllocator charAlloc_inst(segment->get_segment_manager());
+					const ShStringAllocator stringAlloc_inst(segment->get_segment_manager());
 
-				//This string is only in this process (the pointer pointing to the
-				//buffer that will hold the text is not in shared memory).
-				//But the buffer that will hold "msg" parameter is allocated from
-				//shared memory
-				ShString sharedMessage(charAlloc_inst);
-				// set error
-				if (error != NULL && *error < 0){
-					sharedMessage.append(errorsArr[(*error+1)*-1]);
-					sharedMessage.append(" "); // add space
+					//This string is only in this process (the pointer pointing to the
+					//buffer that will hold the text is not in shared memory).
+					//But the buffer that will hold "msg" parameter is allocated from
+					//shared memory
+					ShString sharedMessage(charAlloc_inst);
+					// set error
+					if (error != NULL && *error < 0){
+						sharedMessage.append(errorsArr[(*error+1)*-1]);
+						sharedMessage.append(" "); // add space
+					}
+					// set message
+					sharedMessage.append(msg);
+
+					//Store the pointer pointing to the buffer into the shared memory
+					shd.history->push_back(sharedMessage);
 				}
-				// set message
-				sharedMessage.append(msg);
-
-				//Store the pointer pointing to the buffer into the shared memory
-				shd.history->push_back(sharedMessage);
 			}
 		}
 	}

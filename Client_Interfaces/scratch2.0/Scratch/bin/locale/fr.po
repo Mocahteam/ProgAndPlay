@@ -40,6 +40,9 @@ msgstr "ouvrir Prog&Play"
 msgid "is game over?"
 msgstr "jeu terminé ?"
 
+msgid "is game paused?"
+msgstr "jeu en pause ?"
+
 msgid "map width"
 msgstr "largeur carte"
 
@@ -106,20 +109,26 @@ msgstr "param %n de la cmd en attente %n de l'unité réf : %n"
 msgid "affect unit id %n to group %n"
 msgstr "affecter l'unité réf : %n au groupe %n"
 
-msgid "command unit id %n to %m.commandsOnPosition to x: %n y: %n"
-msgstr "commander l'unité réf : %n de %m.commandsOnPosition x : %n y : %n"
+msgid "command unit id %n to %m.commandsOnPosition to x: %n y: %n and %m.synchro"
+msgstr "commander l'unité réf : %n de %m.commandsOnPosition x : %n y : %n et %m.synchro"
 
-msgid "command unit id %n to %m.commandsOnUnit on unit id %n"
-msgstr "commander l'unité réf : %n de %m.commandsOnUnit l'unité réf : %n"
+msgid "command unit id %n to %m.commandsOnUnit on unit id %n and %m.synchro"
+msgstr "commander l'unité réf : %n de %m.commandsOnUnit l'unité réf : %n et %m.synchro"
 
-msgid "command unit id %n to set %m.states to %n"
-msgstr "commander l'unité réf : %n de définir %m.states à %n"
+msgid "command unit id %n to set %m.states to %n and %m.synchro"
+msgstr "commander l'unité réf : %n de définir %m.states à %n et %m.synchro"
 
-msgid "command unit id %n to %m.commandsUntarget"
-msgstr "commander l'unité réf : %n de %m.commandsUntarget"
+msgid "command unit id %n to %m.commandsUntarget and %m.synchro"
+msgstr "commander l'unité réf : %n de %m.commandsUntarget et %m.synchro"
 
 msgid "close Prog&Play"
 msgstr "fermer Prog&Play"
+
+msgid "get last error"
+msgstr "obtenir la dernière erreur"
+
+msgid "clear last error"
+msgstr "effacer la dernière erreur"
 
 msgid "ENERGY"
 msgstr "ENERGIE"
@@ -132,6 +141,12 @@ msgstr "ALLIEE"
 
 msgid "ENEMY"
 msgstr "ENNEMIE"
+
+msgid "CONTINUE"
+msgstr "CONTINUER"
+
+msgid "WAIT"
+msgstr "ATTENDRE"
 
 msgid "ATTACK"
 msgstr "ATTAQUER"

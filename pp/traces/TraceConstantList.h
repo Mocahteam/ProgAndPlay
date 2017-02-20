@@ -33,6 +33,7 @@
 #define CALL_WITH_INT_UNIT_INT_PARAMS "CallWithIntUnitIntParams"
 #define CALL_WITH_UNIT_PARAM "CallWithUnitParam"
 #define CALL_WITH_UNIT_INT_PARAMS "CallWithUnitIntParams"
+#define CALL_WITH_UNIT_INT_INT_PARAMS "CallWithUnitIntIntParams"
 #define CALL_WITH_UNIT_INT_UNIT_INT_PARAMS "CallWithUnitIntUnitIntParams"
 #define CALL_WITH_UNIT_INT_POS_INT_PARAMS "CallWithUnitIntPosIntParams"
 #define CALL_WITH_UNIT_INT_FLOAT_INT_PARAMS "CallWithUnitIntFloatIntParams"

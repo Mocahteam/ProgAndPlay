@@ -34,7 +34,7 @@ public class Unit {
 	/**
 	 * @return coalition of this unit.
 	 *
-	 * @throws PPException on errors linked with Prog&Play.
+	 * @throws PPException on errors linked with ProgAndPlay.
 	 */
 	public PP.Coalition getCoalition () throws PPException{
 		int ret	= PPNative.Unit_GetCoalition (id);
@@ -50,7 +50,7 @@ public class Unit {
 	/**
 	 * @return type of this unit.
 	 *
-	 * @throws PPException on errors linked with Prog&Play.
+	 * @throws PPException on errors linked with ProgAndPlay.
 	 */
 	public int getType () throws PPException{
 		int ret = PPNative.Unit_GetType (id);
@@ -62,7 +62,7 @@ public class Unit {
 	/**
 	 * @return position of this unit.
 	 *
-	 * @throws PPException on errors linked with Prog&Play.
+	 * @throws PPException on errors linked with ProgAndPlay.
 	 * @throws InstantiationException on allocation problem.
 	 */
 	public Point2D getPosition () throws PPException,
@@ -78,7 +78,7 @@ public class Unit {
 	/**
 	 * @return Health of this unit.
 	 *
-	 * @throws PPException on errors linked with Prog&Play.
+	 * @throws PPException on errors linked with ProgAndPlay.
 	 */
 	public float getHealth () throws PPException{
 		float ret = PPNative.Unit_GetHealth (id);
@@ -90,7 +90,7 @@ public class Unit {
 	/**
 	 * @return maximum health that this unit can reach.
 	 *
-	 * @throws PPException on errors linked with Prog&Play.
+	 * @throws PPException on errors linked with ProgAndPlay.
 	 */
 	public float getMaxHealth () throws PPException{
 		float ret = PPNative.Unit_GetMaxHealth (id);
@@ -103,7 +103,7 @@ public class Unit {
 	 * @return group number of this unit. a negative value is returned,
 	 *         if this unit isn't associated to a group.
 	 *
-	 * @throws PPException on errors linked with Prog&Play.
+	 * @throws PPException on errors linked with ProgAndPlay.
 	 */
 	public int getGroup ()throws PPException{
 		int ret = PPNative.Unit_GetGroup (id);
@@ -116,9 +116,9 @@ public class Unit {
 	 * Allocates the unit to a specified group. Only units controled by the player
 	 * can be affected to a group.
 	 *
-	 * @param g allocation group (<code>g >= 0</code>).
+	 * @param g allocation group (g has to be upper or equal to 0).
 	 *
-	 * @throws PPException on errors linked with Prog&Play.
+	 * @throws PPException on errors linked with ProgAndPlay.
 	 */
 	public void setGroup (int g) throws PPException{
 		// this test is required because it is not tested in Unit_SetGroup(...)
@@ -133,7 +133,7 @@ public class Unit {
 	 * Removes the unit from its group. Only units controled by the player
 	 * can be removed from a group.
 	 *
-	 * @throws PPException on errors linked with Prog&Play.
+	 * @throws PPException on errors linked with ProgAndPlay.
 	 */
 	public void removeFromGroup () throws PPException{
 		if (PPNative.Unit_RemoveFromGroup (id) == -1)
@@ -146,7 +146,7 @@ public class Unit {
 	 * 
 	 * @return the vector of pending commands of this unit.
 	 *
-	 * @throws PPException on errors linked with Prog&Play.
+	 * @throws PPException on errors linked with ProgAndPlay.
 	 */
 	public ArrayList<PendingCommand> getPendingCommands() throws PPException {
 		PPNative.EnterCriticalSection();
@@ -186,7 +186,7 @@ public class Unit {
 	 *        the order is carried out); true means this function call is
 	 *        blocking until the order is carried out.
 	 *
-	 * @throws PPException on errors linked with Prog&Play.
+	 * @throws PPException on errors linked with ProgAndPlay.
 	 */
 	public void command (int action, Unit target, boolean locked) throws PPException{
 		if (PPNative.Unit_ActionOnUnit (id, action, target.getId(), locked) == -1)
@@ -204,7 +204,7 @@ public class Unit {
 	 *        the order is carried out); true means this function call is
 	 *        blocking until the order is carried out.
 	 *
-	 * @throws PPException on errors linked with Prog&Play.
+	 * @throws PPException on errors linked with ProgAndPlay.
 	 */
 	public void command (int action, Point2D target, boolean locked) throws PPException{
 		if (PPNative.Unit_ActionOnPosition (id, action, (float)target.getX(), (float)target.getY(), locked) == -1)
@@ -223,7 +223,7 @@ public class Unit {
 	 *        the order is carried out); true means this function call is
 	 *        blocking until the order is carried out.
 	 *
-	 * @throws PPException on errors linked with Prog&Play.
+	 * @throws PPException on errors linked with ProgAndPlay.
 	 */
 	public void command (int action, float param, boolean locked) throws PPException{
 		if (PPNative.Unit_UntargetedAction (id, action, param, locked) == -1)

@@ -14,12 +14,12 @@ package
 		
 		public function ProgAndPlayANE() 
 		{
-			trace ("Windows : Tentative d'ouverture de l'extension de nom ProgAndPlayExtension");
+			trace ("Windows : Try to open ProgAndPlayExtension");
 			progPlayContext = ExtensionContext.createExtensionContext("ProgAndPlayExtension", "");
 			if (progPlayContext == null)
-				trace ("Extension non chargée...");
+				trace ("Extension not loaded...");
 			else
-				trace ("Extension chargée (YES!!!) ...");
+				trace ("Extension loaded...");
 		}
 		
 		public function PP_Open_ext():void{
@@ -30,6 +30,12 @@ package
 		public function PP_IsGameOver_ext():Boolean{
 			if (progPlayContext != null)
 				return Boolean (progPlayContext.call("PP_IsGameOver_wrapper"));
+			return false;
+		}
+		
+		public function PP_IsGamePaused_ext():Boolean{
+			if (progPlayContext != null)
+				return Boolean (progPlayContext.call("PP_IsGamePaused_wrapper"));
 			return false;
 		}
 		
@@ -87,22 +93,22 @@ package
 			return -1;
 		}
 		
-		public function PP_GetUnitAt_ext(coalition:int, id:int):int{
+		public function PP_GetUnitAt_ext(id:int, coalition:int):int{
 			if (progPlayContext != null)
-				return int (progPlayContext.call("PP_GetUnitAt_wrapper", coalition, id));
+				return int (progPlayContext.call("PP_GetUnitAt_wrapper", id, coalition));
 			return -1;
 		}
 		
-		public function PP_Unit_GetCoalition_ext(unitId:int):int{
+		public function PP_Unit_BelongTo_ext(unitId:int, coalition:int):Boolean{
 			if (progPlayContext != null)
-				return int (progPlayContext.call("PP_Unit_GetCoalition_wrapper", unitId));
-			return -1;
+				return Boolean (progPlayContext.call("PP_Unit_BelongTo_wrapper", unitId, coalition));
+			return false;
 		}
 		
-		public function PP_Unit_GetType_ext(unitId:int):int{
+		public function PP_Unit_IsType_ext(unitId:int, unitType:int):Boolean{
 			if (progPlayContext != null)
-				return int (progPlayContext.call("PP_Unit_GetType_wrapper", unitId));
-			return -1;
+				return Boolean (progPlayContext.call("PP_Unit_IsType_wrapper", unitId, unitType));
+			return false;
 		}
 		
 		public function PP_Unit_GetPositionX_ext(unitId:int):Number{
@@ -146,10 +152,10 @@ package
 			return -1;
 		}
 		
-		public function PP_Unit_GetPendingCmdAt_ext(cmdId:int, unitId:int):int{
+		public function PP_Unit_PdgCmd_IsEqualTo_ext(cmdId:int, unitId:int, cmdCodeToTest:int):Boolean{
 			if (progPlayContext != null)
-				return int (progPlayContext.call("PP_Unit_GetPendingCmdAt_wrapper", cmdId, unitId));
-			return -1;
+				return Boolean (progPlayContext.call("PP_Unit_PdgCmd_IsEqualTo_wrapper", cmdId, unitId, cmdCodeToTest));
+			return false;
 		}
 		
 		public function PP_Unit_PdgCmd_GetNumParams_ext(cmdId:int, unitId:int):int{
@@ -164,24 +170,40 @@ package
 			return -1;
 		}
 		
-		public function PP_Unit_ActionOnPosition_ext(unitId:int, cmdId:int, x:Number, y:Number):void{
+		public function PP_Unit_ActionOnPosition_ext(unitId:int, cmdId:int, x:Number, y:Number, synchro:int):void{
 			if (progPlayContext != null)
-				progPlayContext.call("PP_Unit_ActionOnPosition_wrapper", unitId, cmdId, x, y);
+				progPlayContext.call("PP_Unit_ActionOnPosition_wrapper", unitId, cmdId, x, y, synchro);
 		}
 		
-		public function PP_Unit_ActionOnUnit_ext(unitId:int, cmdId:int, targetId:int):void{
+		public function PP_Unit_ActionOnUnit_ext(unitId:int, cmdId:int, targetId:int, synchro:int):void{
 			if (progPlayContext != null)
-				progPlayContext.call("PP_Unit_ActionOnUnit_wrapper", unitId, cmdId, targetId);
+				progPlayContext.call("PP_Unit_ActionOnUnit_wrapper", unitId, cmdId, targetId, synchro);
 		}
 		
-		public function PP_Unit_UntargetedAction_ext(unitId:int, cmdId:int, param:Number = -1):void{
+		public function PP_Unit_UntargetedAction_ext(unitId:int, cmdId:int, param:Number, synchro:int):void{
 			if (progPlayContext != null)
-				progPlayContext.call("PP_Unit_UntargetedAction_wrapper", unitId, cmdId, param);
+				progPlayContext.call("PP_Unit_UntargetedAction_wrapper", unitId, cmdId, param, synchro);
+		}
+		
+		public function PP_Unit_UntargetedActionWithoutParam_ext(unitId:int, cmdId:int, synchro:int):void{
+			if (progPlayContext != null)
+				progPlayContext.call("PP_Unit_UntargetedActionWithoutParam_wrapper", unitId, cmdId, synchro);
 		}
 		
 		public function PP_Close_ext():void{
 			if (progPlayContext != null)
 				progPlayContext.call("PP_Close_wrapper");
+		}
+		
+		public function PP_GetError_ext():String{
+			if (progPlayContext != null)
+				return String (progPlayContext.call("PP_GetError_wrapper"));
+			return "ProgAndPlayExtension not loaded";
+		}
+		
+		public function PP_ClearError_ext():void{
+			if (progPlayContext != null)
+				progPlayContext.call("PP_ClearError_wrapper");
 		}
 	}
 }

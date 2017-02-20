@@ -1,7 +1,7 @@
 package pp.exceptions;
 
 /**
- * Thrown by method in the Prog&Play class to indicate that something is bad.
+ * Thrown by method in the ProgAndPlay class to indicate that something is bad.
  *
  * @author Mathieu Muratet
  */

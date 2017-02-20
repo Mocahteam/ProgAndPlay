@@ -62,10 +62,10 @@ public class Specs {
 	public static var ppColor:int = 0xff0000;
 	public static var PP_IS_TYPE:String = "is unit id %n a %m.units?";
 	public static var PP_IS_COMMAND:String = "is pending cmd %n of unit id %n a %m.commands action?";
-	public static var PP_COMMAND_ON_POSITION:String = "command unit id %n to %m.commandsOnPosition to x: %n y: %n";
-	public static var PP_COMMAND_ON_UNIT:String = "command unit id %n to %m.commandsOnUnit on unit id %n";
-	public static var PP_COMMAND_STATE:String = "command unit id %n to set %m.states to %n";
-	public static var PP_COMMAND_UNTARGET:String = "command unit id %n to %m.commandsUntarget";
+	public static var PP_COMMAND_ON_POSITION:String = "command unit id %n to %m.commandsOnPosition to x: %n y: %n and %m.synchro";
+	public static var PP_COMMAND_ON_UNIT:String = "command unit id %n to %m.commandsOnUnit on unit id %n and %m.synchro";
+	public static var PP_COMMAND_STATE:String = "command unit id %n to set %m.states to %n and %m.synchro";
+	public static var PP_COMMAND_UNTARGET:String = "command unit id %n to %m.commandsUntarget and %m.synchro";
 	
 	public static var pp_defaultConstantsName:String = 'Default constant list';
 	public static var pp_currentConstantsName:String = pp_defaultConstantsName;
@@ -95,6 +95,10 @@ public class Specs {
 	public static var pp_resourcesList:Array = [
 		{name:"METAL", code:0},
 		{name:"ENERGY", code:1}
+	];
+	public static var pp_synchroList:Array = [
+		{name:"CONTINUE", code:0},
+		{name:"WAIT", code:1}
 	];
 	public static var pp_specificCommandsList:Array = new Array();
 	public static var pp_unitsList:Array = new Array();
@@ -445,6 +449,7 @@ public class Specs {
 		["open Prog&Play",										" ", 13, "PP_Open"],
 		["--"],
 		["is game over?",										"b", 13, "PP_IsGameOver"],
+		["is game paused?",										"b", 13, "PP_IsGamePaused"],
 		["map width",											"r", 13, "PP_GetMapWidth"],
 		["map height",											"r", 13, "PP_GetMapHeight"],
 		["start x position",									"r", 13, "PP_GetStartPosX"],
@@ -456,7 +461,7 @@ public class Specs {
 		["number of unit in %m.coalition coalition",			"r", 13, "PP_GetNumUnits", "MY"],
 		["unit %n of %m.coalition coalition",					"r", 13, "PP_GetUnitAt", 0, "MY"],
 		["--"],
-		["does unit id %n belong to %m.coalition?",				"b", 13, "PP_Unit_IsCoalition", "", "MY"],
+		["does unit id %n belong to %m.coalition?",				"b", 13, "PP_Unit_BelongTo", "", "MY"],
 		[PP_IS_TYPE,											"b", 13, "PP_Unit_IsType", "", ""],
 		["x position of unit id %n",							"r", 13, "PP_Unit_GetPositionX", ""],
 		["y position of unit id %n",							"r", 13, "PP_Unit_GetPositionY", ""],
@@ -464,17 +469,20 @@ public class Specs {
 		["max health of unit id %n",							"r", 13, "PP_Unit_GetMaxHealth", ""],
 		["group of unit id %n",									"r", 13, "PP_Unit_GetGroup", ""],
 		["number of pending cmds of unit id %n",				"r", 13, "PP_Unit_GetNumPendingCmds", ""],
-		[PP_IS_COMMAND,											"b", 13, "PP_Unit_IsPendingCmdAt", 0, "", "ATTACK"],
+		[PP_IS_COMMAND,											"b", 13, "PP_Unit_PdgCmd_IsEqualTo", 0, "", "ATTACK"],
 		["number of params of pending cmd %n of unit id %n",	"r", 13, "PP_Unit_PdgCmd_GetNumParams", 0, ""],
 		["param %n of pending cmd %n of unit id %n",			"r", 13, "PP_Unit_PdgCmd_GetParamAt", 0, 0, ""],
 		["--"],
 		["affect unit id %n to group %n",						" ", 13, "PP_Unit_SetGroup", "", 0],
-		[PP_COMMAND_ON_POSITION,								" ", 13, "PP_Unit_ActionOnPosition", "", "ATTACK", 0, 0],
-		[PP_COMMAND_ON_UNIT,									" ", 13, "PP_Unit_ActionOnUnit", "", "ATTACK", ""],
-		[PP_COMMAND_STATE,										" ", 13, "PP_Unit_ActionSetState", "", "FIRE STATE", 0],
-		[PP_COMMAND_UNTARGET,									" ", 13, "PP_Unit_UntargetedAction", "", "STOP"],
+		[PP_COMMAND_ON_POSITION,								" ", 13, "PP_Unit_ActionOnPosition", "", "ATTACK", 0, 0, "CONTINUE"],
+		[PP_COMMAND_ON_UNIT,									" ", 13, "PP_Unit_ActionOnUnit", "", "ATTACK", "", "CONTINUE"],
+		[PP_COMMAND_STATE,										" ", 13, "PP_Unit_ActionSetState", "", "FIRE STATE", 0, "CONTINUE"],
+		[PP_COMMAND_UNTARGET,									" ", 13, "PP_Unit_UntargetedAction", "", "STOP", "CONTINUE"],
 		["--"],
 		["close Prog&Play",										" ", 13, "PP_Close"],
+		["--"],
+		["get last error",										"r", 13, "PP_GetError"],
+		["clear last error",									" ", 13, "PP_ClearError"],
 		// ---
 
 	];
