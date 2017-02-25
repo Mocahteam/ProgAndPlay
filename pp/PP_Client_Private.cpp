@@ -252,7 +252,7 @@ bool orderOnPositionFound(PP_Unit unitId, int actionId, PP_Pos target){
 	for (int i = 0 ; i < pdgCmd.nbCmds ; i++){
 		// Check the code of this action
 		if (pdgCmd.cmd[i].code == actionId){
-			// Check parameters 
+			// Check parameters
 			if (pdgCmd.cmd[i].nbParams == 3 && pdgCmd.cmd[i].param[0] == target.x && pdgCmd.cmd[i].param[2] == target.y)
 				orderFound = true;
 		}

@@ -20,8 +20,8 @@
 			<call label="PP_Unit_SetGroup" params="227_4 3"/>
 			<call label="PP_Unit_GetGroup" params="227_4" return="3"/>
 			<call label="PP_Unit_ActionOnUnit" params="227_4 10 142_7 1"/>
-			<call label="PP_Unit_ActionOnPosition" params="227_4 10 1056 1792 0"/>
-			<call label="PP_Unit_UntargetedAction" params="227_4 50 1.0 1"/>
+			<call label="PP_Unit_ActionOnPosition" params="227_4 10 1056 1792 0" info=""/>
+			<call label="PP_Unit_UntargetedAction" params="227_4 50 1 1" info=""/>
 			<call label="PP_Close"/>
 		</execution>
 	</mission>

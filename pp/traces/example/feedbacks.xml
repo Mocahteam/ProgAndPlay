@@ -27,7 +27,7 @@
 				<info>C'est curieux, vous êtes le premier joueur à utiliser la fonction *label* pour résoudre cette mission. Vous avez peut-être trouvé une nouvelle solution... ou alors vous ne devriez pas l'utiliser.</info>
 			</infos>
 			<infos lang="en">
-				<info>How about that ! you are the first player to use the function *label* to resolve this mission. You may have found a new solution... or you shouldn't use it.</info>
+				<info>How about that! you are the first player to use the function *label* to resolve this mission. You may have found a new solution... or you shouldn't use it.</info>
 			</infos>
 		</feedback>
 		<feedback type="seq_extra" priority="1000">
@@ -35,7 +35,7 @@
 				<info>Pourquoi est-ce que vous avez inclus les appels *list_calls* dans une boucle ?</info>
 			</infos>
 			<infos lang="en">
-				<info>Why have you included the calls *list_calls* in a loop ?</info>
+				<info>Why have you included the calls *list_calls* in a loop?</info>
 			</infos>
 		</feedback>
 		<feedback type="seq_lack" priority="1000">
@@ -80,10 +80,10 @@
 		</feedback>
 		<feedback type="call_params" priority="2100">
 			<infos lang="fr">
-				<info>Concernant l'appel *learner_call**info* :*n**diff_params*</info>
+				<info>Concernant l'appel *learner_call**info* : *diff_params*</info>
 			</infos>
 			<infos lang="en">
-				<info>Concerning the call *learner_call**info*:*n**diff_params*</info>
+				<info>Concerning the call *learner_call**info*: *diff_params*</info>
 			</infos>
 		</feedback>
 	</feedbacks>
@@ -117,162 +117,162 @@
 		</message>
 		<message id="return">
 			<infos lang="fr">
-				<info>La valeur retournée par la fonction ne semble pas être correcte.</info>
+				<info>La valeur retournée par la fonction ne semble pas être correcte</info>
 			</infos>
 			<infos lang="en">
-				<info>The value returned by the function doesn't seem to be correct.</info>
+				<info>The value returned by the function doesn't seem to be correct</info>
 			</infos>
 		</message>
 		<message id="specialAreaId">
 			<infos lang="fr">
-				<info>Vérifiez l'identifiant de la zone spéciale.</info>
+				<info>Vérifiez l'identifiant de la zone spéciale</info>
 			</infos>
 			<infos lang="en">
-				<info>Check the id of the special zone.</info>
+				<info>Check the id of the special zone</info>
 			</infos>
 		</message>
 		<message id="resourceId">
 			<infos lang="fr">
-				<info>Vérifiez l'identifiant de ressource.</info>
+				<info>Vérifiez l'identifiant de ressource</info>
 			</infos>
 			<infos lang="en">
-				<info>Check the id of the resource.</info>
+				<info>Check the id of the resource</info>
 			</infos>
 		</message>
 		<message id="coalition">
 			<infos lang="fr">
-				<info>Vérifiez la valeur de la coalition que vous passez en paramètres.</info>
+				<info>Vérifiez la valeur de la coalition que vous passez en paramètres</info>
 			</infos>
 			<infos lang="en">
-				<info>Check the value of the coalition used as a parameter.</info>
+				<info>Check the value of the coalition used as a parameter</info>
 			</infos>
 		</message>
 		<message id="typeToCheck">
 			<infos lang="fr">
-				<info>Vérifiez le type que vous passez en paramètres.</info>
+				<info>Vérifiez le type que vous passez en paramètres</info>
 			</infos>
 			<infos lang="en">
-				<info>Check the type used as a parameter.</info>
+				<info>Check the type used as a parameter</info>
 			</infos>
 		</message>
 		<message id="index">
 			<infos lang="fr">
-				<info>Vérifiez l'index que vous passez en paramètres.</info>
+				<info>Vérifiez l'index que vous passez en paramètres</info>
 			</infos>
 			<infos lang="en">
-				<info>Check the value of the index used as a parameter.</info>
+				<info>Check the value of the index used as a parameter</info>
 			</infos>
 		</message>
 		<message id="unitType">
 			<infos lang="fr">
-				<info>Vous ne devriez peut-être pas appeler cette fonction en utilisant une unité de ce type.</info>
+				<info>Vous ne devriez peut-être pas appeler cette fonction en utilisant une unité de ce type</info>
 			</infos>
 			<infos lang="en">
-				<info>Maybe you shouldn't call this function with a unit of this type.</info>
+				<info>Maybe you shouldn't call this function with a unit of this type</info>
 			</infos>
 		</message>
 		<message id="groupId">
 			<infos lang="fr">
-				<info>Vérifiez l'identifiant de groupe que vous fournissez à la fonction.</info>
+				<info>Vérifiez l'identifiant de groupe que vous fournissez à la fonction</info>
 			</infos>
 			<infos lang="en">
-				<info>Check the id of the group passed to the function.</info>
+				<info>Check the id of the group passed to the function</info>
 			</infos>
 		</message>
 		<message id="action">
 			<infos lang="fr">
-				<info>L'ordre donné n'est peut-être pas le bon dans ce cas.</info>
+				<info>L'ordre donné n'est peut-être pas le bon</info>
 			</infos>
 			<infos lang="en">
-				<info>The given order might not be the good one in this case.</info>
+				<info>The given order might not be the good one</info>
 			</infos>
 		</message>
 		<message id="targetType">
 			<infos lang="fr">
-				<info>Cibler ce type d'unité n'est peut-être pas une bonne idée ici.</info>
+				<info>Cibler ce type d'unité n'est peut-être pas une bonne idée ici</info>
 			</infos>
 			<infos lang="en">
-				<info>Targeting this type of unit might not be a terrific idea here.</info>
+				<info>Targeting this type of unit might not be a terrific idea here</info>
 			</infos>
 		</message>
 		<message id="position">
 			<infos lang="fr">
-				<info>Êtes-vous certain que l'action associée à l'ordre donné doit être réalisée à cette position ?</info>
+				<info>La position visée ne semble pas correcte</info>
 			</infos>
 			<infos lang="en">
-				<info>Are you sure that the action associated with the given order must be performed at this position ?</info>
+				<info>The target position doesn't seem the good one</info>
 			</infos>
 		</message>
 		<message id="param">
 			<infos lang="fr">
-				<info>Vérifiez la valeur du paramètre.</info>
+				<info>Vérifiez la valeur du paramètre</info>
 			</infos>
 			<infos lang="en">
-				<info>Check the value of the parameter.</info>
+				<info>Check the value of the parameter</info>
 			</infos>
 		</message>
 		<message id="param1">
 			<infos lang="fr">
-				<info>Vérifiez la valeur du premier paramètre.</info>
+				<info>Vérifiez la valeur du premier paramètre</info>
 			</infos>
 			<infos lang="en">
-				<info>Check the value of the first parameter.</info>
+				<info>Check the value of the first parameter</info>
 			</infos>
 		</message>
 		<message id="param2">
 			<infos lang="fr">
-				<info>Vérifiez la valeur du second paramètre.</info>
+				<info>Vérifiez la valeur du second paramètre</info>
 			</infos>
 			<infos lang="en">
-				<info>Check the value of the second parameter.</info>
+				<info>Check the value of the second parameter</info>
 			</infos>
 		</message>
 		<message id="param3">
 			<infos lang="fr">
-				<info>Vérifiez la valeur du troisième paramètre.</info>
+				<info>Vérifiez la valeur du troisième paramètre</info>
 			</infos>
 			<infos lang="en">
-				<info>Check the value of the third parameter.</info>
+				<info>Check the value of the third parameter</info>
 			</infos>
 		</message>
 		<message id="synchronous">
 			<infos lang="fr">
-				<info>Peut être devriez-vous effectuer un appel bloquant.</info>
+				<info>Peut être devriez-vous effectuer un appel bloquant</info>
 			</infos>
 			<infos lang="en">
-				<info>Maybe you should make a blocking call.</info>
+				<info>Maybe you should make a blocking call</info>
 			</infos>
 		</message>
 		<message id="asynchronous">
 			<infos lang="fr">
-				<info>Peut être devriez-vous effectuer un appel non bloquant.</info>
+				<info>Peut être devriez-vous effectuer un appel non bloquant</info>
 			</infos>
 			<infos lang="en">
-				<info>Maybe you should make a non-blocking call.</info>
+				<info>Maybe you should make a non-blocking call</info>
 			</infos>
 		</message>
 		<message id="idCmd">
 			<infos lang="fr">
-				<info>Vérifiez l'identifiant de la commande que vous passez à la fonction.</info>
+				<info>Vérifiez l'identifiant de la commande que vous passez à la fonction</info>
 			</infos>
 			<infos lang="en">
-				<info>Check the id of the command given to the function.</info>
+				<info>Check the id of the command given to the function</info>
 			</infos>
 		</message>
 		<message id="idParam">
 			<infos lang="fr">
-				<info>Vérifiez l'identifiant du paramètre que vous passez à la fonction.</info>
+				<info>Vérifiez l'identifiant du paramètre que vous passez à la fonction</info>
 			</infos>
 			<infos lang="en">
-				<info>Check the id of the parameter given to the function.</info>
+				<info>Check the id of the parameter given to the function</info>
 			</infos>
 		</message>
 		<message id="unit_not_found">
 			<infos lang="fr">
-				<info>Il semblerait que l'unité que vous passez lors de l'appel *learner_call* n'existe pas. Elle a peut-être été détruite au cours de la mission.</info>
+				<info>Il semblerait que l'unité que vous passez lors de l'appel *learner_call* n'existe pas.</info>
 			</infos>
 			<infos lang="en">
-				<info>It seems the unit you passed with the call *learner_call* does not exist. Maybe she has been destroyed during the mission.</info>
+				<info>It seems the unit you passed with the call *learner_call* does not exist.</info>
 			</infos>
 		</message>
 		<message id="not_unit_owner">
@@ -293,15 +293,15 @@
 		</message>
 		<message id="invalid_coalition">
 			<infos lang="fr">
-				<info>Attention à la valeur de coalition que vous passez en paramètres. Seulement trois valeurs sont possibles : MY_COALITION, ALLY_COALITION et ENEMY_COALITION.</info>
+				<info>Attention à la valeur de coalition que vous passez en paramètres de l'appel *learner_call*. Seulement trois valeurs sont possibles : MY_COALITION, ALLY_COALITION et ENEMY_COALITION.</info>
 			</infos>
 			<infos lang="en">
-				<info>Watch out the coalition value given as a parameter. Three values are allowed : MY_COALITION, ALLY_COALITION and ENEMY_COALITION.</info>
+				<info>Watch out the coalition value given as a parameter for the call *learner_call*. Three values are allowed: MY_COALITION, ALLY_COALITION and ENEMY_COALITION.</info>
 			</infos>
 		</message>
 		<message id="out_of_range">
 			<infos lang="fr">
-				<info>Le paramètre *out_of_range_param* de l'appel *learner_call* ne peut pas prendre cette valeur dans cette configuration.</info>
+				<info>Le paramètre *out_of_range_param* de l'appel *learner_call* dépasse les bornes des valeurs autorisées.</info>
 			</infos>
 			<infos lang="en">
 				<info>The parameter *out_of_range_param* of the call *learner_call* is out of range.</info>
@@ -309,10 +309,10 @@
 		</message>
 		<message id="position_out_of_bounds">
 			<infos lang="fr">
-				<info>Avec l'appel *learner_call*, vous avez ordonné à une unité d'effectuer une action en dehors de la carte. Vous vous doutez bien que cela pose problème.</info>
+				<info>Avec l'appel *learner_call*, vous avez ordonné à une unité d'effectuer une action en dehors de la carte.</info>
 			</infos>
 			<infos lang="en">
-				<info>With the call *learner_call*, you ordered a unit to execute an action outside the map. It can't work this way.</info>
+				<info>With the call *learner_call*, you ordered a unit to execute an action outside the map.</info>
 			</infos>
 		</message>
 		<message id="invalid_group">

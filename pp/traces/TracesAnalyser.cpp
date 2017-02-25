@@ -859,7 +859,7 @@ void TracesAnalyser::filterFeedbacks() {
 
 	// ----------------------------------------
 	// Filter : remove specific types of feedbacks
-	// osAnalyser << "---\nFilter 0" << std::endl;
+	// osAnalyser << "---\nFilter -1" << std::endl;
 	// for (unsigned int i = 0; i < feedbacks.size(); i++) {
 		// if (feedbackTypeIn(feedbacks.at(i).type, 4, CALL_LACK, CALL_EXTRA, SEQ_LACK, SEQ_EXTRA)) { // change types here to specify which types have to be removed
 			// to_erase.push_back(i);
@@ -870,13 +870,38 @@ void TracesAnalyser::filterFeedbacks() {
 	// ----------------------------------------
 
 	// ----------------------------------------
+	// Filter : find and ask to remove duplicated feedbacks.
+	osAnalyser << "---\nFilter 0" << std::endl;
+	for (unsigned int i = 0; i < feedbacks.size(); i++) {
+		Feedback& gf = feedbacks.at(i);
+		// check if the feedback is not already marked to be removed
+		if (std::find(to_erase.begin(),to_erase.end(),i) == to_erase.end()) {
+			// loop through the feedback a second time
+			for (unsigned int j = i+1; j < feedbacks.size(); j++) {
+				// check if the feedback is not already marked to be removed
+				if (std::find(to_erase.begin(),to_erase.end(),j) == to_erase.end()) {
+					Feedback& af = feedbacks.at(j);
+					if (gf.type == af.type && gf.info.compare(af.info) == 0){
+						to_erase.push_back(j);
+						af.display(osAnalyser);
+					}
+				}
+			}
+		}
+	}
+
+	// ----------------------------------------
 	// Filter : find redundancies between useful_call\useless_call and call_lack\call_extra. Eliminate the feedback which is given less priority.
 	osAnalyser << "---\nFilter 1.1" << std::endl;
 	for (unsigned int i = 0; i < feedbacks.size(); i++) {
 		Feedback& gf = feedbacks.at(i);
+		// check if the feedback is not already marked to be removed and is kind of the right types (USEFUL_CALL or USELESS_CALL)
 		if (std::find(to_erase.begin(),to_erase.end(),i) == to_erase.end() && feedbackTypeIn(gf.type, 2, USEFUL_CALL, USELESS_CALL)) {
+			// if feedback is kind of USEFUL_CALL we init spc with call of expert and learner otherwise
 			Call::sp_call spc = (gf.type == USEFUL_CALL) ? boost::dynamic_pointer_cast<Call>(gf.expert_spt) : boost::dynamic_pointer_cast<Call>(gf.learner_spt);
+			// loop through the feedback a second time
 			for (unsigned int j = 0; j < feedbacks.size(); j++) {
+				// check if the feedback is not already marked to be removed
 				if (std::find(to_erase.begin(),to_erase.end(),j) == to_erase.end()) {
 					Feedback& af = feedbacks.at(j);
 					Call::sp_call sec_spc;
@@ -1178,7 +1203,11 @@ void TracesAnalyser::setFeedbackInfo(Feedback& f, Feedback& ref_f) const {
 			std::vector<std::string> ids = learner_spc->getListIdWrongParams(expert_spc.get());
 			s = "";
 			for (unsigned int j = 0; j < ids.size(); j++){
-				s += "\t" + messages_map.at(ids.at(j)) + "\n";
+				s += messages_map.at(ids.at(j));
+				if (j == ids.size()-1)
+				 	s += ".";
+				else
+					s += " ; ";
 			}
 		}
 		else if (s.compare("list_calls") == 0 && feedbackTypeIn(f.type, 3, SEQ_EXTRA, IND_SEQ_NUM, DIST_SEQ_NUM)) {
