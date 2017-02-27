@@ -32,18 +32,18 @@
 		</feedback>
 		<feedback type="seq_extra" priority="1000">
 			<infos lang="fr">
-				<info>Pourquoi est-ce que vous avez inclus les appels *list_calls* dans une boucle ?</info>
+				<info>Les appels *list_calls* ne devraient pas se répéter.</info>
 			</infos>
 			<infos lang="en">
-				<info>Why have you included the calls *list_calls* in a loop?</info>
+				<info>The calls *list_calls* should not be repeated.</info>
 			</infos>
 		</feedback>
 		<feedback type="seq_lack" priority="1000">
 			<infos lang="fr">
-				<info>Essayez d'insérer une boucle contenant les appels *list_calls_labels* dans votre programme*info*.</info>
+				<info>Les appels *list_calls_labels* devraient se répéter*info*.</info>
 			</infos>
 			<infos lang="en">
-				<info>Think about inserting a loop containing the calls *list_calls_labels* in your program*info*.</info>
+				<info>The calls *list_calls_labels* should not be repeated*info*.</info>
 			</infos>
 		</feedback>
 		<feedback type="ind_seq_num" priority="1000">
