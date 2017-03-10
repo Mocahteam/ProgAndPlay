@@ -76,7 +76,9 @@ void TracesParser::endParse() {
 }
 
 void TracesParser::writeFiles() {
-	display(osParser);
+	#ifdef DEBUG
+		display(osParser);
+	#endif
 	std::string s = "\\" + filename;
 	s.replace(s.find(".log"), 4, "_compressed.txt");
 	s.insert(0, dir_path);
