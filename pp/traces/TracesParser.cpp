@@ -205,8 +205,8 @@ void TracesParser::readTracesOfflineInGame() {
 					handleTraceOffline(spt);
 			}
 		}
-		// check if a new execution or a new mission was detected and if we have to proceed traces
-		if (spe_eme || (change && proceed)) {
+		// check if we have to compress agregate traces
+		if (change && proceed) {
 			// Check if an end mission event have been detected
 			if (spe_eme) {
 				// if so, we try to detect and compress sequences

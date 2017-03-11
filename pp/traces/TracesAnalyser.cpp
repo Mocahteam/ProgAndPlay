@@ -1291,8 +1291,9 @@ void TracesAnalyser::setFeedbackInfo(Feedback& f, Feedback& ref_f) const {
 			s = "\t";
 		}
 		else{
-			if (Call::callMaps.getLabel(tokens.at(i)).compare("Unknown") != 0)
+			if (Call::callMaps.getLabel(tokens.at(i)).compare("Unknown") != 0){
 				s = "\""+Call::callMaps.getLabel(tokens.at(i))+"\"";
+			}
 		}
 		f.info += tokens.at(i);
 	}
