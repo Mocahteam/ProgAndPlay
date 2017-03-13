@@ -156,7 +156,7 @@ std::string TracesAnalyser::constructFeedback(const std::string& learner_xml, co
 				std::vector<Trace::sp_trace> expert_traces = TracesParser::importTraceFromXml(experts_xml.at(i), osAnalyser);
 				// filtrage des solutions expertes non compatibles avec le langage de programmation utilisé par le joueur
 				if (getInfosOnMission(expert_traces, expert_gi) && getInfosOnExecution(expert_gi) && expert_gi.nee->getProgrammingLangageUsed().compare(learner_gi.nee->getProgrammingLangageUsed()) == 0) {
-					osAnalyser << "solution experte analysée : "+expert_gi.nee->getProgrammingLangageUsed() << std::endl;
+					osAnalyser << "\nsolution experte analysée : "+expert_gi.nee->getProgrammingLangageUsed() << std::endl;
 					Call::call_vector expert_calls = expert_gi.root_sps->getCalls(true);
 					for (unsigned int j = 0; j < expert_calls.size(); j++) {
 						if (experts_calls_freq.find(expert_calls.at(j)->getKey()) != experts_calls_freq.end())
@@ -166,17 +166,17 @@ std::string TracesAnalyser::constructFeedback(const std::string& learner_xml, co
 					}
 					reimport = addImplicitSequences(learner_gi.root_sps, expert_gi.root_sps);
 					if (reimport) {
-						osAnalyser << "learner traces have been modified" << std::endl;
+						osAnalyser << "learner traces have been modified\n" << std::endl;
 						learner_gi.root_sps->display(osAnalyser);
 					}
 					else
-						osAnalyser << "learner traces have not been modified" << std::endl;
+						osAnalyser << "learner traces have not been modified\n" << std::endl;
 					if (addImplicitSequences(expert_gi.root_sps, learner_gi.root_sps)) {
-						osAnalyser << "expert traces have been modified" << std::endl;
+						osAnalyser << "expert traces have been modified\n" << std::endl;
 						expert_gi.root_sps->display(osAnalyser);
 					}
 					else
-						osAnalyser << "expert traces have not been modified" << std::endl;
+						osAnalyser << "expert traces have not been modified\n" << std::endl;
 
 					// Align roots
 					learner_gi.root_sps->setAligned(expert_gi.root_sps);
@@ -184,10 +184,9 @@ std::string TracesAnalyser::constructFeedback(const std::string& learner_xml, co
 
 					std::pair<double,double> res = findBestAlignment(learner_gi.root_sps->getTraces(), expert_gi.root_sps->getTraces(), false);
 					double score = res.first / res.second;
-					displayAlignment(learner_gi.root_sps->getTraces(), expert_gi.root_sps->getTraces());
 					osAnalyser << "gross score : " << res.first << std::endl;
 					osAnalyser << "norm value : " << res.second << std::endl;
-					osAnalyser << "similarity score : " << score << std::endl;
+					osAnalyser << "similarity score : " << score << "\n" << std::endl;
 					if (score >= best_score) {
 						best_score = score;
 						ind_best = i;
@@ -201,7 +200,7 @@ std::string TracesAnalyser::constructFeedback(const std::string& learner_xml, co
 			std::map<std::string,double>::iterator it = experts_calls_freq.begin();
 			while (it != experts_calls_freq.end())
 				(it++)->second /= experts_xml.size();
-			osAnalyser << "expert program " << ind_best << " has been chosen for alignment with learner traces" << std::endl;
+			osAnalyser << "\nexpert program " << ind_best << " has been chosen for alignment with learner traces" << std::endl;
 			osAnalyser << "similarity score : " << best_score << std::endl;
 			std::vector<Trace::sp_trace> expert_traces = TracesParser::importTraceFromXml(experts_xml.at(ind_best), osAnalyser);
 			if (getInfosOnMission(expert_traces, expert_gi) && getInfosOnExecution(expert_gi)) {
@@ -494,19 +493,19 @@ std::vector<Call::call_vector> TracesAnalyser::getPatterns(const Sequence::sp_se
 	Call::call_vector vc = mod_sps->getCalls();
 	for (unsigned int i = 0; i < vc.size(); i++) {
 		int ind = (int)i;
-		for (unsigned int j = 0; ind > -1 && j < pattern.size(); j++) {
+		for (unsigned int j = 0; ind > -1 && ind < (int)vc.size() && j < pattern.size(); j++) {
 			// Utilisation de la distance entre 2 calls
 			// double match_score = 1 - vc.at(ind)->getEditDistance(pattern.at(j).get());
 			// match_score = TRANSFORM_SCORE(match_score);
 			// ind = (match_score <= 0) ? -1 : ind + 1;
 			//---
-			// Comparaison du label et de l'error entre deux calls
-			ind = (vc.at(ind)->getKey().compare(pattern.at(j)->getKey()) == 0 && vc.at(ind)->getError() == pattern.at(j)->getError()) ? ind + 1 : -1;
+			// Comparaison du label entre deux calls
+			ind = (vc.at(ind)->getKey().compare(pattern.at(j)->getKey()) == 0) ? ind + 1 : -1;
 		}
 		if (ind > -1) {
 			osAnalyser << "new pattern found in mod_sps calls at ind " << i << std::endl;
 			Call::call_vector v;
-			for (unsigned int j = i; j < i + pattern.size(); j++)
+			for (unsigned int j = i; j < i + pattern.size() && j < vc.size() ; j++)
 				v.push_back(vc.at(j));
 			patterns.push_back(v);
 			i += pattern.size()-1;
@@ -833,7 +832,7 @@ bool TracesAnalyser::feedbackSequencesMatch(const Sequence::sp_sequence& sps, co
 			else if (sps->at(i)->isCall() && ref_sps->at(j)->isCall()) {
 				Call::sp_call spc = boost::dynamic_pointer_cast<Call>(sps->at(i));
 				Call::sp_call ref_spc = boost::dynamic_pointer_cast<Call>(ref_sps->at(j));
-				if (spc->getKey().compare(ref_spc->getKey()) != 0 || spc->getError() != ref_spc->getError())
+				if (spc->getKey().compare(ref_spc->getKey()) != 0)
 					return false;
 			}
 			else
@@ -871,7 +870,7 @@ void TracesAnalyser::filterFeedbacks() {
 
 	// ----------------------------------------
 	// Filter : find and ask to remove duplicated feedbacks.
-	osAnalyser << "---\nFilter 0" << std::endl;
+	osAnalyser << "---\nFilter 0 (duplicated feedbacks)" << std::endl;
 	for (unsigned int i = 0; i < feedbacks.size(); i++) {
 		Feedback& gf = feedbacks.at(i);
 		// check if the feedback is not already marked to be removed
@@ -892,7 +891,7 @@ void TracesAnalyser::filterFeedbacks() {
 
 	// ----------------------------------------
 	// Filter : find redundancies between useful_call\useless_call and call_lack\call_extra. Eliminate the feedback which is given less priority.
-	osAnalyser << "---\nFilter 1.1" << std::endl;
+	osAnalyser << "---\nFilter 1.1 (Eliminate the feedback which is given less priority between useful_call/useless_call and call_lack/call_extra)" << std::endl;
 	for (unsigned int i = 0; i < feedbacks.size(); i++) {
 		Feedback& gf = feedbacks.at(i);
 		// check if the feedback is not already marked to be removed and is kind of the right types (USEFUL_CALL or USELESS_CALL)
@@ -931,7 +930,7 @@ void TracesAnalyser::filterFeedbacks() {
 
 	// ----------------------------------------
 	// Filter : remove redundancies between seq_lack\seq_extra and useful_call,call_lack\useless_call,call_extra.
-	// osAnalyser << "---\nFilter 1.2" << std::endl;
+	// osAnalyser << "---\nFilter 1.2 (remove redundancies between seq_lack/seq_extra and useful_call,call_lack/useless_call,call_extra)" << std::endl;
 	// for (unsigned int i = 0; i < feedbacks.size(); i++) {
 		// Feedback& gf = feedbacks.at(i);
 		// if (feedbackTypeIn(gf.type, 2, SEQ_LACK, SEQ_EXTRA)) {
@@ -973,7 +972,7 @@ void TracesAnalyser::filterFeedbacks() {
 
 	// ----------------------------------------
 	// Filter : remove not defined feedbacks with sequence of length 1
-	osAnalyser << "---\nFilter 2" << std::endl;
+	osAnalyser << "---\nFilter 2 (remove not defined feedbacks with sequence of length 1)" << std::endl;
 	for (unsigned int i = 0; i < feedbacks.size(); i++) {
 		Feedback& f = feedbacks.at(i);
 		if (!f.defined && std::find(to_erase.begin(),to_erase.end(),i) == to_erase.end() && feedbackTypeIn(f.type, 2, SEQ_LACK, SEQ_EXTRA)) {
@@ -1002,7 +1001,7 @@ void TracesAnalyser::filterFeedbacks() {
 
 		In this example, CALL_LACK feedbacks about expert_call_2 and expert_call_3 should be deleted.
 	*/
-	osAnalyser << "---\nFilter 3" << std::endl;
+	osAnalyser << "---\nFilter 3 (remove CALL_LACK feedbacks when the call could be aligned with an error call from the player if there was no error)" << std::endl;
 	Sequence::sequence_vector sequences = learner_gi.root_sps->getSequences();
 	for (unsigned int i = 0; i < sequences.size(); i++) {
 		if (sequences.at(i)->getAligned()) {
@@ -1063,7 +1062,7 @@ void TracesAnalyser::filterFeedbacks() {
 			-				learner_call
 			expert_call		-
 	*/
-	osAnalyser << "---\nFilter 4" << std::endl;
+	osAnalyser << "---\nFilter 4 (remove expert alignment feedbacks located after a learner endless sequence)" << std::endl;
 	if (endless_loop) {
 		Sequence::sp_sequence last_sps = learner_gi.root_sps->getSequences().back();
 		if (last_sps->getParent()) {
@@ -1265,7 +1264,7 @@ void TracesAnalyser::setFeedbackInfo(Feedback& f, Feedback& ref_f) const {
 					}
 					else
 						s += " inclus dans ";
-					s += "\"" + info + "\"";
+					s += info;
 				}
 				if (spt->getParent()) {
 					Sequence::sp_sequence parent = boost::dynamic_pointer_cast<Sequence>(spt->getParent());

@@ -37,7 +37,7 @@ namespace CallMisc {
 		float y;
 
 		bool operator!=(const Position& p) const {
-			return x != p.x || y != p.y;
+			return fabs(x - p.x) > FLOAT_EPSILON || fabs(y - p.y) > FLOAT_EPSILON;
 		}
 	};
 
@@ -1010,9 +1010,9 @@ private:
 			unit.type = -1;
 		if (!Call::callMaps.contains(key,"action") && param1 != cc->param1 && param1 != -1)
 			param1 = -1;
-		if (!Call::callMaps.contains(key,"position") && pos.x != cc->pos.x && pos.x != -1)
+		if (!Call::callMaps.contains(key,"position") && fabs(pos.x - cc->pos.x) > FLOAT_EPSILON && pos.x != -1)
 			pos.x = -1;
-		if (!Call::callMaps.contains(key,"position") && pos.y != cc->pos.y && pos.y != -1)
+		if (!Call::callMaps.contains(key,"position") && fabs(pos.y - cc->pos.y) > FLOAT_EPSILON && pos.y != -1)
 			pos.y = -1;
 		if (!Call::callMaps.contains(key,"synchronized") && param2 != cc->param2 && param2 != -1)
 			param2 = -1;
@@ -1025,9 +1025,9 @@ private:
 			sc++;
 		if (param1 != cc->param1)
 			sc++;
-		if (pos.x != cc->pos.x)
+		if (fabs(pos.x - cc->pos.x) > FLOAT_EPSILON)
 			sc++;
-		if (pos.y != cc->pos.y)
+		if (fabs(pos.y - cc->pos.y) > FLOAT_EPSILON)
 			sc++;
 		if (param2 != cc->param2)
 			sc++;
@@ -1225,270 +1225,4 @@ private:
 	}
 };
 
-/* Supprimer code ci-dessous */
-/*
-class GetCodePdgCmdCall : public Call {
-
-public:
-
-	GetCodePdgCmdCall(ErrorType error, int unitId, int unitType, int idCmd): Call(CALL_UNIT_PDG_CMD_GET_CODE,error), idCmd(idCmd) {
-		unit.id = unitId;
-		unit.type = unitType;
-	}
-
-	GetCodePdgCmdCall(const GetCodePdgCmdCall *c) : Call(c) {
-		unit.id = c->unit.id;
-		unit.type = c->unit.type;
-		idCmd = c->idCmd;
-	}
-
-	virtual Trace::sp_trace clone() const {
-		return boost::make_shared<GetCodePdgCmdCall>(this);
-	}
-
-private:
-
-	CallMisc::Unit unit;
-	int idCmd;
-
-	virtual bool compare(const Call *c) const {
-		const GetCodePdgCmdCall *cc = dynamic_cast<const GetCodePdgCmdCall*>(c);
-		if ((Call::callMaps.contains(key,"unitId") && unit.id != cc->unit.id) || (Call::callMaps.contains(key,"unitType") && unit.type != cc->unit.type) || (Call::callMaps.contains(key,"idCmd") && idCmd != cc->idCmd))
-			return false;
-		return true;
-	}
-
-	virtual void filter(const Call *c) {
-		const GetCodePdgCmdCall *cc = dynamic_cast<const GetCodePdgCmdCall*>(c);
-		if (!Call::callMaps.contains(key,"unitId") && unit.id != cc->unit.id && unit.id != -1)
-			unit.id = -1;
-		if (!Call::callMaps.contains(key,"unitType") && unit.type != cc->unit.type && unit.type != -1)
-			unit.type = -1;
-		if (!Call::callMaps.contains(key,"idCmd") && idCmd != cc->idCmd && idCmd != -1)
-			idCmd = -1;
-	}
-
-	virtual std::pair<int,int> distance(const Call *c) const {
-		const GetCodePdgCmdCall *cc = dynamic_cast<const GetCodePdgCmdCall*>(c);
-		int sc = 0;
-		if (unit.type != cc->unit.type)
-			sc++;
-		if (idCmd != cc->idCmd)
-			sc++;
-		return std::make_pair<int,int>(sc,2);
-	}
-
-	virtual std::string getParams() const {
-		std::string s = "";
-		s += (unit.id == -1) ? "?" : boost::lexical_cast<std::string>(unit.id);
-		s += "_";
-		s += (unit.type == -1) ? "?" : boost::lexical_cast<std::string>(unit.type);
-		s += " ";
-		s += (idCmd == -1) ? "?" : boost::lexical_cast<std::string>(idCmd);
-		return s;
-	}
-
-	virtual std::string getReadableParams() const {
-		std::string s = "(";
-		s += (Call::units_id_map.find(unit.type) != Call::units_id_map.end()) ? Call::units_id_map.at(unit.type)+" unit" : "_";
-		s += ",";
-		s += (idCmd != -1) ? boost::lexical_cast<std::string>(idCmd) : "_";
-		s += ")";
-		return s;
-	}
-
-	virtual std::vector<std::string> id_wrong_params(Call *c) const {
-		std::vector<std::string> ids;
-		GetCodePdgCmdCall *cc;
-		if (c != NULL)
-			cc = dynamic_cast<GetCodePdgCmdCall*>(c);
-		if (c != NULL && unit.type != cc->unit.type)
-			ids.push_back("unitType");
-		if (error == Call::OUT_OF_RANGE || (c != NULL && idCmd != cc->idCmd))
-			ids.push_back("idCmd");
-		return ids;
-	}
-
-};
-
-class GetNumParamsPdgCmdCall : public Call {
-
-public:
-
-	GetNumParamsPdgCmdCall(ErrorType error, int unitId, int unitType, int idCmd): Call(CALL_UNIT_PDG_CMD_GET_NUM_PARAM,error), idCmd(idCmd) {
-		unit.id = unitId;
-		unit.type = unitType;
-	}
-
-	GetNumParamsPdgCmdCall(const GetNumParamsPdgCmdCall *c) : Call(c) {
-		unit.id = c->unit.id;
-		unit.type = c->unit.type;
-		idCmd = c->idCmd;
-	}
-
-	virtual Trace::sp_trace clone() const {
-		return boost::make_shared<GetNumParamsPdgCmdCall>(this);
-	}
-
-private:
-
-	CallMisc::Unit unit;
-	int idCmd;
-
-	virtual bool compare(const Call *c) const {
-		const GetNumParamsPdgCmdCall *cc = dynamic_cast<const GetNumParamsPdgCmdCall*>(c);
-		if ((Call::callMaps.contains(key,"unitId") && unit.id != cc->unit.id) || (Call::callMaps.contains(key,"unitType") && unit.type != cc->unit.type) || (Call::callMaps.contains(key,"idCmd") && idCmd != cc->idCmd))
-			return false;
-		return true;
-	}
-
-	virtual void filter(const Call *c) {
-		const GetNumParamsPdgCmdCall *cc = dynamic_cast<const GetNumParamsPdgCmdCall*>(c);
-		if (!Call::callMaps.contains(key,"unitId") && unit.id != cc->unit.id && unit.id != -1)
-			unit.id = -1;
-		if (!Call::callMaps.contains(key,"unitType") && unit.type != cc->unit.type && unit.type != -1)
-			unit.type = -1;
-		if (!Call::callMaps.contains(key,"idCmd") && idCmd != cc->idCmd && idCmd != -1)
-			idCmd = -1;
-	}
-
-	virtual std::pair<int,int> distance(const Call *c) const {
-		const GetNumParamsPdgCmdCall *cc = dynamic_cast<const GetNumParamsPdgCmdCall*>(c);
-		int sc = 0;
-		if (unit.type != cc->unit.type)
-			sc++;
-		if (idCmd != cc->idCmd)
-			sc++;
-		return std::make_pair<int,int>(sc,2);
-	}
-
-	virtual std::string getParams() const {
-		std::string s = "";
-		s += (unit.id == -1) ? "?" : boost::lexical_cast<std::string>(unit.id);
-		s += "_";
-		s += (unit.type == -1) ? "?" : boost::lexical_cast<std::string>(unit.type);
-		s += " ";
-		s += (idCmd == -1) ? "?" : boost::lexical_cast<std::string>(idCmd);
-		return s;
-	}
-
-	virtual std::string getReadableParams() const {
-		std::string s = "(";
-		s += (Call::units_id_map.find(unit.type) != Call::units_id_map.end()) ? Call::units_id_map.at(unit.type)+" unit" : "_";
-		s += ",";
-		s += (idCmd != -1) ? boost::lexical_cast<std::string>(idCmd) : "_";
-		s += ")";
-		return s;
-	}
-
-	virtual std::vector<std::string> id_wrong_params(Call *c) const {
-		std::vector<std::string> ids;
-		GetNumParamsPdgCmdCall *cc;
-		if (c != NULL)
-			cc = dynamic_cast<GetNumParamsPdgCmdCall*>(c);
-		if (c != NULL && unit.type != cc->unit.type)
-			ids.push_back("unitType");
-		if (error == Call::OUT_OF_RANGE || (c != NULL && idCmd != cc->idCmd))
-			ids.push_back("idCmd");
-		return ids;
-	}
-
-};
-
-class GetParamPdgCmdCall : public Call {
-
-public:
-
-	GetParamPdgCmdCall(ErrorType error, int unitId, int unitType, int idCmd, int idParam): Call(CALL_UNIT_PDG_CMD_GET_PARAM,error), idCmd(idCmd), idParam(idParam) {
-		unit.id = unitId;
-		unit.type = unitType;
-	}
-
-	GetParamPdgCmdCall(const GetParamPdgCmdCall *c) : Call(c) {
-		unit.id = c->unit.id;
-		unit.type = c->unit.type;
-		idCmd = c->idCmd;
-		idParam = c->idParam;
-	}
-
-	virtual Trace::sp_trace clone() const {
-		return boost::make_shared<GetParamPdgCmdCall>(this);
-	}
-
-private:
-
-	CallMisc::Unit unit;
-	int idCmd;
-	int idParam;
-
-	virtual bool compare(const Call *c) const {
-		const GetParamPdgCmdCall *cc = dynamic_cast<const GetParamPdgCmdCall*>(c);
-		if ((Call::callMaps.contains(key,"unitId") && unit.id != cc->unit.id) || (Call::callMaps.contains(key,"unitType") && unit.type != cc->unit.type) || (Call::callMaps.contains(key,"idCmd") && idCmd != cc->idCmd) || (Call::callMaps.contains(key,"idParam") && idParam != cc->idParam))
-			return false;
-		return true;
-	}
-
-	virtual void filter(const Call *c) {
-		const GetParamPdgCmdCall *cc = dynamic_cast<const GetParamPdgCmdCall*>(c);
-		if (!Call::callMaps.contains(key,"unitId") && unit.id != cc->unit.id && unit.id != -1)
-			unit.id = -1;
-		if (!Call::callMaps.contains(key,"unitType") && unit.type != cc->unit.type && unit.type != -1)
-			unit.type = -1;
-		if (!Call::callMaps.contains(key,"idCmd") && idCmd != cc->idCmd && idCmd != -1)
-			idCmd = -1;
-		if (!Call::callMaps.contains(key,"idParam") && idParam != cc->idParam && idParam != -1)
-			idParam = -1;
-	}
-
-	virtual std::pair<int,int> distance(const Call *c) const {
-		const GetParamPdgCmdCall *cc = dynamic_cast<const GetParamPdgCmdCall*>(c);
-		int sc = 0;
-		if (unit.type != cc->unit.type)
-			sc++;
-		if (idCmd != cc->idCmd)
-			sc++;
-		if (idParam != cc->idParam)
-			sc++;
-		return std::make_pair<int,int>(sc,3);
-	}
-
-	virtual std::string getParams() const {
-		std::string s = "";
-		s += (unit.id == -1) ? "?" : boost::lexical_cast<std::string>(unit.id);
-		s += "_";
-		s += (unit.type == -1) ? "?" : boost::lexical_cast<std::string>(unit.type);
-		s += " ";
-		s += (idCmd == -1) ? "?" : boost::lexical_cast<std::string>(idCmd);
-		s += " ";
-		s += (idParam == -1) ? "?" : boost::lexical_cast<std::string>(idParam);
-		return s;
-	}
-
-	virtual std::string getReadableParams() const {
-		std::string s = "(";
-		s += (Call::units_id_map.find(unit.type) != Call::units_id_map.end()) ? Call::units_id_map.at(unit.type)+" unit" : "_";
-		s += ",";
-		s += (idCmd != -1) ? boost::lexical_cast<std::string>(idCmd) : "_";
-		s += ",";
-		s += (idParam != -1) ? boost::lexical_cast<std::string>(idParam) : "_";
-		s += ")";
-		return s;
-	}
-
-	virtual std::vector<std::string> id_wrong_params(Call *c) const {
-		std::vector<std::string> ids;
-		GetParamPdgCmdCall *cc;
-		if (c != NULL)
-			cc = dynamic_cast<GetParamPdgCmdCall*>(c);
-		if (c != NULL && unit.type != cc->unit.type)
-			ids.push_back("unitType");
-		if (c != NULL && idCmd != cc->idCmd)
-			ids.push_back("idCmd");
-		if (error == Call::OUT_OF_RANGE || (c != NULL && idParam != cc->idParam))
-			ids.push_back("idParam");
-		return ids;
-	}
-
-};
-*/
 #endif

@@ -9,6 +9,7 @@
 #define __CALL_H__
 
 #define MAX_SIZE_PARAMS 2
+#define FLOAT_EPSILON 0.5
 
 #include <iostream>
 #include <fstream>
@@ -382,7 +383,7 @@ public:
 	  *
 	  * \param c : un pointeur vers l'appel utilisé pour la comparaison.
 	  *
-	  * \return vrai si le tableau \p ret de l'objet pointé par \p c est identique à celui de cet appel.
+	  * \return vrai si le tableau \p ret de l'objet pointé par \p c est identique à celui de cet appel avec une précision de FLOAT_EPSILON.
 	  */
 	bool compareReturn(const Call *c) const;
 

@@ -1,5 +1,6 @@
 #include "Call.h"
 #include "TraceConstantList.h"
+#include <cmath>
 
 std::map<int,std::string> Call::units_id_map; // this map has to be initialised by game engine depending on mod loaded
 std::map<int,std::string> Call::orders_map; // this map has to be initialised by game engine depending on mod loaded
@@ -31,9 +32,13 @@ bool Call::operator==(Trace *t) const {
 }
 
 double Call::getEditDistance(const Call *c) const {
-	if (key.compare(c->key) == 0 && error == c->error) {
+	if (key.compare(c->key) == 0) {
 		double dis = 0;
 		unsigned int tot = 2;
+		if (error != c->error){
+			dis++;
+			tot++;
+		}
 		if (ind_ret != 0 && c->ind_ret != 0 && key.compare("PP_GetUnitAt") != 0 && key.compare("PP_GetUnitAtIndexFirst") != 0) {
 			tot++;
 			if (!compareReturn(c))
@@ -116,7 +121,7 @@ bool Call::addReturnCode(float code) {
 bool Call::compareReturn(const Call *c) const {
 	if (ind_ret == c->ind_ret) {
 		for (int i = 0; i < ind_ret; i++) {
-			if (ret[i] != c->ret[i])
+			if (fabs(ret[i] - c->ret[i]) > FLOAT_EPSILON)
 				return false;
 		}
 		return true;

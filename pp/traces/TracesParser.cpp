@@ -801,7 +801,7 @@ std::vector<Trace::sp_trace> TracesParser::importTraceFromXml(const std::string&
 		rapidxml::xml_node<> *root_node = doc.first_node("trace");
 		if (root_node != 0) {
 			#ifdef DEBUG
-				os << "begin import from XML file" << std::endl;
+				os << "\nbegin import from XML file" << std::endl;
 			#endif
 			importTraceFromNode(root_node->first_node(),traces);
 			for (unsigned int i = 0; i < traces.size(); i++){

@@ -649,7 +649,7 @@ private:
 	  * \brief Test de correspondance entre deux séquences.
 	  *
 	  * Cette fonction est utilisée pour tester la correspondance entre deux séquences.
-	  * Les deux séquences correspondent si elles possèdent la même structure : une séquence à une position dans l'une des séquences entraîne une séquence à la même position dans l'autre, un appel à une position dans l'une des séquences entraîne un appel dans l'autre avec les mêmes valeurs pour les champs Call::label et Call::error. Le test est effectué de façon récursive.
+	  * Les deux séquences correspondent si elles possèdent la même structure : une séquence à une position dans l'une des séquences entraîne une séquence à la même position dans l'autre, un appel à une position dans l'une des séquences entraîne un appel dans l'autre avec la même valeur pour le champ Call::label. Le test est effectué de façon récursive.
 	  *
 	  * \param sps la première séquence utilisée pour le test de correspondance.
       * \param ref_sps la deuxième séquence du test de correspondance.
