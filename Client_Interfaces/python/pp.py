@@ -378,10 +378,10 @@ def PP_Unit_ActionOnUnit (unit, action, target, synchronized=False):
     action -- action id to carry out (See list form constantList_KP4_1.py of available
               order ids depending on unit ids).
     target -- target unit id (returned by PP_GetUnitAt).
-	synchronized -- true means this function is synchronized this call is blocking until
-					the order is over, false means this function is non-blocking (when the
-					function returns this means that the command is sent and not that the
-					order is carried out).
+    synchronized -- true means this function is synchronized this call is blocking until
+                    the order is over, false means this function is non-blocking (when the
+                    function returns this means that the command is sent and not that the
+                    order is carried out).
     
     Returns 0 on success. -1 is returned on errors.
     
@@ -404,10 +404,10 @@ def PP_Unit_ActionOnPosition (unit, action, pos, synchronized=False):
     action -- action id to carry out (See list form constantList_KP4_1.py of available
               order ids depending on unit ids).
     pos -- target position.
-	synchronized -- true means this function is synchronized this call is blocking until
-					the order is over, false means this function is non-blocking (when the
-					function returns this means that the command is sent and not that the
-					order is carried out).
+    synchronized -- true means this function is synchronized this call is blocking until
+                    the order is over, false means this function is non-blocking (when the
+                    function returns this means that the command is sent and not that the
+                    order is carried out).
 
     Returns 0 on success. -1 is returned on errors.
 
@@ -430,11 +430,11 @@ def PP_Unit_UntargetedAction (unit, action, param=-1.0, synchronized=False):
     action -- action id to carry out (See list form constantList_KP4_1.py of available
               order ids depending on unit ids).
     param -- parameter to the action (if required). If any parameter required, put -1.0
-			 instead.
-	synchronized -- true means this function is synchronized this call is blocking until
-					the order is over, false means this function is non-blocking (when the
-					function returns this means that the command is sent and not that the
-					order is carried out).
+             instead.
+    synchronized -- true means this function is synchronized this call is blocking until
+                    the order is over, false means this function is non-blocking (when the
+                    function returns this means that the command is sent and not that the
+                    order is carried out).
     
     Returns 0 on success. -1 is returned on errors.
     

@@ -55,7 +55,7 @@ LOGIC_BOMB = 26
 # a wide area ablaze for a minute, causing constant damage to all units, or
 # buildings within it's range.
 # See PP_Unit_GetType on pp.py
-POINTER = 39
+POINTER_ART = 39
 
 # A nuclear bomb.
 # It is launched by Terminal.
