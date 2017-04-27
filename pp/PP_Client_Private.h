@@ -315,13 +315,13 @@ void exitCriticalSection(void);
  * Check if unit with id "unitId" has the pending command "actionId" with the
  * parameter "param" defined
  */
-bool orderWithOneParamFound(PP_Unit unitId, int actionId, float param);
+int orderWithOneParamFound(PP_Unit unitId, int actionId, float param);
 
 /*
  * Check if unit with id "unitId" has the pending command "actionId" with the
  * target position "target" defined
  */
-bool orderOnPositionFound(PP_Unit unitId, int actionId, PP_Pos target);
+int orderOnPositionFound(PP_Unit unitId, int actionId, PP_Pos target);
 
 /******************************************************************************/
 /* WARNING !!! Following function has to be used after a first call of        */
