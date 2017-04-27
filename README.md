@@ -1,5 +1,7 @@
 # Prog&amp;Play
-Prog&amp;Play is a library designed for Real Time Strategy games (RTS). It enables player to program easily and interactively units of the video game. More details on [Prog&amp;Play pages](https://www.irit.fr/ProgAndPlay/index_en.php) 
+Prog&amp;Play is a library designed for Real Time Strategy games (RTS). It enables player to program easily and interactively units of the video game. More details on [Prog&amp;Play pages](https://www.irit.fr/ProgAndPlay/index_en.php). 
+
+Currently Prog&Play is integrated into the [Spring engine](https://github.com/Mocahteam/SpringPP).
 
 Binaries are available at: <https://www.irit.fr/ProgAndPlay/download.php?LANG=en>
 
