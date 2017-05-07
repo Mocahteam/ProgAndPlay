@@ -15,12 +15,7 @@ This repository includes source code of the Prog&amp;Play library. It is compose
       * Create a new variable named MINGW with "C:\MinGW-gcc4.4" as value;
       * Update your PATH by adding in first value: "%MINGW%\bin".
     * Msys (Minimal system), install it in your C:\ directory => C:\msys\1.0\bin do not have been included in your pass
-    * For Ocaml, install standard GCC3.4.5 (GCC4.4 is incompatible), install in C:\MinGW-gcc3.4.5\ directory following packages:
-      * MinGW Runtime - mingwrt (dev & dll)
-      * MinGW API for MS-Windows - w32api (dev)
-      * GNU Binutils - binutils (bin)
-      * GCC 3 - gcc-core
-      * GCC 3 - gcc-c++
+    * For Ocaml, install standard [GCC3.4.5](https://www.irit.fr/ProgAndPlay/ressources/MinGW-gcc3.4.5.zip) (GCC4.4 is incompatible), install in C:\MinGW-gcc3.4.5\
     * To compile, type: mingw32-make
 
 ## Linux compilation
