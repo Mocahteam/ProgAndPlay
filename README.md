@@ -3,7 +3,7 @@ Prog&amp;Play is a library designed for Real Time Strategy games (RTS). It enabl
 
 Currently Prog&Play is integrated into the [Spring engine](https://github.com/Mocahteam/SpringPP).
 
-Binaries are available at: <https://www.irit.fr/ProgAndPlay/download.php?LANG=en>
+Binaries are available at: <https://www.irit.fr/ProgAndPlay/download.php>
 
 ## Repository architecture
 This repository includes source code of the Prog&amp;Play library. It is composed by the [pp](./pp) directory that includes low level source code of Prog&amp;Play and [Client_Interfaces](./Client_Interfaces) directory that includes interfaces of Prog&amp;Play in different programming langages (It is one of these interfaces that the player has to use).
