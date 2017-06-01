@@ -18,6 +18,14 @@ This repository includes source code of the Prog&amp;Play library. It is compose
   * For Ocaml, install standard [GCC3.4.5](http://progandplay.lip6.fr/ressources/MinGW-gcc3.4.5.zip) (GCC4.4 is incompatible), install in C:\MinGW-gcc3.4.5\
   * To compile, type: mingw32-make
 
-## Linux compilation
+## Linux compilation (tested on Ubuntu 16.04)
 * Prog&Play compilation and associated interfaces
-  * to compile, just type: make
+  * Get dependencies (install development packages)
+    * Boost (tested with v1.58)
+    * Rapidxml (tested with v1.13)
+    * Rapidjson  (tested with v0.12)
+    * jdk (tested with v8)
+    * ocaml (tested with v4)
+    * gnat (tested with v4.9)
+  * Build libraries and exemples
+    * to compile, just type: make
