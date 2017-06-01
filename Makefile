@@ -10,6 +10,12 @@ else
 INSTALL_PP = install_pp
 endif
 
+ifeq ($(OS),Windows_NT)
+ECHO_OPT = -e
+else
+ECHO_OPT =
+endif
+
 YELLOW = \033[0;33m
 GREEN = \033[0;32m
 DEFAULT_COLOR = \033[0m
@@ -34,7 +40,7 @@ not_found:
 	@echo "==============================================================================="
 	@echo "=                            Prog&Play Installation                           ="
 	@echo "================================ (MAKE INSTALL) ==============================="
-	@echo "$(YELLOW)Installation aborted: $(SPRING_VERSION) doesn't exist.\nCheck if the target directory exists or update SPRING_VERSION value defined into this Makefile in agreement with your folder organisation.$(DEFAULT_COLOR)"
+	@echo $(ECHO_OPT) "$(YELLOW)Installation aborted: $(SPRING_VERSION) doesn't exist.\nCheck if the target directory exists or update SPRING_VERSION value defined into this Makefile in agreement with your folder organisation.$(DEFAULT_COLOR)"
 
 compile_client_interfaces:
 	@echo ""
@@ -45,7 +51,7 @@ compile_client_interfaces:
 
 end:
 	@echo ""
-	@echo "$(GREEN)Compilation succeed.$(DEFAULT_COLOR)"
+	@echo $(ECHO_OPT) "$(GREEN)Compilation succeed.$(DEFAULT_COLOR)"
 	@echo ""
 
 clean:
@@ -53,5 +59,5 @@ clean:
 	@(cd ./pp && $(MAKE) $@)
 	@echo "Client Interfaces cleaning =========================================="
 	@(cd ./Client_Interfaces && $(MAKE) $@)
-	@echo "$(GREEN)Cleaning succeed.$(DEFAULT_COLOR)"
+	@echo $(ECHO_OPT) "$(GREEN)Cleaning succeed.$(DEFAULT_COLOR)"
 	@echo ""
