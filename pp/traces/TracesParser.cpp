@@ -1,5 +1,6 @@
 #include "TracesParser.h"
 #include "TraceConstantList.h"
+#include <cerrno>
 
 #define DEBUG
 #define LOG_IN_FILE

@@ -28,4 +28,4 @@ all: $(O_FILES)
 
 
 clean:
-	rm $(BIN_FILES) $(O_FILES)
+	rm -f $(BIN_FILES) $(O_FILES)

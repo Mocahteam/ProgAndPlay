@@ -18,7 +18,7 @@
 #include <limits>
 #include <algorithm>
 #include <cstdarg>
-#include <rapidxml-1.13/rapidxml.hpp>
+#include <rapidxml/rapidxml.hpp>
 #include <rapidjson/document.h>
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/prettywriter.h>

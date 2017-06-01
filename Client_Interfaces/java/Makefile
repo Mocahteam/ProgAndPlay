@@ -1,27 +1,27 @@
 
-.PHONY: all clean doc exemples
+.PHONY: all clean doc exemples install
 
 LIBNAME = pp-client-java
-
-SPRING_VERSION = spring-0.82.5.1
 
 ifeq ($(OS),Windows_NT)
 PATH := /c/msys/1.0/bin:$(PATH)
 ENTETELIB = 
 LIB = .dll
 OPT = 
-OPTLIB = -L../../../SpringPP/$(SPRING_VERSION)/mingwlibs/lib -lboost_thread-mt -Wl,--add-stdcall-alias,--output-def,$(LIBNAME).def,--out-implib,lib$(LIBNAME).a
+OPTLIB = -L../../$(SPRING_VERSION)/mingwlibs/lib -lboost_thread-mt -Wl,--add-stdcall-alias,--output-def,$(LIBNAME).def,--out-implib,lib$(LIBNAME).a
 FILE_SUPPR = $(LIBNAME).def lib$(LIBNAME).a
 INCLUDE_OS = -I"$(JAVA_HOME)" -I"$(JAVA_HOME)\include" -I"$(JAVA_HOME)\include\win32"
-INSTALL_CLIENT = install_client
 else
 ENTETELIB = lib
 LIB = .so
 OPT = -fPIC
-OPTLIB = -lboost_thread-mt -fPIC -lrt
+OPTLIB = -lboost_thread -fPIC -lrt
 FILE_SUPPR = 
+# We try to found java
+ifeq ($(JAVA_HOME),)
+JAVA_HOME = $(shell dirname $(shell dirname $(shell readlink -f $(shell which javac))))
+endif
 INCLUDE_OS = -I$(JAVA_HOME) -I$(JAVA_HOME)/include/ -I$(JAVA_HOME)/include/linux
-INSTALL_CLIENT = 
 endif
 
 CIBLE = $(ENTETELIB)$(LIBNAME)$(LIB)
@@ -49,7 +49,7 @@ PP_jni.h: pp/PPNative.class
 	javac $<
 
 clean:
-	rm $(CIBLE) $(FILE_SUPPR) PP_jni.o PP_jni.h pp/*.class pp/exceptions/*.class pp.jar
+	rm -f $(CIBLE) $(FILE_SUPPR) PP_jni.o PP_jni.h pp/*.class pp/exceptions/*.class pp.jar exemple/*.class ../compalgo/$(CIBLE)
 
 doc: ./javadoc/index.html
 
@@ -70,9 +70,7 @@ exemples: $(EXEMPLES_CLASS_FILES)
 exemple/%.class: exemple/%.java pp.jar $(CIBLE)
 	javac $<
 	
-install: $(INSTALL_CLIENT)
-
-install_client: ../compalgo/$(CIBLE)
+install: ../compalgo/$(CIBLE)
 
 ../compalgo/$(CIBLE): $(CIBLE)
 	cp $(CIBLE) ../compalgo

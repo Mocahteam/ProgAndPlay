@@ -1,16 +1,20 @@
 
 .PHONY: all clean
 
-SPRING_VERSION = spring-0.82.5.1
-
 ifeq ($(OS),Windows_NT)
 BIN = .exe
 ENTETELIB = 
 LIB = .dll
+INCLUDES = -I../../$(SPRING_VERSION)/mingwlibs/include
+LIBS = -L../../$(SPRING_VERSION)/mingwlibs/lib
+BOOST_THREAD = -lboost_thread-mt
 else
 BIN = 
 ENTETELIB = lib
 LIB = .so
+INCLUDES = 
+LIBS = 
+BOOST_THREAD = -lboost_thread
 endif
 
 C_FILES = $(wildcard ./*.c)
@@ -24,8 +28,8 @@ testClientPrivate.o: testClientPrivate.c constantList_KP4.1.h ../PP_Client_Priva
 	g++ -o $*$(BIN) $@ -L.. -lpp-client-private
 
 testSupplier.o: testSupplier.c constantList_KP4.1.h ../PP_Supplier.h ../$(ENTETELIB)pp-supplier$(LIB)
-	g++ -o $@ -c $< -I. -I../../../SpringPP/$(SPRING_VERSION)/mingwlibs/include
-	g++ -o $*$(BIN) $@ -L.. -lpp-supplier -L../../../SpringPP/$(SPRING_VERSION)/mingwlibs/lib -lboost_thread-mt
+	g++ -o $@ -c $< -I. $(INCLUDES)
+	g++ -o $*$(BIN) $@ -L.. -lpp-supplier $(LIBS) $(BOOST_THREAD)
 
 clean:
 	rm $(BIN_FILES) $(O_FILES)

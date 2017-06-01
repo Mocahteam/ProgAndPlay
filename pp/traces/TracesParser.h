@@ -15,11 +15,13 @@
 #include <fstream>
 #include <sstream>
 #include <algorithm>
+#ifdef _WIN32
 #include <windows.h>
+#endif
 #include <boost/lexical_cast.hpp>
-#include <rapidxml-1.13/rapidxml.hpp>
-#include <rapidxml-1.13/rapidxml_print.hpp>
-#include <rapidxml-1.13/rapidxml_utils.hpp>
+#include <rapidxml/rapidxml.hpp>
+#include <rapidxml/rapidxml_print.hpp>
+#include <rapidxml/rapidxml_utils.hpp>
 
 #include "Trace.h"
 #include "Call.h"

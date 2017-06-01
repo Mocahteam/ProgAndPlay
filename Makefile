@@ -1,28 +1,57 @@
 
-.PHONY: all clean
+.PHONY: all clean install
 
-all: compile_pp compile_client_interfaces
+export SPRING_VERSION = ../SpringPP/spring-0.82.5.1_official
+
+# Try to find Spring folder
+ifeq ($(wildcard $(SPRING_VERSION)),)
+INSTALL_PP = not_found
+else
+INSTALL_PP = install_pp
+endif
+
+YELLOW = \033[0;33m
+GREEN = \033[0;32m
+DEFAULT_COLOR = \033[0m
+
+all: compile_pp $(INSTALL_PP) compile_client_interfaces end
 
 compile_pp:
 	@echo "==============================================================================="
-	@echo "=                          Compilation de Prog&Play                           ="
+	@echo "=                            Prog&Play Compilation                            ="
 	@echo "==================================== (MAKE) ==================================="
 	@(cd ./pp && $(MAKE))
+
+install_pp:
 	@echo ""
 	@echo "==============================================================================="
-	@echo "=                          Compilation de Prog&Play                           ="
+	@echo "=                            Prog&Play Installation                           ="
 	@echo "================================ (MAKE INSTALL) ==============================="
 	@(cd ./pp && $(MAKE) install)
+
+not_found:
+	@echo ""
+	@echo "==============================================================================="
+	@echo "=                            Prog&Play Installation                           ="
+	@echo "================================ (MAKE INSTALL) ==============================="
+	@echo "$(YELLOW)Installation aborted: $(SPRING_VERSION) doesn't exist.\nCheck if the target directory exists or update SPRING_VERSION value defined into this Makefile in agreement with your folder organisation.$(DEFAULT_COLOR)"
 
 compile_client_interfaces:
 	@echo ""
 	@echo "==============================================================================="
-	@echo "=                      Compilation des interfaces Client                      ="
+	@echo "=                        Client Interfaces Compilation                        ="
 	@echo "==============================================================================="
 	@(cd ./Client_Interfaces && $(MAKE))
 
+end:
+	@echo ""
+	@echo "$(GREEN)Compilation succeed.$(DEFAULT_COLOR)"
+	@echo ""
+
 clean:
-	@echo "Nettoyage de Prog&Play ==============================================="
+	@echo "Prog&Play cleaning ==================================================="
 	@(cd ./pp && $(MAKE) $@)
-	@echo "Nettoyage des interfaces Client ======================================"
+	@echo "Client Interfaces cleaning =========================================="
 	@(cd ./Client_Interfaces && $(MAKE) $@)
+	@echo "$(GREEN)Cleaning succeed.$(DEFAULT_COLOR)"
+	@echo ""

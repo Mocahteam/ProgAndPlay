@@ -10,7 +10,6 @@ else
 BIN =
 ENTETELIB = lib
 LIB = .so
-PATH_GNAT = $(PATH)
 endif
 
 ADB_FILES = $(wildcard ./*.adb)
@@ -26,4 +25,4 @@ all: $(O_FILES)
 	@gnatmake -I.. -L. $< -largs -lpp-client-ada
 
 clean:
-	rm $(BIN_FILES) $(O_FILES) $(ALI_FILES)
+	rm -f $(BIN_FILES) $(O_FILES) $(ALI_FILES)

@@ -2,8 +2,6 @@
 
 LIBNAME = pp-client-ocaml
 
-SPRING_VERSION = spring-0.82.5.1
-
 ifeq ($(OS),Windows_NT)
 # Compile with g++ 3.4.5 instead of 4.4 => crash on execution
 GCC3.4.5 = MinGW-gcc3.4.5
@@ -16,7 +14,7 @@ INCLUDE_OS = $(OCAMLLIB)
 # In order to find "dllcrt2.o" file
 OPTLIB = -L"C:\$(GCC3.4.5)\lib" -ldopt -noentry
 else
-ENTETELIB = lib
+ENTETELIB = dll
 ENTETELIB2 = lib
 LIB = .so
 INCLUDE_OS =
@@ -41,11 +39,16 @@ pp.cma: pp.cmo $(TARGETLIB)
 pp.cmo: pp.ml
 	ocamlc -c pp.ml
 
-$(TARGETLIB): pp_ocaml.o $(PP_CLIENT)/$(ENTETELIB2)pp-client-c$(LIB)
+$(TARGETLIB): pp_ocaml.o $(ENTETELIB2)pp-client-c$(LIB)
 	ocamlmklib -oc $(LIBNAME) pp_ocaml.o -lpp-client-c -L$(PP_CLIENT) $(OPTLIB)
 
+$(ENTETELIB2)pp-client-c$(LIB):
+	@echo "Build C lib dependency"
+	@(cd ../c-cpp && $(MAKE))
+	@(cd ../c-cpp && $(MAKE) install)
+
 pp_ocaml.o: pp_ocaml.c
-	g++ -o pp_ocaml.o $(INCLUDES) -c pp_ocaml.c
+	g++ -o pp_ocaml.o $(INCLUDES) -c pp_ocaml.c -fPIC
 
 clean:
-	rm pp.cmi pp.cma pp.cmo pp_ocaml.o $(TARGETLIB) lib$(LIBNAME).a
+	rm -f pp.cmi pp.cma pp.cmo pp_ocaml.o $(TARGETLIB) lib$(LIBNAME).a

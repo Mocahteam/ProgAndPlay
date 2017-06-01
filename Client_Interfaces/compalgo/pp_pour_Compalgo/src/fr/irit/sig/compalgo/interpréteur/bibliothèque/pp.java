@@ -172,31 +172,39 @@ public final class pp extends Thread{
 	}
 
 	public Integer unitGetNumPdgCmds (InEntier u){
-		return new Integer(PPNative.Unit_GetNumPdgCmds (u.valeur().intValue()));
+		return new Integer(PPNative.Unit_GetNumPdgCmds_prim (u.valeur().intValue()));
 	}
 	
 	public Integer unitPdgCmdGetCode (InEntier u, InEntier idCmd){
-		return new Integer(PPNative.Unit_PdgCmd_GetCode (u.valeur().intValue(), idCmd.valeur().intValue()));
+		int [] cmdCode = PPNative.Unit_PdgCmd_GetCode_prim (u.valeur().intValue(), idCmd.valeur().intValue());
+		if (cmdCode[0] == 0)
+			return new Integer(cmdCode[1]);
+		else
+			return new Integer(-1);
 	}
 	
 	public Integer unitPdgCmdGetNumParam (InEntier u, InEntier idCmd){
-		return new Integer(PPNative.Unit_PdgCmd_GetNumParams (u.valeur().intValue(), idCmd.valeur().intValue()));
+		return new Integer(PPNative.Unit_PdgCmd_GetNumParams_prim (u.valeur().intValue(), idCmd.valeur().intValue()));
 	}
 	
 	public Float unitPdgCmdGetParam (InEntier u, InEntier idCmd, InEntier idParam){
-		return new Float(PPNative.Unit_PdgCmd_GetParam (u.valeur().intValue(), idCmd.valeur().intValue(), idParam.valeur().intValue()));
+		float [] paramValue = PPNative.Unit_PdgCmd_GetParam_prim (u.valeur().intValue(), idCmd.valeur().intValue(), idParam.valeur().intValue());
+		if ((int)paramValue[0] == 0)
+			return new Float(paramValue[1]);
+		else
+			return new Float(-1);
 	}
 
 	public Integer unitActionOnUnit (InEntier u, InEntier action, InEntier cible){
-		return new Integer(PPNative.Unit_ActionOnUnit (u.valeur().intValue(), action.valeur().intValue(), cible.valeur().intValue()));
+		return new Integer(PPNative.Unit_ActionOnUnit (u.valeur().intValue(), action.valeur().intValue(), cible.valeur().intValue(), false));
 	}
 
 	public Integer unitActionOnPosition (InEntier u, InEntier action, InRéel x, InRéel y){
-		return new Integer(PPNative.Unit_ActionOnPosition (u.valeur().intValue(), action.valeur().intValue(), x.valeur().floatValue(), y.valeur().floatValue()));
+		return new Integer(PPNative.Unit_ActionOnPosition (u.valeur().intValue(), action.valeur().intValue(), x.valeur().floatValue(), y.valeur().floatValue(), false));
 	}
 
 	public Integer unitUntargetedAction (InEntier u, InEntier action, InRéel param){
-		return new Integer(PPNative.Unit_UntargetedAction (u.valeur().intValue(), action.valeur().intValue(), param.valeur().floatValue()));
+		return new Integer(PPNative.Unit_UntargetedAction (u.valeur().intValue(), action.valeur().intValue(), param.valeur().floatValue(), false));
 	}
 	
 	public String getError (){

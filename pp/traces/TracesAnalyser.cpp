@@ -1085,7 +1085,6 @@ void TracesAnalyser::filterFeedbacks() {
 						ind_aligned = p.at(i).second;
 				}
 				// suppression de tous les feedbacks experts qui se trouvent apres la derniere sequence identifiée chez le joueur
-				int ind_start = ind_aligned;
 				do {
 					for(unsigned int i = ind_aligned; i < aligned->size(); i++) {
 						int ind = getFeedbackIndex(aligned->at(i));
@@ -1096,7 +1095,6 @@ void TracesAnalyser::filterFeedbacks() {
 					}
 					if (!aligned->isRoot()) {
 						parent = boost::dynamic_pointer_cast<Sequence>(aligned->getParent());
-						ind_start = parent->getIndex(aligned) + 1;
 						aligned = parent;
 					}
 				} while(!aligned->isRoot());

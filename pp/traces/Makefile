@@ -5,16 +5,20 @@ EXE = parser.exe
 
 CC = g++
 CFLAGS = -Wall
-SPRING_VERSION = spring-0.82.5.1
-REP_TRACES = ../../../SpringPP/$(SPRING_VERSION)/rts/lib/pp/traces
-REP_CONT = ../../../SpringPP/$(SPRING_VERSION)/cont/traces/data
-LDFLAGS = -I../../../SpringPP/$(SPRING_VERSION)/mingwlibs/include
+
+REP_TRACES = ../../$(SPRING_VERSION)/rts/lib/pp/traces
+REP_CONT = ../../$(SPRING_VERSION)/cont/traces/data
+ifeq ($(OS),Windows_NT)
+LDFLAGS = -I../../$(SPRING_VERSION)/mingwlibs/include
+else
+LDFLAGS = -fpermissive
+endif
 RM = rm
 
 %.o: %.cpp        # combined w/ next line will compile recently changed .c files
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ -c $<
 
-.PHONY : all     # .PHONY ignores files named all
+.PHONY : all clean    # .PHONY ignores files named all and clean
 all: $(EXE)      # all is dependent on $(EXE) to be complete
 
 $(EXE): $(OBJ)  # $(EXE) is dependent on all of the files in $(OBJ) to exist
@@ -73,6 +77,5 @@ $(REP_TRACES)/Event.h: Event.h
 $(REP_TRACES)/EventDef.h: EventDef.h
 	cp EventDef.h $(REP_TRACES)
 
-.PHONY : clean   # .PHONY ignores files named clean
 clean:
-	$(RM) $(OBJ) $(EXE)
+	$(RM) -f $(OBJ) $(EXE)

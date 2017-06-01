@@ -1,7 +1,14 @@
 
 .PHONY: all clean
 
-all: compile_c compile_java compile_compalgo compile_ocaml compile_ada compile_python compile_scratch
+# Build Prog&Play for Scratch only on Window
+ifeq ($(OS),Windows_NT)
+BUILD_SCRATCH = compile_scratch
+else
+BUILD_SCRATCH = do_not_compile_scratch
+endif
+
+all: compile_c compile_java compile_compalgo compile_ocaml compile_ada compile_python $(BUILD_SCRATCH)
 
 compile_c:
 	@echo ""
@@ -30,7 +37,7 @@ compile_java:
 	@echo "-------------------------------------------------------------------------------"
 	@echo "| Java interface (MAKE INSTALL)                                               |"
 	@echo "-------------------------------------------------------------------------------"
-	@(cd ./java $(MAKE) install)
+	@(cd ./java && $(MAKE) install)
 	@echo ""
 	@echo "-------------------------------------------------------------------------------"
 	@echo "| Java interface (BUILD JAVA DOC)                                             |"
@@ -96,6 +103,13 @@ compile_scratch:
 	@echo "| Scratch 2.0 interface (MAKE INSTALL)                                        |"
 	@echo "-------------------------------------------------------------------------------"
 	@(cd ./scratch2.0/ProgAndPlayANE/lib/exportANE && $(MAKE) install)
+
+do_not_compile_scratch:
+	@echo ""
+	@echo "-------------------------------------------------------------------------------"
+	@echo "| Scratch 2.0 interface (MAKE)                                                |"
+	@echo "-------------------------------------------------------------------------------"
+	@echo "Only available on Window"
 
 clean:
 	@echo "C interface cleaning -------------------------------------------\

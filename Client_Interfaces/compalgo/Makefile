@@ -36,4 +36,4 @@ $(REP_BIN):
 	cd $(REP) && mkdir bin
 
 clean:
-	rm $(REP_BIN)$(PACKAGE)/pp.class ./compalgo_pp.jar
+	rm -f $(REP_BIN)$(PACKAGE)/pp.class ./compalgo_pp.jar

@@ -1,12 +1,12 @@
 
-.PHONY: all clean
+.PHONY: all clean install
 
 FLASH_DEV_DIR = C:\Users\mmuratet\AppData\Local\FlashDevelop\Apps\flexairsdk\4.6.0+19.0.0\bin
 
 LIB_NAME = ProgAndPlayExtension
-SPRING_VERSION = spring-0.82.5.1
+
 PATH := C:\msys\1.0\bin;$(PATH)
-OPTLIB = -L../../../../../../SpringPP/$(SPRING_VERSION)/mingwlibs/lib -lboost_thread-mt
+OPTLIB = -L../../../../../$(SPRING_VERSION)/mingwlibs/lib -lboost_thread-mt
 PP_DIR = ../../../../../pp
 PP_CLIENT = ../../../../c-cpp
 INCLUDE_DIRS = . $(PP_DIR) $(PP_CLIENT)
@@ -36,7 +36,7 @@ ProgAndPlayANE.swc: ../ProgAndPlayANE.swc
 	cp ../ProgAndPlayANE.swc .
 	
 clean:
-	rm $(SUPPR)
+	rm -f $(SUPPR)
 
 install:
 	cp $(CIBLE) ../../../Scratch/ane/$(CIBLE)
