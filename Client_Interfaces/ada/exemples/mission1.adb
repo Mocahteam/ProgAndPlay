@@ -10,8 +10,8 @@ procedure mission1 is
 begin
 	Open; -- ouverture du jeu
 	-- definir la position
-	p.x := 1983.0;
-	p.y := 1279.0;
+	p.x := 1980.0;
+	p.y := 1676.0;
 	-- recuperer l'unite
 	u := GetUnitAt(MyCoalition, 0);
 	-- deplacer l'unite sur sa position
