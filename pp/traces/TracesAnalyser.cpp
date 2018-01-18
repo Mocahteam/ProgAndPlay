@@ -156,7 +156,7 @@ std::string TracesAnalyser::constructFeedback(const std::string& learner_xml, co
 				std::vector<Trace::sp_trace> expert_traces = TracesParser::importTraceFromXml(experts_xml.at(i), osAnalyser);
 				// filtrage des solutions expertes non compatibles avec le langage de programmation utilisé par le joueur
 				if (getInfosOnMission(expert_traces, expert_gi) && getInfosOnExecution(expert_gi) && expert_gi.nee->getProgrammingLangageUsed().compare(learner_gi.nee->getProgrammingLangageUsed()) == 0) {
-					osAnalyser << "\nsolution experte analysée : "+expert_gi.nee->getProgrammingLangageUsed() << std::endl;
+					osAnalyser << "\nexpert solution analysed: "+expert_gi.nee->getProgrammingLangageUsed() << std::endl;
 					Call::call_vector expert_calls = expert_gi.root_sps->getCalls(true);
 					for (unsigned int j = 0; j < expert_calls.size(); j++) {
 						if (experts_calls_freq.find(expert_calls.at(j)->getKey()) != experts_calls_freq.end())
@@ -201,7 +201,7 @@ std::string TracesAnalyser::constructFeedback(const std::string& learner_xml, co
 			while (it != experts_calls_freq.end())
 				(it++)->second /= experts_xml.size();
 			osAnalyser << "\nexpert program " << ind_best << " has been chosen for alignment with learner traces" << std::endl;
-			osAnalyser << "similarity score : " << best_score << std::endl;
+			osAnalyser << "similarity score: " << best_score << std::endl;
 			std::vector<Trace::sp_trace> expert_traces = TracesParser::importTraceFromXml(experts_xml.at(ind_best), osAnalyser);
 			if (getInfosOnMission(expert_traces, expert_gi) && getInfosOnExecution(expert_gi)) {
 				if (reimport) {

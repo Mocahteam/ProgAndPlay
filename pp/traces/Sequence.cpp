@@ -76,6 +76,12 @@ void Sequence::display(std::ostream &os) const {
 		os << "Root" << std::endl;
 	for (unsigned int i = 0; i < traces.size(); i++)
 		traces.at(i)->display(os);
+	for (int i = 0; i < numTab; i++)
+		os << "\t";
+	if (!root)
+		os << "EndSequence" << std::endl;
+	else
+		os << "EndRoot" << std::endl;
 	numTab--;
 }
 

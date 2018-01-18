@@ -179,7 +179,7 @@ public class LooksPrims {
 	
 	private function prim_PP_GetSpecialAreaPosX(b:Block):Number {
  		if (ppExt){
-			var num:int = interp.arg(b, 0) as int;
+			var num:int = getInt(b, 0);
 			return ppExt.PP_GetSpecialAreaPosX_ext(num);
 		}
 		return -1;
@@ -187,7 +187,7 @@ public class LooksPrims {
 	
 	private function prim_PP_GetSpecialAreaPosY(b:Block):Number {
  		if (ppExt){
-			var num:int = interp.arg(b, 0) as int;
+			var num:int = getInt(b, 0);
 			return ppExt.PP_GetSpecialAreaPosY_ext(num);
 		}
 		return -1;
@@ -227,7 +227,7 @@ public class LooksPrims {
 	
 	private function prim_PP_GetUnitAt(b:Block):int {
  		if (ppExt){
-			var id:int = interp.arg(b, 0) as int;
+			var id:int = getInt(b, 0);
 			var coalition:int = getCodeFromName(Specs.pp_coalitionsList, interp.arg(b, 1) as String);
 			if (coalition != -1)
 				return ppExt.PP_GetUnitAt_ext(id, coalition);
@@ -239,7 +239,7 @@ public class LooksPrims {
 	
 	private function prim_PP_Unit_BelongTo(b:Block):Boolean {
  		if (ppExt){
-			var unitId:int = interp.arg(b, 0) as int;
+			var unitId:int = getInt(b, 0);
 			var coalition:int = getCodeFromName(Specs.pp_coalitionsList, interp.arg(b, 1) as String);
 			if (coalition != -1)
 				return ppExt.PP_Unit_BelongTo_ext(unitId, coalition);
@@ -251,7 +251,7 @@ public class LooksPrims {
 	
 	private function prim_PP_Unit_IsType(b:Block):Boolean {
  		if (ppExt){
-			var unitId:int = interp.arg(b, 0) as int;
+			var unitId:int = getInt(b, 0);
 			var unitType:int = getCodeFromName(Specs.pp_unitsList, interp.arg(b, 1) as String);
 			if (unitType != -1)
 				return ppExt.PP_Unit_IsType_ext(unitId, unitType);
@@ -263,7 +263,7 @@ public class LooksPrims {
 	
 	private function prim_PP_Unit_GetPositionX(b:Block):Number {
  		if (ppExt){
-			var unitId:int = interp.arg(b, 0) as int;
+			var unitId:int = getInt(b, 0);
 			return ppExt.PP_Unit_GetPositionX_ext(unitId);
 		}
 		return -1;
@@ -271,7 +271,7 @@ public class LooksPrims {
 	
 	private function prim_PP_Unit_GetPositionY(b:Block):Number {
  		if (ppExt){
-			var unitId:int = interp.arg(b, 0) as int;
+			var unitId:int = getInt(b, 0);
 			return ppExt.PP_Unit_GetPositionY_ext(unitId);
 		}
 		return -1;
@@ -279,7 +279,7 @@ public class LooksPrims {
 	
 	private function prim_PP_Unit_GetHealth(b:Block):Number {
  		if (ppExt){
-			var unitId:int = interp.arg(b, 0) as int;
+			var unitId:int = getInt(b, 0);
 			return ppExt.PP_Unit_GetHealth_ext(unitId);
 		}
 		return -1;
@@ -287,7 +287,7 @@ public class LooksPrims {
 	
 	private function prim_PP_Unit_GetMaxHealth(b:Block):Number {
  		if (ppExt){
-			var unitId:int = interp.arg(b, 0) as int;
+			var unitId:int = getInt(b, 0);
 			return ppExt.PP_Unit_GetMaxHealth_ext(unitId);
 		}
 		return -1;
@@ -295,7 +295,7 @@ public class LooksPrims {
 	
 	private function prim_PP_Unit_GetGroup(b:Block):int {
  		if (ppExt){
-			var unitId:int = interp.arg(b, 0) as int;
+			var unitId:int = getInt(b, 0);
 			return ppExt.PP_Unit_GetGroup_ext(unitId);
 		}
 		return -1;
@@ -303,15 +303,15 @@ public class LooksPrims {
 	
 	private function prim_PP_Unit_SetGroup(b:Block):void {
  		if (ppExt){
-			var unitId:int = interp.arg(b, 0) as int;
-			var groupId:int = interp.arg(b, 1) as int;
+			var unitId:int = getInt(b, 0);
+			var groupId:int = getInt(b, 1);
 			ppExt.PP_Unit_SetGroup_ext(unitId, groupId);
 		}
 	}
 	
 	private function prim_PP_Unit_GetNumPendingCmds(b:Block):int {
  		if (ppExt){
-			var unitId:int = interp.arg(b, 0) as int;
+			var unitId:int = getInt(b, 0);
 			return ppExt.PP_Unit_GetNumPendingCmds_ext(unitId);
 		}
 		return -1;
@@ -319,8 +319,8 @@ public class LooksPrims {
 	
 	private function prim_PP_Unit_PdgCmd_IsEqualTo(b:Block):Boolean {
  		if (ppExt){
-			var cmdId:int = interp.arg(b, 0) as int;
-			var unitId:int = interp.arg(b, 1) as int;
+			var cmdId:int = getInt(b, 0);
+			var unitId:int = getInt(b, 1);
 			var cmdName:String = interp.arg(b, 2) as String;
 			// try to find this command name on standard commands
 			var cmdCode:int = getCodeFromName(Specs.pp_standardCommandsList, cmdName);
@@ -339,8 +339,8 @@ public class LooksPrims {
 	
 	private function prim_PP_Unit_PdgCmd_GetNumParams(b:Block):int {
  		if (ppExt){
-			var cmdId:int = interp.arg(b, 0) as int;
-			var unitId:int = interp.arg(b, 1) as int;
+			var cmdId:int = getInt(b, 0);
+			var unitId:int = getInt(b, 1);
 			return ppExt.PP_Unit_PdgCmd_GetNumParams_ext(cmdId, unitId);
 		}
 		return -1;
@@ -348,9 +348,9 @@ public class LooksPrims {
 	
 	private function prim_PP_Unit_PdgCmd_GetParamAt(b:Block):Number {
  		if (ppExt){
-			var paramId:int = interp.arg(b, 0) as int;
-			var cmdId:int = interp.arg(b, 1) as int;
-			var unitId:int = interp.arg(b, 2) as int;
+			var paramId:int = getInt(b, 0);
+			var cmdId:int = getInt(b, 1);
+			var unitId:int = getInt(b, 2);
 			return ppExt.PP_Unit_PdgCmd_GetParamAt_ext(paramId, cmdId, unitId);
 		}
 		return -1;
@@ -358,15 +358,15 @@ public class LooksPrims {
 	
 	private function prim_PP_Unit_ActionOnPosition(b:Block):void {
  		if (ppExt){
-			var unitId:int = interp.arg(b, 0) as int;
+			var unitId:int = getInt(b, 0);
 			var cmdName:String = interp.arg(b, 1) as String;
 			var cmdCode:int = getCodeFromName(Specs.pp_standardCommandsList, cmdName);
 			if (cmdCode == -1)
 				// we didn't find in standard commands, then we try to find this command name on specific commands
 				cmdCode = getCodeFromName(Specs.pp_specificCommandsList, cmdName);
 			if (cmdCode != -1){
-				var x:Number = interp.arg(b, 2) as Number;
-				var y:Number = interp.arg(b, 3) as Number;
+				var x:Number = getNumber(b, 2);
+				var y:Number = getNumber(b, 3);
 				var synchroName:String = interp.arg(b, 4) as String;
 				var synchroCode:int = getCodeFromName(Specs.pp_synchroList, synchroName);
 				if (synchroCode == -1)
@@ -378,14 +378,14 @@ public class LooksPrims {
 	
 	private function prim_PP_Unit_ActionOnUnit(b:Block):void {
  		if (ppExt){
-			var unitId:int = interp.arg(b, 0) as int;
+			var unitId:int = getInt(b, 0);
 			var cmdName:String = interp.arg(b, 1) as String;
 			var cmdCode:int = getCodeFromName(Specs.pp_standardCommandsList, cmdName);
 			if (cmdCode == -1)
 				// we didn't find in standard commands, then we try to find this command name on specific commands
 				cmdCode = getCodeFromName(Specs.pp_specificCommandsList, cmdName);
 			if (cmdCode != -1){
-				var targetId:int = interp.arg(b, 2) as int;
+				var targetId:int = getInt(b, 2);
 				var synchroName:String = interp.arg(b, 3) as String;
 				var synchroCode:int = getCodeFromName(Specs.pp_synchroList, synchroName);
 				if (synchroCode == -1)
@@ -397,14 +397,14 @@ public class LooksPrims {
 	
 	private function prim_PP_Unit_ActionSetState(b:Block):void {
  		if (ppExt){
-			var unitId:int = interp.arg(b, 0) as int;
+			var unitId:int = getInt(b, 0);
 			var cmdName:String = interp.arg(b, 1) as String;
 			var cmdCode:int = getCodeFromName(Specs.pp_standardCommandsList, cmdName);
 			if (cmdCode == -1)
 				// we didn't find in standard commands, then we try to find this command name on specific commands
 				cmdCode = getCodeFromName(Specs.pp_specificCommandsList, cmdName);
 			if (cmdCode != -1){
-				var param:Number = interp.arg(b, 2) as Number;
+				var param:Number = getNumber(b, 2);
 				var synchroName:String = interp.arg(b, 3) as String;
 				var synchroCode:int = getCodeFromName(Specs.pp_synchroList, synchroName);
 				if (synchroCode == -1)
@@ -416,7 +416,7 @@ public class LooksPrims {
 	
 	private function prim_PP_Unit_UntargetedAction(b:Block):void {
  		if (ppExt){
-			var unitId:int = interp.arg(b, 0) as int;
+			var unitId:int = getInt(b, 0);
 			var cmdName:String = interp.arg(b, 1) as String;
 			var cmdCode:int = getCodeFromName(Specs.pp_standardCommandsList, cmdName);
 			if (cmdCode == -1)
@@ -442,6 +442,29 @@ public class LooksPrims {
 	private function prim_PP_ClearError(b:Block):void {
  		if (ppExt)
 			ppExt.PP_ClearError_ext();
+	}
+	
+	private function getInt(b:Block, id:int):int {
+		var n:* = interp.arg(b, id);
+		trace(n);
+		var i:int;
+		if (!(n is Number)) {
+			n = Number(n);
+		trace(n);
+			if (isNaN(n)) return -1;
+		}
+		i = (n is int) ? n : Math.floor(n);
+		trace(i);
+		return i;
+	}
+	
+	private function getNumber(b:Block, id:int):Number {
+		var n:* = interp.arg(b, id);
+		if (!(n is Number)) {
+			n = Number(n);
+			if (isNaN(n)) return -1;
+		}
+		return n;
 	}
 		
 	// ---

@@ -53,7 +53,7 @@ bool TracesParser::beginParse(const std::string& dir_path, const std::string& fi
 	}
 	else{
 		#ifdef DEBUG
-			osParser << "error opening file : " << strerror(errno) << std::endl;
+			osParser << "error opening file: " << strerror(errno) << std::endl;
 		#endif
 	}
 	return used;
@@ -202,7 +202,7 @@ void TracesParser::readTracesOfflineInGame() {
 						change = true;
 				}
 				else
-					// The trace is aggegable, so we try to do it
+					// The trace is agregable, so we try to do it
 					handleTraceOffline(spt);
 			}
 		}
@@ -435,7 +435,7 @@ void TracesParser::detectSequences() {
 	Sequence::sp_sequence sps_up, sps_down, sps_res;
 	while(max_length <= Trace::getLength(traces,start) / 2) {
 		#ifdef DEBUG
-			osParser << "max size : " << max_length << std::endl;
+			osParser << "max size: " << max_length << std::endl;
 		#endif
 		i = start;
 		seq_end = start;
@@ -449,7 +449,7 @@ void TracesParser::detectSequences() {
 				traces.at(i)->lenSearch = traces.at(i-1)->length();
 			}
 			#ifdef DEBUG
-				osParser << "search from : " << std::endl;
+				osParser << "search from: " << std::endl;
 				traces.at(i)->display(osParser);
 				osParser << std::endl;
 			#endif
@@ -462,7 +462,7 @@ void TracesParser::detectSequences() {
 						sps_up->addTrace(traces.at(j++));
 					if (checkFeasibility(sps_up->length(),j)) {
 						#ifdef DEBUG
-							osParser << "sps_up : " << std::endl;
+							osParser << "sps_up: " << std::endl;
 							sps_up->display(osParser);
 							osParser << std::endl;
 						#endif
@@ -472,7 +472,7 @@ void TracesParser::detectSequences() {
 							while(j < traces.size() && sps_down->length() < sps_up->length())
 								sps_down->addTrace(traces.at(j++));
 							#ifdef DEBUG
-								osParser << "sps_down : " << std::endl;
+								osParser << "sps_down: " << std::endl;
 								sps_down->display(osParser);
 								osParser << std::endl;
 							#endif
@@ -486,8 +486,8 @@ void TracesParser::detectSequences() {
 						}
 						if (sps_up->getNum() >= 2) {
 							#ifdef DEBUG
-								osParser << "seq_start : " << seq_start << std::endl;
-								osParser << "seq_end : " << seq_end << std::endl;
+								osParser << "seq_start: " << seq_start << std::endl;
+								osParser << "seq_end: " << seq_end << std::endl;
 							#endif
 							sps_up->checkDelayed();
 							traces.erase(traces.begin() + seq_start, traces.begin() + seq_end);
@@ -499,8 +499,8 @@ void TracesParser::detectSequences() {
 							i = seq_start + max_length;
 							// i = seq_start + max_length + 1
 							#ifdef DEBUG
-								osParser << "seq_end : " << seq_end << std::endl;
-								osParser << "i : " << i << std::endl;
+								osParser << "seq_end: " << seq_end << std::endl;
+								osParser << "i: " << i << std::endl;
 								it = traces.begin();
 								while (it != traces.end())
 									(*it++)->display(osParser);
@@ -661,7 +661,7 @@ Sequence::sp_sequence TracesParser::mergeSequences(Sequence::sp_sequence sps_up,
 				}
 			}
 			#ifdef DEBUG
-				osParser << "pop value : " << pop << std::endl;
+				osParser << "pop value: " << pop << std::endl;
 			#endif
 			while (pop > 0) {
 				if (sps->isShared()) {
@@ -769,19 +769,19 @@ void TracesParser::display(std::ostream &os) {
 				if (num_start++ > 0)
 					os << std::endl;
 				StartMissionEvent *sme = dynamic_cast<StartMissionEvent*>(e);
-				os << GAME_START << " : " << sme->getMissionName() << std::endl << MISSION_START_TIME << " : " << sme->getStartTime() << std::endl;
+				os << GAME_START << " " << sme->getMissionName() << std::endl << MISSION_START_TIME << " " << sme->getStartTime() << std::endl;
 			}
 			else if (e->getLabel().compare(END_MISSION) == 0) {
 				EndMissionEvent *eme = dynamic_cast<EndMissionEvent*>(e);
-				os << "status : " << eme->getStatus() << std::endl << MISSION_END_TIME << " : " << eme->getEndTime() << std::endl;
+				os << "status " << eme->getStatus() << std::endl << MISSION_END_TIME << " " << eme->getEndTime() << std::endl;
 			}
 			else if (e->getLabel().compare(NEW_EXECUTION) == 0) {
 				NewExecutionEvent *nee = dynamic_cast<NewExecutionEvent*>(e);
-				os << "\t" << EXECUTION_START_TIME << " : " << nee->getStartTime() << std::endl << "\t" << PROGRAMMING_LANGUAGE_USED << " " << nee->getProgrammingLangageUsed() << std::endl;
+				os << "\t" << EXECUTION_START_TIME << " " << nee->getStartTime() << std::endl << "\t" << PROGRAMMING_LANGUAGE_USED << " " << nee->getProgrammingLangageUsed() << std::endl;
 				e->numTab = 1;
 			}
 			else if (e->getLabel().compare(END_EXECUTION) == 0) {
-				os << "\t" << EXECUTION_END_TIME << " : " << dynamic_cast<EndExecutionEvent*>(e)->getEndTime() << std::endl;
+				os << "\t" << EXECUTION_END_TIME << " " << dynamic_cast<EndExecutionEvent*>(e)->getEndTime() << std::endl;
 				e->numTab = 0;
 			}
 		}
