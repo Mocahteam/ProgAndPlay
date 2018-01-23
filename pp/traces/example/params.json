@@ -1,11 +1,25 @@
 {
+	"_comment":[
+		"This file enables to define parameters for the compression processed. For",
+		"each possible call a set of data are defined:",
+		" 1 - the call_type data define if this call uses parameters or not",
+		" 2 - association a public labels to each compatible programming language",
+		"     (used to build feedback content)",
+		" 3 - for each return value or parameter a boolean that specifies if these",
+		"     fields has to be take in account for compress trace. If true the field",
+		"     will be taking in account, if false the field is ignored.",
+		"This file is the default version, if you want modify compression for a",
+		"specific mission, you can make a copy of this file, update boolean value",
+		"on fields you want compression processes differently and paste it into the",
+		"folder used to compress this mission. If no params.json file is set for a",
+		"specific mission the default one will be used."],
 	"PP_Open": {
 		"call_type": "CallWithNoParam",
 		"C_public_label": "PP_Open",
 		"Python_public_label": "PP_Open",
 		"Ada_public_label": "Open",
 		"OCaml_public_label": "openConnexion",
-		"Scratch_public_label": "open Prog&Play",
+		"Scratch_public_label": "[en]open Prog&Play[en][fr]ouvrir Prog&Play[fr]",
 		"Java_public_label": "PP::open"
 	},
 	"PP_Close": {
@@ -14,7 +28,7 @@
 		"Python_public_label": "PP_Close",
 		"Ada_public_label": "Close",
 		"OCaml_public_label": "closeConnexion",
-		"Scratch_public_label": "close Prog&Play",
+		"Scratch_public_label": "[en]close Prog&Play[en][fr]fermer Prog&Play[fr]",
 		"Java_public_label": "PP::close"
 	},
 	"PP_IsGameOver": {
@@ -23,7 +37,7 @@
 		"Python_public_label": "PP_IsGameOver",
 		"Ada_public_label": "IsGameOver",
 		"OCaml_public_label": "isGameOver",
-		"Scratch_public_label": "is game over?",
+		"Scratch_public_label": "[en]is game over?[en][fr]jeu terminé ?[fr]",
 		"Java_public_label": "PP::isGameOver",
 		"return": false
 	},
@@ -33,7 +47,7 @@
 		"Python_public_label": "PP_IsGamePaused",
 		"Ada_public_label": "IsGamePaused",
 		"OCaml_public_label": "isGamePaused",
-		"Scratch_public_label": "is game paused?",
+		"Scratch_public_label": "[en]is game paused?[en][fr]jeu en pause ?[fr]",
 		"Java_public_label": "PP::isGamePaused",
 		"return": false
 	},
@@ -48,12 +62,12 @@
 	},
 	"PP_GetMapWidth": {
 		"call_type": "CallWithNoParam",
-		"Scratch_public_label": "map width",
+		"Scratch_public_label": "[en]map width[en][fr]largeur carte[fr]",
 		"return": false
 	},
 	"PP_GetMapHeight": {
 		"call_type": "CallWithNoParam",
-		"Scratch_public_label": "map height",
+		"Scratch_public_label": "[en]map height[en][fr]hauteur carte[fr]",
 		"return": false
 	},
 	"PP_GetStartPosition": {
@@ -67,12 +81,12 @@
 	},
 	"PP_GetStartXPosition": {
 		"call_type": "CallWithNoParam",
-		"Scratch_public_label": "start x position",
+		"Scratch_public_label": "[en]start x position[en][fr]position x de départ[fr]",
 		"return": false
 	},
 	"PP_GetStartYPosition": {
 		"call_type": "CallWithNoParam",
-		"Scratch_public_label": "start y position",
+		"Scratch_public_label": "[en]start y position[en][fr]position y de départ[fr]",
 		"return": false
 	},
 	"PP_GetNumSpecialAreas": {
@@ -80,7 +94,7 @@
 		"C_public_label": "PP_GetNumSpecialAreas",
 		"Python_public_label": "PP_GetNumSpecialAreas",
 		"Ada_public_label": "GetNumSpecialAreas",
-		"Scratch_public_label": "number of special areas",
+		"Scratch_public_label": "[en]number of special areas[en][fr]nombre de zone speciale[fr]",
 		"Java_public_label": "PP::getNumSpecialAreas",
 		"return": false
 	},
@@ -95,13 +109,13 @@
 	},
 	"PP_GetSpecialAreaXPosition": {
 		"call_type": "CallWithIntParam",
-		"Scratch_public_label": "x position of special area _ ",
+		"Scratch_public_label": "[en]x position of special area _ [en][fr]position x de la zone speciale _ [fr]",
 		"return": false,
 		"specialAreaId": true
 	},
 	"PP_GetSpecialAreaYPosition": {
 		"call_type": "CallWithIntParam",
-		"Scratch_public_label": "y position of special area _ ",
+		"Scratch_public_label": "[en]y position of special area _ [en][fr]position y de la zone speciale _ [fr]",
 		"return": false,
 		"specialAreaId": true
 	},
@@ -115,7 +129,7 @@
 		"Python_public_label": "PP_GetResource",
 		"Ada_public_label": "GetResource",
 		"OCaml_public_label": "getResource",
-		"Scratch_public_label": "amount of _ resource ",
+		"Scratch_public_label": "[en]amount of _ resource [en][fr]quantité de _ [fr]",
 		"Java_public_label": "PP::getResource",
 		"return": false,
 		"resourceId": true
@@ -125,7 +139,7 @@
 		"C_public_label": "PP_GetNumUnits",
 		"Python_public_label": "PP_GetNumUnits",
 		"Ada_public_label": "GetNumUnits",
-		"Scratch_public_label": "number of unit in _ coalition ",
+		"Scratch_public_label": "[en]number of unit in _ coalition [en][fr]nombre d'unité _ [fr]",
 		"Java_public_label": "PP::getNumUnits",
 		"return": false,
 		"coalition": true
@@ -142,7 +156,7 @@
 	},
 	"PP_GetUnitAtIndexFirst": {
 		"call_type": "CallWithIntIntParams",
-		"Scratch_public_label": "unit _ of _ coalition ",
+		"Scratch_public_label": "[en]unit _ of _ coalition [en][fr]unité _ _ [fr]",
 		"return": false,
 		"indexFirst": false,
 		"coalitionSecond": true
@@ -165,7 +179,7 @@
 	},
 	"PP_Unit_BelongTo": {
 		"call_type": "CallWithUnitIntParams",
-		"Scratch_public_label": "does unit id _ belong to _? ",
+		"Scratch_public_label": "[en]does unit id _ belong to _? [en][fr]l'unité réf : _ est-elle _ (coalition) ? [fr]",
 		"return": false,
 		"unitId": false,
 		"unitType": false,
@@ -184,7 +198,7 @@
 	},
 	"PP_Unit_IsType": {
 		"call_type": "CallWithUnitIntParams",
-		"Scratch_public_label": "is unit id _ a _? ",
+		"Scratch_public_label": "[en]is unit id _ a _? [en][fr]l'unité réf : _ est-elle _ (type) ? [fr]",
 		"return": false,
 		"unitId": false,
 		"unitType": false,
@@ -203,14 +217,14 @@
 	},
 	"PP_Unit_GetXPosition": {
 		"call_type": "CallWithUnitParam",
-		"Scratch_public_label": "x position of unit id _ ",
+		"Scratch_public_label": "[en]x position of unit id _ [en][fr]position x de l'unité réf : _ [fr]",
 		"return": false,
 		"unitId": false,
 		"unitType": false
 	},
 	"PP_Unit_GetYPosition": {
 		"call_type": "CallWithUnitParam",
-		"Scratch_public_label": "y position of unit id _ ",
+		"Scratch_public_label": "[en]y position of unit id _ [en][fr]position y de l'unité réf : _ [fr]",
 		"return": false,
 		"unitId": false,
 		"unitType": false
@@ -221,7 +235,7 @@
 		"Python_public_label": "PP_Unit_GetHealth",
 		"Ada_public_label": "GetHealth",
 		"OCaml_public_label": "getHealth",
-		"Scratch_public_label": "health of unit id _ ",
+		"Scratch_public_label": "[en]health of unit id _ [en][fr]santé de l'unité réf : _ [fr]",
 		"Java_public_label": "Unit::getHealth",
 		"return": false,
 		"unitId": false,
@@ -233,7 +247,7 @@
 		"Python_public_label": "PP_Unit_GetMaxHealth",
 		"Ada_public_label": "GetMaxHealth",
 		"OCaml_public_label": "getMaxHealth",
-		"Scratch_public_label": "max health of unit id _ ",
+		"Scratch_public_label": "[en]max health of unit id _ [en][fr]santé max de l'unité réf : _ [fr]",
 		"Java_public_label": "Unit::getMaxHealth",
 		"return": false,
 		"unitId": false,
@@ -251,14 +265,14 @@
 	},
 	"PP_Unit_GetNumPdgCmds": {
 		"call_type": "CallWithUnitParam",
-		"Scratch_public_label": "number of pending cmds of unit id _ ",
+		"Scratch_public_label": "[en]number of pending cmds of unit id _ [en][fr]nb cmds en attente pour l'unité réf : _ [fr]",
 		"return": false,
 		"unitId": false,
 		"unitType": false
 	},
 	"PP_Unit_PdgCmd_IsEqualTo": {
 		"call_type": "CallWithIntUnitIntParams",
-		"Scratch_public_label": "is pending cmd _ of unit id _ a _ action? ",
+		"Scratch_public_label": "[en]is pending cmd _ of unit id _ a _ action? [en][fr]la cmd en attente _ de l'unité réf : _ est-elle une action _ ? [fr]",
 		"return": false,
 		"index" : false,
 		"unitId": false,
@@ -267,7 +281,7 @@
 	},
 	"PP_Unit_PdgCmd_GetNumParams": {
 		"call_type": "CallWithIntUnitParams",
-		"Scratch_public_label": "number of params of pending cmd _ of unit id _ ",
+		"Scratch_public_label": "[en]number of params of pending cmd _ of unit id _ [en][fr]nb params de la cmd en attente _ de l'unité réf : _ [fr]",
 		"return": false,
 		"index" : false,
 		"unitId": false,
@@ -275,7 +289,7 @@
 	},
 	"PP_Unit_PdgCmd_GetParam": {
 		"call_type": "CallWithIntIntUnitParams",
-		"Scratch_public_label": "param _ of pending cmd _ of unit id _ ",
+		"Scratch_public_label": "[en]param _ of pending cmd _ of unit id _ [en][fr]param _ de la cmd en attente _ de l'unité réf : _ [fr]",
 		"return": false,
 		"paramIndex" : false,
 		"cmdIndex" : false,
@@ -288,7 +302,7 @@
 		"Python_public_label": "PP_Unit_GetGroup",
 		"Ada_public_label": "GetGroup",
 		"OCaml_public_label": "getGroup",
-		"Scratch_public_label": "group of unit id _ ",
+		"Scratch_public_label": "[en]group of unit id _ [en][fr]groupe de l'unité réf : _ [fr]",
 		"Java_public_label": "Unit::getGroup",
 		"return": false,
 		"unitId": false,
@@ -300,7 +314,7 @@
 		"Python_public_label": "PP_Unit_SetGroup",
 		"Ada_public_label": "SetGroup",
 		"OCaml_public_label": "setGroup",
-		"Scratch_public_label": "affect unit id _ to group _ ",
+		"Scratch_public_label": "[en]affect unit id _ to group _ [en][fr]affecter l'unité réf : _ au groupe _ [fr]",
 		"Java_public_label": "Unit::setGroup",
 		"unitId": false,
 		"unitType": false,
@@ -318,7 +332,7 @@
 		"Python_public_label": "PP_Unit_ActionOnUnit",
 		"Ada_public_label": "CarryOutCommand",
 		"OCaml_public_label": "actionOnEntity",
-		"Scratch_public_label": "command unit id _ to _ on unit id _ and _",
+		"Scratch_public_label": "[en]command unit id _ to _ on unit id _ and _ [en][fr]commander l'unité réf : _ de _ l'unité réf : _ et _ [fr]",
 		"Java_public_label": "Unit::command",
 		"unitId": false,
 		"unitType": false,
@@ -333,7 +347,7 @@
 		"Python_public_label": "PP_Unit_ActionOnPosition",
 		"Ada_public_label": "CarryOutCommand",
 		"OCaml_public_label": "actionOnPosition",
-		"Scratch_public_label": "command unit id _ to _ to x: _ y: _ and _",
+		"Scratch_public_label": "[en]command unit id _ to _ to x: _ y: _ and _ [en][fr]commander l'unité réf : _ de _ x : _ y : _ et _ [fr]",
 		"Java_public_label": "Unit::command",
 		"unitId": false,
 		"unitType": false,
@@ -347,7 +361,7 @@
 		"Python_public_label": "PP_Unit_UntargetedAction",
 		"Ada_public_label": "CarryOutCommand",
 		"OCaml_public_label": "untargetedAction",
-		"Scratch_public_label": "command unit id _ to set _ to _ and _",
+		"Scratch_public_label": "[en]command unit id _ to set _ to _ and _ [en][fr]commander l'unité réf : _ de définir _ à _ et _ [fr]",
 		"Java_public_label": "Unit::command",
 		"unitId": false,
 		"unitType": false,
@@ -357,7 +371,7 @@
 	},
 	"PP_Unit_UntargetedActionWithoutParam": {
 		"call_type": "CallWithUnitIntIntParams",
-		"Scratch_public_label": "command unit id _ to _ and _",
+		"Scratch_public_label": "[en]command unit id _ to _ and _ [en][fr]commander l'unité réf : _ de _ et _ [fr]",
 		"unitId": false,
 		"unitType": false,
 		"action": true,

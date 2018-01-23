@@ -147,6 +147,11 @@ public:
 	bool getProceed();
 
 	/**
+		* \brief Set human langage
+		*/
+	static void setLang(std::string lang);
+
+	/**
 	  * \brief Instantiation d'un objet Trace à partir d'une chaîne de caractères.
 	  *
 	  * Cette fonction est utilisée pour l'instanciation d'objets de type Call et Event.
@@ -261,6 +266,11 @@ private:
 	  * L'événement de fin de mission. Cet objet doit être conservé car l'événement de fin de mission n'est pas forcément la dernière trace dans un fichier de traces brutes.
 	  */
 	static Trace::sp_trace spe_eme;
+
+	/**
+		* Language utilisé
+		*/
+	static std::string lang;
 
 	/**
 	  * Booléen utilisé pour indiquer si l'objet TracesParser est utilisé dans le moteur de jeu ou dans le programme utilisable en ligne de commandes.

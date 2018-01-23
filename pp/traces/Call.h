@@ -43,9 +43,10 @@ public:
 	  * Le booléen \p loaded est mis à vrai si la chaine à bien été parsée.
 	  *
     * \param json : une chaîne de caractères contenant les données au format JSON.
-		* \param p_lang : une chaîne de caractères décrivant le langage utilisé.
+		* \param p_lang : une chaîne de caractères décrivant le langage de programmation utilisé.
+		* \param h_lang : une chaîne de caractères décrivant la langue utilisée.
 	  */
-	void initMaps(const std::string& json, const std::string& p_lang) {
+	void initMaps(const std::string& json, const std::string& p_lang, const std::string& h_lang) {
 		loaded = false;
 		keyToUsefullParams_map.clear();
 		keyToCallType_map.clear();
@@ -58,19 +59,34 @@ public:
 				for (rapidjson::Value::ConstMemberIterator it = doc.MemberBegin(); it != doc.MemberEnd(); it++) {
 					string_vector v;
 					std::string label = it->name.GetString();
-					for (rapidjson::Value::ConstMemberIterator _it = it->value.MemberBegin(); _it != it->value.MemberEnd(); _it++) {
-						std::string key = _it->name.GetString();
-						if (_it->value.IsBool() && _it->value.GetBool())
-							v.push_back(key);
-						else if (key.compare("call_type") == 0){
-							std::string call_type = _it->value.GetString();
-							keyToCallType_map.insert(std::make_pair<std::string, std::string>(label, call_type));
-						} else if (key.compare(p_lang+"_public_label") == 0){
-							std::string public_label = _it->value.GetString();
-							keyToPublicLabel_map.insert(std::make_pair<std::string, std::string>(label, public_label));
+					if (label.compare("_comment") != 0){ // exlude json comments
+						for (rapidjson::Value::ConstMemberIterator _it = it->value.MemberBegin(); _it != it->value.MemberEnd(); _it++) {
+							std::string key = _it->name.GetString();
+							if (_it->value.IsBool() && _it->value.GetBool())
+								v.push_back(key);
+							else if (key.compare("call_type") == 0){
+								std::string call_type = _it->value.GetString();
+								keyToCallType_map.insert(std::make_pair<std::string, std::string>(label, call_type));
+							} else if (key.compare(p_lang+"_public_label") == 0){
+								std::string public_label = _it->value.GetString();
+								if (public_label.find("["+h_lang+"]")!=std::string::npos){ // try to find human language use in game
+									std::string locale_label = public_label.substr (public_label.find("["+h_lang+"]")+4);
+									// try to find second end token
+									if (locale_label.find("["+h_lang+"]")!=std::string::npos){
+										public_label = locale_label.substr (0, locale_label.find("["+h_lang+"]"));
+									}
+								} else if (public_label.find("[en]")!=std::string::npos){ // try to find default one "english"
+									std::string locale_label = public_label.substr (public_label.find("[en]")+4);
+									// try to find second end token
+									if (locale_label.find("[en]")!=std::string::npos){
+										public_label = locale_label.substr (0, locale_label.find("[en]"));
+									}
+								}
+								keyToPublicLabel_map.insert(std::make_pair<std::string, std::string>(label, public_label));
+							}
 						}
+						keyToUsefullParams_map.insert(std::make_pair<std::string,string_vector>(label,v));
 					}
-					keyToUsefullParams_map.insert(std::make_pair<std::string,string_vector>(label,v));
 				}
 				loaded = true;
 			}
@@ -394,14 +410,14 @@ public:
 	  */
 	void setReturn();
 
-	/**
-	  * \brief Indique si l'appel a un retour.
-	  *
-	  * \return vrai si l'appel a un retour (robuste ou non), et faux sinon.
-	  */
-	bool hasReturn() const;
-
 protected:
+
+	/**
+		* \brief Indique si l'appel a un retour.
+		*
+		* \return vrai si l'appel a un retour (robuste ou non), et faux sinon.
+		*/
+	bool hasReturn() const;
 
 	/**
 	  * \brief Comparaison entre deux appels.

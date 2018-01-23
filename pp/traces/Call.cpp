@@ -21,10 +21,15 @@ Call::Call(const Call *c) : Trace(c) {
 
 bool Call::operator==(Trace *t) const {
 	bool res = false;
+	// chech if t is a call (probably an event)
 	if (t->isCall()) {
+		// cast trace into call
 		const Call *c = dynamic_cast<const Call*>(t);
+		// check if we have the same key ("PP_Open" for instance) and the same error
 		if (key.compare(c->key) == 0 && error == c->error) {
-			if (!hasReturn() || !c->hasReturn() || !Call::callMaps.contains(key,"return") || compareReturn(c))
+			// If we don't have to take into account return or the return is equal
+			if (!Call::callMaps.contains(key,"return") || compareReturn(c))
+				// We compare the two calls (parameters)
 				res = compare(c);
 		}
 	}
@@ -32,36 +37,44 @@ bool Call::operator==(Trace *t) const {
 }
 
 double Call::getEditDistance(const Call *c) const {
+	// check if the two call have the same key ("PP_Open" for instance)
 	if (key.compare(c->key) == 0) {
 		double dis = 0;
-		unsigned int tot = 2;
+		unsigned int tot = 1; // because they have the same key
+		// check if error is different
 		if (error != c->error){
 			dis++;
 			tot++;
 		}
-		if (ind_ret != 0 && c->ind_ret != 0 && key.compare("PP_GetUnitAt") != 0 && key.compare("PP_GetUnitAtIndexFirst") != 0) {
+		// check if we have to evaluate return
+		if (Call::callMaps.contains(key,"return")) {
 			tot++;
 			if (!compareReturn(c))
 				dis++;
 		}
+		// we compute parameters distance
 		std::pair<int,int> sub_dis = distance(c);
 		dis += sub_dis.first;
 		tot += sub_dis.second;
 		return dis / tot;
 	}
-	return 1;
+	return 1; // the two call haven't the same key => they are not the same
 }
 
 void Call::filterCall(const Call *c) {
-	if (!Call::callMaps.contains(key,"return") && ind_ret > 0 && !compareReturn(c) && ind_ret > - 1)
+	// We filter return value if it is not useful for compression and returns are differents
+	if (!Call::callMaps.contains(key,"return") && !compareReturn(c))
 		ind_ret = -1;
+	// We filter parameters
 	filter(c);
 }
 
 std::vector<std::string> Call::getListIdWrongParams(Call *c) const {
 	std::vector<std::string> ids;
-	if (ind_ret != 0 && c != NULL && c->ind_ret != 0 && key.compare("PP_GetUnitAt") != 0 && key.compare("PP_GetUnitAtIndexFirst") != 0 && !compareReturn(c))
+	// We add return as a wrong "parameter" if return is useful in compression and returns are differents
+	if (c != NULL && Call::callMaps.contains(key,"return") && !compareReturn(c))
 		ids.push_back("return");
+	// compute wrong parameters
 	std::vector<std::string> _ids = id_wrong_params(c);
 	ids.insert(ids.end(), _ids.begin(), _ids.end());
 	return ids;

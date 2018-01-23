@@ -1,33 +1,57 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
 	<feedbacks>
+		<!-- Generic call_lack -->
+		<feedback type="call_lack" priority="2000">
+			<infos lang="fr">
+				<info>Essayez d'utiliser l'appel *expert_call* dans votre programme*info*. Si votre programme utilise déjà cette fonction vérifiez qu'il ne se termine pas prématurément.</info>
+			</infos>
+			<infos lang="en">
+				<info>Think about using the call *expert_call* in your program*info*. If your program still includes this call, check if it doesn't exit prematurely.</info>
+			</infos>
+		</feedback>
+		<!-- Specific call_lack with PP_Close -->
 		<feedback type="call_lack" priority="0">
 			<expert>
 				<call label="PP_Close"/>
 			</expert>
 			<infos lang="fr">
-				<info>*PP_Close* doit être la dernière instruction de votre programme.</info>
+				<info>Aucun appel de *PP_Close* n'a été détecté. Si votre programme n'inclus pas cette fonction, vous devez l'ajouter à votre programme. Si votre programme utilise cette fonction vérifiez qu'il ne se termine pas prématurément.</info>
 			</infos>
 			<infos lang="en">
-				<info>*PP_Close* must be the last function called in your program.</info>
+				<info> No *PP_Close* detected. If your program doesn't include this call, you have to add it to your program. If your program still includes this call, check if it doesn't exit prematurely.</info>
+			</infos>
+		</feedback>
+		<feedback type="call_extra" priority="2000">
+			<infos lang="fr">
+				<info>L'appel *learner_call* n'est pas forcément nécessaire.</info>
+			</infos>
+			<infos lang="en">
+				<info>The call *learner_call* might be unnecessary.</info>
+			</infos>
+		</feedback>
+		<feedback type="call_params" priority="2100">
+			<infos lang="fr">
+				<info>Concernant l'appel *learner_call**info* : *diff_params*</info>
+			</infos>
+			<infos lang="en">
+				<info>Concerning the call *learner_call**info*: *diff_params*</info>
 			</infos>
 		</feedback>
 		<feedback type="useful_call" priority="500">
 			<infos lang="fr">
-				<info>Vous n'avez pas utilisé la fonction *label* dans votre programme.</info>
-				<info>Pensez à utiliser la fonction *label*. Elle peut être utile :)</info>
+				<info>La fonction *label* pourrait vous être utile, pensez à l'utiliser ou vérifier qu'elle est bien appelée dans votre programme.</info>
 			</infos>
 			<infos lang="en">
-				<info>You have not used the function *label* in your program.</info>
-				<info>Think about use the function *label*. It can be helpful :)</info>
+				<info>The *label* function could be useful, think about use this function or check if it is called in your program.</info>
 			</infos>
 		</feedback>
 		<feedback type="useless_call" priority="500">
 			<infos lang="fr">
-				<info>C'est curieux, vous êtes le premier joueur à utiliser la fonction *label* pour résoudre cette mission. Vous avez peut-être trouvé une nouvelle solution... ou alors vous ne devriez pas l'utiliser.</info>
+				<info>La fonction *label* ne semble pas être utile pour résoudre cette mission. Vous avez peut-être trouvé une nouvelle solution... ou alors vous ne devriez pas l'utiliser.</info>
 			</infos>
 			<infos lang="en">
-				<info>How about that! you are the first player to use the function *label* to resolve this mission. You may have found a new solution... or you shouldn't use it.</info>
+				<info>The *label* function seams not be useful to resolve this mission. You may have found a new solution... or you shouldn't use it.</info>
 			</infos>
 		</feedback>
 		<feedback type="seq_extra" priority="1000">
@@ -48,10 +72,10 @@
 		</feedback>
 		<feedback type="ind_seq_num" priority="1000">
 			<infos lang="fr">
-				<info>La boucle*info* contenant les appels *list_calls* semble correct, mais vous devriez vérifier sa condition d'arrêt. Elle tourne *learner_ind_seq_num* fois alors qu'elle devrait tourner *expert_ind_seq_num* fois.</info>
+				<info>La boucle*info* contenant les appels *list_calls* semble correcte, mais vous devriez vérifier sa condition d'arrêt. Elle semble tourner *learner_ind_seq_num* fois alors qu'elle devrait tourner *expert_ind_seq_num* fois.</info>
 			</infos>
 			<infos lang="en">
-				<info>Your loop*info* containing the calls *list_calls* seems to be correct, but you should check its termination condition. It turns *learner_ind_seq_num* times whereas it should turns *expert_ind_seq_num* times.</info>
+				<info>Your loop*info* containing the calls *list_calls* seems to be correct, but you should check its termination condition. It seams turning *learner_ind_seq_num* times whereas it should turns *expert_ind_seq_num* times.</info>
 			</infos>
 		</feedback>
 		<feedback type="dist_seq_num" priority="1000">
@@ -60,30 +84,6 @@
 			</infos>
 			<infos lang="en">
 				<info>Check the termination condition of the loop*info* including the calls *list_calls*.</info>
-			</infos>
-		</feedback>
-		<feedback type="call_extra" priority="2000">
-			<infos lang="fr">
-				<info>L'appel *learner_call* n'est pas forcément nécessaire.</info>
-			</infos>
-			<infos lang="en">
-				<info>The call *learner_call* might be unnecessary.</info>
-			</infos>
-		</feedback>
-		<feedback type="call_lack" priority="2000">
-			<infos lang="fr">
-				<info>Essayez d'utiliser l'appel *expert_call* dans votre programme*info*.</info>
-			</infos>
-			<infos lang="en">
-				<info>Think about using the call *expert_call* in your program*info*.</info>
-			</infos>
-		</feedback>
-		<feedback type="call_params" priority="2100">
-			<infos lang="fr">
-				<info>Concernant l'appel *learner_call**info* : *diff_params*</info>
-			</infos>
-			<infos lang="en">
-				<info>Concerning the call *learner_call**info*: *diff_params*</info>
 			</infos>
 		</feedback>
 	</feedbacks>
@@ -100,19 +100,19 @@
 		<!-- This message is used when an endless loop has been detected and the mission is over. Then it is pretty sure than there is a problem in the running program -->
 		<message id="endless_loop">
 			<infos lang="fr">
-				<info>La mission est terminée mais pas votre programme. Il doit contenir une boucle infinie. Vérifiez les conditions de terminaison de vos boucles.</info>
+				<info>La mission est terminée mais pas votre programme (il doit contenir une boucle infinie, vérifiez les conditions de terminaison de vos boucles)</info>
 			</infos>
 			<infos lang="en">
-				<info>The mission is over but your program isn't. It certainly contains an infinite loop. Check the termination conditions of your loops.</info>
+				<info>The mission is over but your program isn't (it certainly contains an infinite loop, check the termination conditions of your loops)</info>
 			</infos>
 		</message>
 		<!-- This message is used when an endless loop has been detected and the mission is not over yet -->
 		<message id="probable_endless_loop">
 			<infos lang="fr">
-				<info>Toutes vos unités sont inactives dans le jeu et pourtant votre programme s'exécute encore.</info>
+				<info>Toutes vos unités sont inactives dans le jeu et pourtant votre programme s'exécute encore</info>
 			</infos>
 			<infos lang="en">
-				<info>All your units are idled in the game but you program is still running.</info>
+				<info>All your units are idled in the game but you program is still running</info>
 			</infos>
 		</message>
 		<message id="return">
@@ -163,12 +163,20 @@
 				<info>Check the value of the index used as a parameter</info>
 			</infos>
 		</message>
-		<message id="unitType">
+		<message id="unitId">
 			<infos lang="fr">
-				<info>Vous ne devriez peut-être pas appeler cette fonction en utilisant une unité de ce type</info>
+				<info>Vous ne devriez peut-être pas appeler cette fonction avec cette unité</info>
 			</infos>
 			<infos lang="en">
-				<info>Maybe you shouldn't call this function with a unit of this type</info>
+				<info>Maybe you shouldn't call this function with this unit</info>
+			</infos>
+		</message>
+		<message id="unitType">
+			<infos lang="fr">
+				<info>Vous devriez peut-être appeler cette fonction en utilisant une unité d'une autre type</info>
+			</infos>
+			<infos lang="en">
+				<info>Maybe you should call this function with another type of unit</info>
 			</infos>
 		</message>
 		<message id="groupId">
@@ -185,6 +193,14 @@
 			</infos>
 			<infos lang="en">
 				<info>The given order might not be the good one</info>
+			</infos>
+		</message>
+		<message id="targetId">
+			<infos lang="fr">
+				<info>Cibler cette unité n'est peut-être pas une bonne idée ici</info>
+			</infos>
+			<infos lang="en">
+				<info>Targeting this unit might not be a terrific idea here</info>
 			</infos>
 		</message>
 		<message id="targetType">
@@ -269,58 +285,58 @@
 		</message>
 		<message id="unit_not_found">
 			<infos lang="fr">
-				<info>Il semblerait que l'unité que vous passez lors de l'appel *learner_call* n'existe pas.</info>
+				<info>Il semblerait que l'unité utilisée n'existe pas</info>
 			</infos>
 			<infos lang="en">
-				<info>It seems the unit you passed with the call *learner_call* does not exist.</info>
+				<info>It seems the unit used does not exist</info>
 			</infos>
 		</message>
 		<message id="not_unit_owner">
 			<infos lang="fr">
-				<info>Lors de l'appel *learner_call*, vous tentez de commander une unité qui ne vous appartient pas. Vous vous doutez bien que cela est interdit.</info>
+				<info>Vous tentez de commander une unité qui ne vous appartient pas</info>
 			</infos>
 			<infos lang="en">
-				<info>With the call *learner_call*, you try to command a unit that is not in your coalition. This is forbidden.</info>
+				<info>You try to command a unit that is not in your coalition</info>
 			</infos>
 		</message>
 		<message id="target_not_found">
 			<infos lang="fr">
-				<info>Lors de l'appel *learner_call*, vous avez ordonné à une unité d'effectuer une action sur une unité qui n'existe pas.</info>
+				<info>Vous avez ordonné à une unité d'effectuer une action sur une cible qui n'existe pas</info>
 			</infos>
 			<infos lang="en">
-				<info>With the call *learner_call*, you ordered a unit to execute an action on a unit which does not exist.</info>
+				<info>You ordered a unit to execute an action on a target which does not exist.</info>
 			</infos>
 		</message>
 		<message id="invalid_coalition">
 			<infos lang="fr">
-				<info>Attention à la valeur de coalition que vous passez en paramètres de l'appel *learner_call*. Seulement trois valeurs sont possibles : MY_COALITION, ALLY_COALITION et ENEMY_COALITION.</info>
+				<info>Coalition inconnue</info>
 			</infos>
 			<infos lang="en">
-				<info>Watch out the coalition value given as a parameter for the call *learner_call*. Three values are allowed: MY_COALITION, ALLY_COALITION and ENEMY_COALITION.</info>
+				<info>Unknown coalition</info>
 			</infos>
 		</message>
 		<message id="out_of_range">
 			<infos lang="fr">
-				<info>Le paramètre *out_of_range_param* de l'appel *learner_call* dépasse les bornes des valeurs autorisées.</info>
+				<info>Un paramètre dépasse les bornes des valeurs autorisées</info>
 			</infos>
 			<infos lang="en">
-				<info>The parameter *out_of_range_param* of the call *learner_call* is out of range.</info>
+				<info>Parameter out of range</info>
 			</infos>
 		</message>
 		<message id="position_out_of_bounds">
 			<infos lang="fr">
-				<info>Avec l'appel *learner_call*, vous avez ordonné à une unité d'effectuer une action en dehors de la carte.</info>
+				<info>Vous avez ordonné à une unité d'effectuer une action en dehors de la carte</info>
 			</infos>
 			<infos lang="en">
-				<info>With the call *learner_call*, you ordered a unit to execute an action outside the map.</info>
+				<info>You ordered a unit to execute an action outside the map</info>
 			</infos>
 		</message>
 		<message id="invalid_group">
 			<infos lang="fr">
-				<info>Avec l'appel *learner_call*, vous utilisez un numéro de groupe non valide.</info>
+				<info>Vous utilisez un numéro de groupe non valide</info>
 			</infos>
 			<infos lang="en">
-				<info>With the call *learner_call*, you use an invalid group number.</info>
+				<info>You use an invalid group number</info>
 			</infos>
 		</message>
 	</messages>

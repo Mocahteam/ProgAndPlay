@@ -8,6 +8,7 @@
 int TracesParser::lineNum = 0;
 int TracesParser::mission_end_time = 0;
 int TracesParser::execution_start_time = 0;
+std::string TracesParser::lang = "";
 std::string TracesParser::mission_name = "";
 std::string TracesParser::params_json = "";
 Trace::sp_trace TracesParser::spe_eme;
@@ -278,7 +279,7 @@ Trace::sp_trace TracesParser::handleLine(const std::string& s) {
 				#ifdef DEBUG
 				 	osParser << "Params defined, use it to compress and analyse." << std::endl;
 				#endif
-				Call::callMaps.initMaps(TracesParser::params_json, tokens[ind+1]);
+				Call::callMaps.initMaps(TracesParser::params_json, tokens[ind+1], TracesParser::lang);
 			} else {
 				#ifdef DEBUG
 					osParser << "No params defined\nUsing default compression options." << std::endl;
@@ -1053,6 +1054,10 @@ void TracesParser::setProceed(bool proceed) {
 
 bool TracesParser::getProceed() {
 	return proceed;
+}
+
+void TracesParser::setLang(std::string lang){
+	TracesParser::lang = lang;
 }
 
 std::vector<std::string> TracesParser::splitLine(const std::string& s, char delim) {

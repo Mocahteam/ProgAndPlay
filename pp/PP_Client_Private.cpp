@@ -707,7 +707,7 @@ bounds\n");
 
 					// compute target position on map border
 					PP_Pos p1;
-					ret = PP_Unit_GetPosition_prim(unit, &p1);
+					PP_Unit_GetPosition_prim(unit, &p1);
 					PP_Pos p2 = pos;
 					if (p1.x == p2.x){
 						// move verticaly
