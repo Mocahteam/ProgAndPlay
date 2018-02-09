@@ -209,21 +209,21 @@ public:
 		}
 
 		/**
-		  * \brief Affichage du feedback.
+		  * \brief Export du feedback sous la forme d'une chaine de caractère.
 	      *
-	      * \param os le flux de sortie utilisé pour l'affichage.
+	      * \param os le flux de sortie utilisé pour l'export.
 	      *
 	      */
-		void display(std::ostream &os = std::cout) {
+		void exportAsString(std::ostream &os = std::cout) {
 			os << "feedback : " << info << std::endl;
 			os << "type : " << std::string(Call::getEnumLabel<FeedbackType>(type,feedbackTypesArr)) << std::endl;
 			if (learner_spt) {
 				os << "learner : " << std::endl;
-				learner_spt->display(os);
+				learner_spt->exportAsString(os);
 			}
 			if (expert_spt) {
 				os << "expert : " << std::endl;
-				expert_spt->display(os);
+				expert_spt->exportAsString(os);
 			}
 			os << "priority : " << priority << std::endl;
 		}

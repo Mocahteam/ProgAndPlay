@@ -39,7 +39,7 @@
 /**
   * Seuil utilisé pour stopper et éviter toute future recherche de répétitions d'un groupe de traces à partir d'une trace.
   *
-  * \see TracesParser::detectSequences
+  * \see TracesParser::compressSequences
   */
 #define MAX_END_SEARCH 10
 
@@ -54,10 +54,8 @@ public:
 
 	/**
 	  * \brief Constructeur de TracesParser.
-	  *
-	  * \param in_game indique si la compression doit se faire en cours de jeu.
 	  */
-	TracesParser(bool in_game);
+	TracesParser();
 
 	/**
 	  * \brief Destructeur de TracesParser.
@@ -76,26 +74,16 @@ public:
 	  *
 	  * \param dir_path le chemin d'accès au fichier.
 	  * \param filename le nom du fichier.
+	  * \param waitEndFlag si true (défaut) l'appel est bloquant jusqu'à ce que le flag "end" soit activé (voir TraceParser::setEnd) - utile si le fichier de trace est alimenté en mêùme temps qu'il est lu (cas de Prog&Play). Si false le fichier de trace est lu et analysé en une seule fois.
 	  */
-	void parseTraceFileOffline(const std::string& dir_path, const std::string& filename);
-
-//  A SUPPRIMER ???
-// 	/**
-// 	  * \brief Lancement du parsage d'un fichier de traces brutes.
-// 	  *
-// 	  * Cette fonction permet de parser un fichier de traces brutes. Les traces sont simplement ajoutées dans le vecteur TracesParser::traces sans aucune compression.
-// 	  *
-// 	  * \param dir_path le chemin d'accès au fichier.
-// 	  * \param filename le nom du fichier.
-// 	  */
-// 	void parseTraceFile(const std::string& dir_path, const std::string& filename);
+	void parseLogFile(const std::string& dir_path, const std::string& filename, bool waitEndFlag = true);
 
 	/**
-	  * \brief Affichage des traces contenues dans le vecteur TracesParser::traces.
+	  * \brief Export des traces contenues dans le vecteur TracesParser::traces sous la forme d'une chaîne de caractère.
 	  *
-	  * \param os le flux de sortie à utiliser pour l'affichage.
+	  * \param os le flux de sortie à utiliser pour la sortie.
 	  */
-	void display(std::ostream &os = std::cout);
+	void exportTracesAsString(std::ostream &os = std::cout);
 
 	/**
 	  * \brief Setter pour la variable TracesParser::end.
@@ -152,15 +140,13 @@ public:
 	static void setLang(std::string lang);
 
 	/**
-	  * \brief Instantiation d'un objet Trace à partir d'une chaîne de caractères.
-	  *
-	  * Cette fonction est utilisée pour l'instanciation d'objets de type Call et Event.
+	  * \brief Analyse la chaine de caractère passée en paramètre et peut : (1) initialiser TracesParser::mission_name si le token GAME_START est detecté, (2) initialiser TracesParser::mission_end_time si le token MISSION_END_TIME est detecté, (3) initialiser TracesParser::execution_start_time si le token EXECUTION_START_TIME est detecté, (4) construire un objet Trace et le retourner (les objets Trace construits peuvent être des objets de type Call, StartMissionEvent, NewExecutionEvent, EndExecutionEvent, EndMissionEvent ou Event). A noter que pour les cas 1 à 3 NULL est retourné.
 	  *
 	  * \param s une chaîne de caractères formatée selon le modèle de traces défini.
 	  *
-	  * \return un pointeur intelligent de type Trace::sp_trace pointant vers l'objet Trace créé, ou vers NULL si aucun objet n'a été créé lors de l'appel.
+	  * \return un pointeur intelligent de type Trace::sp_trace pointant vers l'objet Trace créé, ou NULL si aucun objet n'a pu être créé à partir de la chaine de caractère (dans ce cas d'autres variable statiques ont pu être initialisées).
 	  */
-	static Trace::sp_trace handleLine(const std::string& s);
+	static Trace::sp_trace parseLine(const std::string& s);
 
 	/**
 	  * \brief Fusion de deux séquences
@@ -173,7 +159,7 @@ public:
 	  * \return la nouvelle séquence créée résultante de la fusion de \p sps_up et \p sps_down.
 	  *
 	  * \see Sequence::compare
-	  * \see TracesParser::detectSequences
+	  * \see TracesParser::compressSequences
 	  */
 	static Sequence::sp_sequence mergeSequences(Sequence::sp_sequence sps_up, Sequence::sp_sequence sps_down);
 
@@ -263,19 +249,9 @@ private:
 	static int execution_start_time;
 
 	/**
-	  * L'événement de fin de mission. Cet objet doit être conservé car l'événement de fin de mission n'est pas forcément la dernière trace dans un fichier de traces brutes.
-	  */
-	static Trace::sp_trace spe_eme;
-
-	/**
 		* Language utilisé
 		*/
 	static std::string lang;
-
-	/**
-	  * Booléen utilisé pour indiquer si l'objet TracesParser est utilisé dans le moteur de jeu ou dans le programme utilisable en ligne de commandes.
-	  */
-	bool in_game;
 
 	/**
 	  * Booléen utilisé comme pour bloquer l'utilisation de l'objet TracesParser une fois une tâche de parsage de fichier de traces brutes lancée.
@@ -288,7 +264,7 @@ private:
 	bool compressed;
 
 	/**
-	  * Booléen mis à vrai par le moteur de jeu pour mettre fin à l'attente active effectuée par la fonction TracesParser::readTracesOfflineInGame. Une boucle présent dans cette fonction va tester l'ajout d'une nouvelle entrée ajoutée à la fin du fichier de traces brutes (afin de la traiter) tant que ce booléen est à faux.
+	  * Booléen mis à vrai par le moteur de jeu pour mettre fin à l'attente active effectuée par la fonction TracesParser::parseLogFile. Une boucle présent dans cette fonction va tester l'ajout d'une nouvelle entrée ajoutée à la fin du fichier de traces brutes (afin de la traiter) tant que ce booléen est à faux.
 	  */
 	bool end;
 
@@ -320,7 +296,11 @@ private:
 	/**
 	  * Un vecteur contenant les objets Trace créés lors du parsage du fichier de traces brutes. Lors de l'étape de compression, ce vecteur est modifié. A la fin de la compression, il contient l'ensemble des traces compressées.
 	  */
-	std::vector<Trace::sp_trace> traces;
+	//std::vector<Trace::sp_trace> traces;
+	/**
+	  * Une séquence contenant les objets Trace créés lors du parsage du fichier de traces brutes. Lors de l'étape de compression, cette séquence est modifiée. A la fin de la compression, elle contient l'ensemble des traces compressées.
+	  */
+	Sequence::sp_sequence root;
 
 	/**
 	  * \brief Initialisation du parsage d'un fichier de traces brutes.
@@ -332,65 +312,33 @@ private:
 	  *
 	  * \return vrai si le parsage du fichier de traces brutes peut débuter, et faux sinon.
 	  */
-	bool beginParse(const std::string& dir_path, const std::string& filename);
+	bool InitResources(const std::string& dir_path, const std::string& filename);
 
 	/**
-	  * \brief Fin du parsage d'un fichier de traces brutes.
-	  *
-	  * Cette fonction réinitialise les valeurs des variables qui doivent l'être.
+	  * \brief Cette fonction réinitialise les données et ressources qui doivent l'être.
 	  */
-	void endParse();
+	void CloseResources();
 
 	/**
-	  * \brief Export des résultats de la compression.
+	  * \brief Sauvegarde les résultats de la compression.
 	  *
 	  * Cette fonction est utilisée pour sauvegarder les résultats de la compression. Les résultats seront sauvegardés dans un fichier d'extension .txt et dans un document XML qui pourra être utilisé pour l'analyse de ces traces. Enfin, le booléen TracesParser::compressed est mis à vrai pour informer le moteur de jeu de la fin de la compression et de la disponibilité des résultats.
 	  */
-	void writeFiles();
-
-	/**
-	  * \brief Parsage des traces brutes en ligne de commandes.
-	  *
-	  * Cette fonction sert à parser les traces brutes dans le contexte d'une utilisation du programme en ligne de commandes.
-	  */
-	void readTracesOffline();
-
-	/**
-	  * \brief Parsage des traces brutes en cours de partie.
-	  *
-	  * Cette fonction est utilisée pour parser les traces brutes dans le contexte d'une utilisation de l'objet TracesParser au sein du moteur de jeu (cf. la classe CProgAndPlay).
-	  */
-	void readTracesOfflineInGame();
-
-	/**
-	  * \brief Exportation de traces vers un document XML.
-	  *
-	  * Cette fonction permet d'exporter les traces contenues dans le vecteur TracesParser::traces, i.e. l'ensemble des informations et des traces relatifs à un ou plusieurs lancements de mission, vers un nouveau document XML. Le fichier XML créé est placé dans le même répertoire que celui du fichier de traces brutes. Il est nommé 'filename_compressed.xml' où filename est égal à TracesParser::filename (sans l'extension ".log").
-	  */
-	void exportTraceToXml();
-
-	/**
-	  * \brief Parcours du fichier de traces brutes pour atteindre la dernière occurrence de 'start mission_name' présente dans le fichier.
-	  *
-	  * Cette fonction est utilisée lorsque la compression est lancée en cours de partie, i.e. si TracesParser::in_game est à vrai. Elle permet de parcourir le fichier de traces brutes à l'aide de l'objet TracesParser::ifs et de définir ainsi la position du curseur de lecture de sorte à ce que la prochaine ligne qui sera extraite avec la fonction getline() sera la dernière occurrence de 'start mission_name' présente dans le fichier. Le fichier doit donc contenir au moins une occurrence de ce type.
-	  *
-	  * \return vrai si la dernière occurrence a été trouvée et si le curseur a bien été positionné, et faux sinon.
-	  */
-	bool reachLastStart();
+	void saveCompression();
 
 	/**
 	  * \brief Fonction de pré-compression
 	  *
-	  * Cette fonction est utilisée pour compacter directement (i.e. avant tout appel à TracesParser::detectSequences) les appels qui se répètent dans la trace de façon contiguë. Elle permet ainsi de gagner un temps considérable dans certains cas comparé au temps de traitement qui serait requis par la fonction TracesParser::detectSequences.
+	  * Cette fonction est utilisée pour compacter directement (i.e. avant tout appel à TracesParser::compressSequences) les appels qui se répètent dans la trace de façon contiguë. Elle permet ainsi de gagner un temps considérable dans certains cas comparé au temps de traitement qui serait requis par la fonction TracesParser::compressSequences.
 	  *
 	  * \param spt une nouvelle trace à ajouter dans le vecteur TracesParser::traces.
 	  */
-	void handleTraceOffline(Trace::sp_trace& spt);
+	void inlineCompression(Trace::sp_trace& spt);
 
 	/**
 	  * \brief Test de la possibilité de répétitions d'un groupe de traces.
 	  *
-	  * Cette fonction est utilisée par la fonction TracesParser::detectSequences lors de la recherche de répétitions d'un groupe de traces dans TracesParser::traces. Le test consiste à vérifier si TracesParser::traces contient assez de traces à partir d'un certain indice. Cette fonction est une optimisation permettant d'éviter le lancement d'opérations de comparaison qui retourneront forcément des résultats négatifs.
+	  * Cette fonction est utilisée par la fonction TracesParser::compressSequences lors de la recherche de répétitions d'un groupe de traces dans TracesParser::traces. Le test consiste à vérifier si TracesParser::traces contient assez de traces à partir d'un certain indice. Cette fonction est une optimisation permettant d'éviter le lancement d'opérations de comparaison qui retourneront forcément des résultats négatifs.
 	  */
 	bool checkFeasibility(unsigned int min_length, unsigned int ind_start);
 
@@ -399,7 +347,7 @@ private:
 	  *
 	  * Cette fonction est la fonction qui va compresser les traces en effectuant des parcours du vecteur TracesParser::traces. La compression étant effectuée en mode hors-ligne, elle doit être appelée uniquement lorsque TracesParser::traces est complet, i.e. qu'aucune nouvelle trace ne doit être ajoutée en cours de traitement.
 	  */
-	void detectSequences();
+	void compressSequences();
 
 };
 

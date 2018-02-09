@@ -24,7 +24,7 @@ Trace::sp_trace Event::clone() const {
 	return boost::make_shared<Event>(this);
 }
 
-void Event::display(std::ostream &os) const {
+void Event::exportAsString(std::ostream &os) const {
 	for (int i = 0; i <= numTab; i++)
 		os << "\t";
 	os << label;

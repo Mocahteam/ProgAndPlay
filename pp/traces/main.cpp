@@ -8,7 +8,7 @@
 #include "../test/constantList_KP4.1.h"
 
 static std::string dir_path = "./example";
-static TracesParser tp(false);
+static TracesParser tp;
 
 int compressAllTraces(std::string dir_path) {
 	DIR *pdir;
@@ -27,7 +27,7 @@ int compressAllTraces(std::string dir_path) {
 			std::string filename(pent->d_name);
 			if (filename.find("_compressed") == std::string::npos && filename.find(".log") != std::string::npos && filename.compare("meta.log") != 0) {
 				std::cout << "parse " << dir_path << "\\" << filename << std::endl;
-				tp.parseTraceFileOffline(dir_path, filename);
+				tp.parseLogFile(dir_path, filename, false);
 			}
 		}
 	}
@@ -144,7 +144,7 @@ int main(int argc, char *argv[]) {
 		return compressAllTraces(dir_path);
 	else {
 		// Compression
-		tp.parseTraceFileOffline(dir_path, argv[1]);
+		tp.parseLogFile(dir_path, argv[1], false);
 		std::cout << "traces compressed" << std::endl;
 		if (analysis) {
 			std::cout << "launch analysis" << std::endl;

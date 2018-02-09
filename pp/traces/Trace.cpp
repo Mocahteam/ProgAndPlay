@@ -2,7 +2,7 @@
 
 int Trace::numTab = 0;
 
-Trace::Trace(TraceType type, std::string info): indSearch(-1), lenSearch(1), endSearch(0), type(type), info(info), delayed(false) {}
+Trace::Trace(TraceType type, std::string info): indSearch(-1), lenSearch(1), type(type), info(info), delayed(false) {}
 
 // Constructeur utilisé pour cloner un objet Trace
 Trace::Trace(const Trace *t) {

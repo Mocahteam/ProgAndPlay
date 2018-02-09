@@ -64,7 +64,7 @@ Trace::sp_trace Sequence::clone() const {
 	return sps_clone;
 }
 
-void Sequence::display(std::ostream &os) const {
+void Sequence::exportAsString(std::ostream &os) const {
 	numTab++;
 	for (int i = 0; i < numTab; i++)
 		os << "\t";
@@ -75,7 +75,7 @@ void Sequence::display(std::ostream &os) const {
 	else
 		os << "Root" << std::endl;
 	for (unsigned int i = 0; i < traces.size(); i++)
-		traces.at(i)->display(os);
+		traces.at(i)->exportAsString(os);
 	for (int i = 0; i < numTab; i++)
 		os << "\t";
 	if (!root)
@@ -170,6 +170,11 @@ void Sequence::reset() {
 			s->reset();
 		}
 	}
+}
+
+void Sequence::clear() {
+	traces.clear();
+	reset();
 }
 
 bool Sequence::isEndReached() const {

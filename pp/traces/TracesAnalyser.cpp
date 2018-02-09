@@ -167,13 +167,13 @@ std::string TracesAnalyser::constructFeedback(const std::string& learner_xml, co
 					reimport = addImplicitSequences(learner_gi.root_sps, expert_gi.root_sps);
 					if (reimport) {
 						osAnalyser << "learner traces have been modified\n" << std::endl;
-						learner_gi.root_sps->display(osAnalyser);
+						learner_gi.root_sps->exportAsString(osAnalyser);
 					}
 					else
 						osAnalyser << "learner traces have not been modified\n" << std::endl;
 					if (addImplicitSequences(expert_gi.root_sps, learner_gi.root_sps)) {
 						osAnalyser << "expert traces have been modified\n" << std::endl;
-						expert_gi.root_sps->display(osAnalyser);
+						expert_gi.root_sps->exportAsString(osAnalyser);
 					}
 					else
 						osAnalyser << "expert traces have not been modified\n" << std::endl;
@@ -297,7 +297,7 @@ std::string TracesAnalyser::constructFeedback(const std::string& learner_xml, co
 									osAnalyser << "feedback added" << std::endl;
 								}
 							}
-							feedbacks.at(i).display(osAnalyser);
+							feedbacks.at(i).exportAsString(osAnalyser);
 						}
 						osAnalyser << "_________" << std::endl;
 
@@ -407,7 +407,6 @@ bool TracesAnalyser::getInfosOnExecution(GameInfos& gi, int ind_execution) {
 				gi.root_sps = boost::make_shared<Sequence>(1,true);
 				for (int j = ind_start; j < ind_end; j++) {
 					gi.root_sps->addTrace(m_traces.at(j));
-					//m_traces.at(j)->setParent(gi.root_sps);
 				}
 				return true;
 			}
@@ -418,9 +417,9 @@ bool TracesAnalyser::getInfosOnExecution(GameInfos& gi, int ind_execution) {
 
 bool TracesAnalyser::addImplicitSequences(Sequence::sp_sequence& mod_sps, Sequence::sp_sequence& ref_sps) const {
 	osAnalyser << "mod : " << std::endl;
-	mod_sps->display(osAnalyser);
+	mod_sps->exportAsString(osAnalyser);
 	osAnalyser << "ref : " << std::endl;
-	ref_sps->display(osAnalyser);
+	ref_sps->exportAsString(osAnalyser);
 	Trace::sp_trace spt;
 	Sequence::sp_sequence sps = ref_sps;
 	sps->reset();
@@ -439,7 +438,7 @@ bool TracesAnalyser::addImplicitSequences(Sequence::sp_sequence& mod_sps, Sequen
 				sps = boost::dynamic_pointer_cast<Sequence>(spt);
 				stack.push(sps);
 				osAnalyser << "sps" << std::endl;
-				sps->display(osAnalyser);
+				sps->exportAsString(osAnalyser);
 				Call::call_vector pattern = sps->getCalls();
 				// looking for the pattern in mod_sps calls
 				std::vector<Call::call_vector> patterns = getPatterns(mod_sps,pattern);
@@ -447,7 +446,7 @@ bool TracesAnalyser::addImplicitSequences(Sequence::sp_sequence& mod_sps, Sequen
 				for (unsigned int i = 0; i < patterns.size(); i++) {
 					// for each pattern found in mod_sps calls we search a common parent with the maximum level in the tree
 					const Sequence::sp_sequence common_parent = getClosestCommonParent(patterns.at(i));
-					common_parent->display(osAnalyser);
+					common_parent->exportAsString(osAnalyser);
 					if ((common_parent->isRoot() || common_parent->length() > sps->length()) && common_parent->getLevel() == sps->getLevel()-1) {
 						change = true;
 						Sequence::sp_sequence new_sps = boost::make_shared<Sequence>(1);
@@ -468,12 +467,9 @@ bool TracesAnalyser::addImplicitSequences(Sequence::sp_sequence& mod_sps, Sequen
 						for (unsigned int j = 0, h = 0; j < adds.size() && h < t.size();) {
 							if (t.at(h) == adds.at(j)) {
 								new_sps->addTrace(t.at(h));
-								//t.at(h)->setParent(new_sps);
 								t.erase(t.begin() + h);
 								if (j++ == 0) {
 									common_parent->addTrace(new_sps,h++);
-									//t.insert(t.begin() + h, new_sps);
-									//new_sps->setParent(common_parent);
 								}
 							}
 							else
@@ -554,13 +550,13 @@ std::pair<double,double> TracesAnalyser::findBestAlignment(const std::vector<Tra
 	char** help = new char*[lsize];
 	osAnalyser << "begin findBestAlignment" << std::endl;
 	for (unsigned int i = 0; i < l.size(); i++) {
-		l.at(i)->display(osAnalyser);
+		l.at(i)->exportAsString(osAnalyser);
 		if (align)
 			l.at(i)->resetAligned();
 	}
 	osAnalyser << std::endl;
 	for (unsigned int j = 0; j < e.size(); j++) {
-		e.at(j)->display(osAnalyser);
+		e.at(j)->exportAsString(osAnalyser);
 		if (align)
 			e.at(j)->resetAligned();
 	}
@@ -717,9 +713,9 @@ void TracesAnalyser::displayAlignment(const std::vector<Trace::sp_trace>& l, con
 	unsigned int i = 0, j = 0;
 	while (i < l.size() || j < e.size()) {
 		if (i < l.size() && j < e.size() && l.at(i)->getAligned() && e.at(j)->getAligned()) {
-			l.at(i)->display(osAnalyser);
+			l.at(i)->exportAsString(osAnalyser);
 			osAnalyser << "with" << std::endl;
-			l.at(i)->getAligned()->display(osAnalyser); //l.at(i)->aligned is equal to e.at(j) in this case
+			l.at(i)->getAligned()->exportAsString(osAnalyser); //l.at(i)->aligned is equal to e.at(j) in this case
 			if (l.at(i)->isSequence() && l.at(i)->getAligned()->isSequence()) {
 				osAnalyser << "enter both sequence" << std::endl;
 				displayAlignment(dynamic_cast<Sequence*>(l.at(i).get())->getTraces(), dynamic_cast<Sequence*>(l.at(i)->getAligned().get())->getTraces());
@@ -729,14 +725,14 @@ void TracesAnalyser::displayAlignment(const std::vector<Trace::sp_trace>& l, con
 			j++;
 		}
 		else if (i < l.size() && !l.at(i)->getAligned()) {
-			l.at(i++)->display(osAnalyser);
+			l.at(i++)->exportAsString(osAnalyser);
 			osAnalyser << "with" << std::endl;
 			osAnalyser << "\t-" << std::endl;
 		}
 		else if (j < e.size() && !e.at(j)->getAligned()) {
 			osAnalyser << "\t-" << std::endl;
 			osAnalyser << "with" << std::endl;
-			e.at(j++)->display(osAnalyser);
+			e.at(j++)->exportAsString(osAnalyser);
 		}
 		osAnalyser << std::endl;
 	}
@@ -757,9 +753,9 @@ void TracesAnalyser::bindFeedbacks() {
 				else if (score == max_score && (ind_max == -1 || ref_feedbacks.at(ind_max).priority > ref_feedbacks.at(j).priority))
 					ind_max = j;
 				osAnalyser << "---" << std::endl;
-				feedbacks.at(i).display(osAnalyser);
+				feedbacks.at(i).exportAsString(osAnalyser);
 				osAnalyser << std::endl;
-				ref_feedbacks.at(j).display(osAnalyser);
+				ref_feedbacks.at(j).exportAsString(osAnalyser);
 				osAnalyser << std::endl;
 				osAnalyser << "score :" << score << std::endl;
 				osAnalyser << "---" << std::endl;
@@ -850,7 +846,7 @@ void TracesAnalyser::filterFeedbacks() {
 	const std::vector<Trace::sp_trace>& e = expert_gi.root_sps->getTraces();
 	for (unsigned int i = 0; i < feedbacks.size(); i++) {
 		osAnalyser << "(before filter)[" << std::endl;
-		feedbacks.at(i).display(osAnalyser);
+		feedbacks.at(i).exportAsString(osAnalyser);
 		osAnalyser << "]" << std::endl;
 	}
 	std::vector<unsigned int> to_erase;
@@ -862,7 +858,7 @@ void TracesAnalyser::filterFeedbacks() {
 	// for (unsigned int i = 0; i < feedbacks.size(); i++) {
 		// if (feedbackTypeIn(feedbacks.at(i).type, 4, CALL_LACK, CALL_EXTRA, SEQ_LACK, SEQ_EXTRA)) { // change types here to specify which types have to be removed
 			// to_erase.push_back(i);
-			// feedbacks.at(i).display(osAnalyser);
+			// feedbacks.at(i).exportAsString(osAnalyser);
 		// }
 	// }
 	// osAnalyser << "---\n" << std::endl;
@@ -882,7 +878,7 @@ void TracesAnalyser::filterFeedbacks() {
 					Feedback& af = feedbacks.at(j);
 					if (gf.type == af.type && gf.info.compare(af.info) == 0){
 						to_erase.push_back(j);
-						af.display(osAnalyser);
+						af.exportAsString(osAnalyser);
 					}
 				}
 			}
@@ -911,11 +907,11 @@ void TracesAnalyser::filterFeedbacks() {
 					if (sec_spc && spc->getKey().compare(sec_spc->getKey()) == 0) {
 						if (gf.priority <= af.priority) {
 							to_erase.push_back(j);
-							af.display(osAnalyser);
+							af.exportAsString(osAnalyser);
 						}
 						else {
 							to_erase.push_back(i);
-							gf.display(osAnalyser);
+							gf.exportAsString(osAnalyser);
 						}
 						break;
 					}
@@ -958,7 +954,7 @@ void TracesAnalyser::filterFeedbacks() {
 							// }
 							// if (del) {
 								// to_erase.push_back(h);
-								// af.display(osAnalyser);
+								// af.exportAsString(osAnalyser);
 								// break;
 							// }
 						// }
@@ -979,7 +975,7 @@ void TracesAnalyser::filterFeedbacks() {
 			Sequence::sp_sequence sps = (f.type == SEQ_LACK) ? boost::dynamic_pointer_cast<Sequence>(f.expert_spt) : boost::dynamic_pointer_cast<Sequence>(f.learner_spt);
 			if (sps->length() == 1) {
 				to_erase.push_back(i);
-				f.display(osAnalyser);
+				f.exportAsString(osAnalyser);
 			}
 		}
 	}
@@ -1026,7 +1022,7 @@ void TracesAnalyser::filterFeedbacks() {
 					if (ind > -1) {
 						if (std::find(to_erase.begin(),to_erase.end(),ind) == to_erase.end()) {
 							to_erase.push_back(ind);
-							feedbacks.at(ind).display(osAnalyser);
+							feedbacks.at(ind).exportAsString(osAnalyser);
 						}
 						incr++;
 					}
@@ -1090,7 +1086,7 @@ void TracesAnalyser::filterFeedbacks() {
 						int ind = getFeedbackIndex(aligned->at(i));
 						if (ind > -1 && isExpertRelatedFeedback(feedbacks.at(ind).type) && std::find(to_erase.begin(),to_erase.end(),ind) == to_erase.end()) {
 							to_erase.push_back(ind);
-							feedbacks.at(ind).display(osAnalyser);
+							feedbacks.at(ind).exportAsString(osAnalyser);
 						}
 					}
 					if (!aligned->isRoot()) {
@@ -1122,7 +1118,7 @@ void TracesAnalyser::filterFeedbacks() {
 	osAnalyser << "end filter feedbacks [" << feedbacks.size() << " feedbacks left]" << std::endl;
 	for (unsigned int i = 0; i < feedbacks.size(); i++) {
 		osAnalyser << "(after filter)[" << std::endl;
-		feedbacks.at(i).display(osAnalyser);
+		feedbacks.at(i).exportAsString(osAnalyser);
 		osAnalyser << "]" << std::endl;
 	}
 }
@@ -1319,7 +1315,7 @@ void TracesAnalyser::listGlobalFeedbacks() {
 			if (!found) {
 				Feedback f;
 				f.type = USEFUL_CALL;
-				f.expert_spt = TracesParser::handleLine(it->first);
+				f.expert_spt = TracesParser::parseLine(it->first);
 				f.priority = -1;
 				feedbacks.push_back(f);
 			}

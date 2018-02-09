@@ -312,11 +312,11 @@ public:
 	virtual void filterCall(const Call *c);
 
 	/**
-	  * \brief Affichage des informations de l'objet Call.
+	  * \brief Export des informations de l'objet Call sous la forme d'une chaine de caractère.
 	  *
-	  * \param os le flux de sortie utilisé pour l'affichage.
+	  * \param os le flux de sortie utilisé pour la sortie.
 	  */
-	virtual void display(std::ostream &os = std::cout) const;
+	virtual void exportAsString(std::ostream &os = std::cout) const;
 
 	/**
 	  * \brief Clonage d'un appel.
