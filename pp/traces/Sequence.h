@@ -72,6 +72,13 @@ public:
 	Sequence(const_sp_sequence sps_up, const_sp_sequence sps_down);
 
 	/**
+	  * \brief Fonction principale de l'algorithme de compression hors-ligne.
+	  *
+	  * Cette fonction est la fonction qui va compresser les traces en effectuant des parcours du vecteur workingSequence en prenant comme point de départ "startingPoint" dans la sequence. Si "processOnlyCall" est à true on tente de ne compresser que les Calls (utile pour un pré-traitement en ligne)
+	  */
+	static void compressSequences(Sequence::sp_sequence& workingSequence, int startingPoint, bool processOnlyCall = false);
+
+	/**
 	  * \brief Récupération de la longueur (l'espace occupé dans un vecteur de traces) d'une séquence.
 	  *
 	  * La longueur d'une séquence est calculée de façon récursive en parcourant ses séquences et sous-séquences et en appelant Trace::length sur les traces parcourues.
@@ -150,18 +157,18 @@ public:
 	bool compare(Trace *t);
 
 	/**
-	  * \brief Construction d'une chaîne de caractères contenant les entrées d'un objet Sequence::numMap.
+	  * \brief Construction d'une chaîne de caractères contenant les entrées d'un objet Sequence::iterDesc.
 	  *
-	  * \param numMap l'objet numMap dont les informations doivent être récupérées sous forme de chaîne de caractères.
+	  * \param iterDesc l'objet iterDesc dont les informations doivent être récupérées sous forme de chaîne de caractères.
 	  *
 	  * \return la chaîne de caractères construite.
 	  */
 	template<typename T>
-	static std::string getNumMapString(const std::map<unsigned int,T>& numMap) {
+	static std::string getIterartionDescriptionString(const std::map<unsigned int,T>& iterDesc) {
 		std::stringstream ss;
-		typename std::map<unsigned int,T>::const_iterator it = numMap.begin();
-		while (it != numMap.end()) {
-			if (it != numMap.begin())
+		typename std::map<unsigned int,T>::const_iterator it = iterDesc.begin();
+		while (it != iterDesc.end()) {
+			if (it != iterDesc.begin())
 				ss << " ";
 			ss << it->first << ":" << it->second;
 			it++;
@@ -191,11 +198,11 @@ public:
 	unsigned int getNum() const;
 
 	/**
-	  * \brief Getter pour la variable Sequence::numMap.
+	  * \brief Getter pour la variable Sequence::iterDesc.
 	  *
-	  * \see Sequence::numMap
+	  * \see Sequence::iterDesc
 	  */
-	const std::map<unsigned int,unsigned int>& getNumMap() const;
+	const std::map<unsigned int,unsigned int>& getIterationDescription() const;
 
 	/**
 	  * \brief Getter pour la variable Sequence::num_fixed.
@@ -228,7 +235,7 @@ public:
 	/**
 	  * \brief Test si la séquence est une séquence implicite.
 	  *
-	  * Une séquence est implicite si la seule entrée contenue dans Sequence::numMap est <1:1>.
+	  * Une séquence est implicite si la seule entrée contenue dans Sequence::iterDesc est <1:1>.
 	  *
 	  * \return vrai si la séquence est implicite, et faux sinon.
 	  *
@@ -284,7 +291,7 @@ public:
 	/**
 	  * \brief Ajout d'une répétition pour la séquence.
 	  *
-	  * Cette fonction met à jour l'objet Sequence::numMap de la séquence.
+	  * Cette fonction met à jour l'objet Sequence::iterDesc de la séquence.
 	  */
 	void addOne();
 
@@ -330,50 +337,48 @@ public:
 	bool checkDelayed();
 
 	/**
-	  * \brief Mise à jour de Sequence::numMap.
+	  * \brief Ajoute une descrition d'itération à Sequence::iterDesc.
 	  *
-	  * Cette fonction va permettre d'ajouter l'entrée <\p num:\p update> dans l'objet Map \p numMap si aucune entrée avec la clé \p num ne s'y trouve déjà. Dans le cas contraire, l'entrée existante est modifiée et \p update est ajoutée à la valeur correspondante à cette entrée.
+	  * Cette fonction va permettre d'ajouter l'entrée <\p nbIter:\p appearance> dans l'objet Map \p iterDesc si aucune entrée avec la clé \p nbIter ne s'y trouve déjà. Dans le cas contraire, l'entrée existante est modifiée et \p appearance est ajouté à la valeur correspondante à cette entrée.
 	  *
-	  * \param num la clé de l'entrée à ajouter ou à modifier.
-	  * \param update la valeur de la mise à jour.
+	  * \param nbIter la clé de l'entrée à ajouter ou à modifier.
+	  * \param appearance la valeur indiquant le nombre de fois que la séquence a été exécutée nbIter fois.
 	  */
-	void updateNumMap(unsigned int num, int update = 1);
+	void addIteration(unsigned int nbIter, int appearance = 1);
 
 	/**
-	  * \brief Mise à jour de Sequence::numMap à partir d'une autre Sequence::numMap.
+	  * \brief Fusionne la descritpion des iterations Sequence::iterDesc avec la description passée en paramètre.
 	  *
-	  * Cette fonction est utilisée pour mettre à jour la variable Sequence::numMap de la séquence avec chacune des entrées de l'objet \p numMap passé en paramètres.
-	  *
-	  * \param numMap l'objet Map Sequence::numMap utilisé pour la mise à jour.
+	  * \param newIterationsDesc l'objet décrivant la description des itérations à intégrer.
 	  */
-	void updateNumMap(const std::map<unsigned int,unsigned int>& numMap);
+	void mergeIterationDescription(const std::map<unsigned int,unsigned int>& newIterationsDesc);
 
 	/**
-	  * \brief Complétion de Sequence::numMap.
+	  * \brief Complétion de Sequence::iterDesc.
 	  *
-	  * Il est possible qu'une séquence ne se répète qu'une fois à un moment donné dans les traces brutes. Lors de la compression, cette seule itération n'est alors pas modélisée par un objet Sequence mais par un ensemble de traces dans TracesParser::traces. Cette fonction se base donc sur la séquence parente (Trace::parent) de l'objet Sequence afin de compléter sa variable \p numMap en y ajoutant ces itérations manquantes.
+	  * Il est possible qu'une séquence ne se répète qu'une fois à un moment donné dans les traces brutes. Lors de la compression, cette seule itération n'est alors pas modélisée par un objet Sequence mais par un ensemble de traces dans TracesParser::traces. Cette fonction se base donc sur la séquence parente (Trace::parent) de l'objet Sequence afin de compléter sa variable \p iterDesc en y ajoutant ces itérations manquantes.
 	  */
-	void completeNumMap();
+	void completeIterationDescription();
 
 	/**
 	  * \brief Récupération des fréquences de répétitions de la séquence.
 	  *
-	  * Cette fonction construit et retourne un objet Map contenant des entrées <x:z> en se basant sur Sequence::numMap. Une entrée <x:z> signifie que la séquence se répète x fois de façon contiguë avec une fréquence égale à z.
+	  * Cette fonction construit et retourne un objet Map contenant des entrées <x:z> en se basant sur Sequence::iterDesc. Une entrée <x:z> signifie que la séquence se répète x fois de façon contiguë avec une fréquence égale à z.
 	  *
-	  * Par exemple, si Sequence::numMap = <1:4> <3:5> <10:1>, on obtient le résultat suivant en appelant cette fonction : <1,0.4> <3,0.5> <10,0.1>.
+	  * Par exemple, si Sequence::iterDesc = <1:4> <3:5> <10:1>, on obtient le résultat suivant en appelant cette fonction : <1,0.4> <3,0.5> <10,0.1>.
 	  *
-	  * \see Sequence::numMap
+	  * \see Sequence::iterDesc
 	  */
-	std::map<unsigned int,double> getPercentageNumMap() const;
+	std::map<unsigned int,double> getPercentageIterationDescription() const;
 
 	/**
-	  * \brief Calcul de la distance entre deux objets Sequence::numMap.
+	  * \brief Calcul de la distance entre deux objets Sequence::iterDesc.
 	  *
-	  * La distance entre deux objets Sequence::numMap est calculée avec la formule suivante : abs(sl - se) / (sl + se) où 'sl' est la somme des produits x*y pour toute entrée <x:y> de l'objet Sequence::numMap de la séquence et 'se' est la somme des produits x*y pour toute entrée <x:y> de l'objet Sequence::numMap de \p sps.
+	  * La distance entre deux objets Sequence::iterDesc est calculée avec la formule suivante : abs(sl - se) / (sl + se) où 'sl' est la somme des produits x*y pour toute entrée <x:y> de l'objet Sequence::iterDesc de la séquence et 'se' est la somme des produits x*y pour toute entrée <x:y> de l'objet Sequence::iterDesc de \p sps.
 	  *
 	  * \return la distance calculée.
 	  */
-	double getNumMapMeanDistance(const sp_sequence& sps) const;
+	double getIterationDescriptionMeanDistance(const sp_sequence& sps) const;
 
 protected:
 
@@ -395,9 +400,9 @@ protected:
 	/**
 	 * Objet servant à stocker des entrées <x:y>. Une entrée <x:y> signifie que la séquence de traces se répète y fois avec un nombre de répétitions contiguës égal à x.
 	 *
-	 * Par exemple, si Sequence::numMap = <1:4> <3:5> <10:1>, cela signifique que la séquence se répète en tout 1*4 + 3*5 + 10*1 = 29 fois : 4 fois avec une seule répétition, 5 fois avec 3 répétitions contiguës et enfin 1 fois avec 10 répétitions contiguës.
+	 * Par exemple, si Sequence::iterDesc = <1:4> <3:5> <10:1>, cela signifique que la séquence se répète en tout 1*4 + 3*5 + 10*1 = 29 fois : la sequence c'est exécuté 1 fois à 4 reprises, 3 fois à 5 reprise et 10 fois une seule fois.
 	 */
-	std::map<unsigned int,unsigned int> numMap;
+	std::map<unsigned int,unsigned int> iterDesc;
 
 	/**
 	 * Un indice sur le vecteur des traces de la séquence. A chaque appel à Sequence::next, cette valeur est incrémentée et le prochain élément du vecteur est renvoyé.
@@ -417,11 +422,33 @@ protected:
 	bool shared;
 
 	/**
-	  * Un booléen indiquant si la séquence est une séquence racine. Une séquence racine n'a pas de parent et l'objet Map \p numMap ne contient qu'une entrée : <1:1>.
+	  * Un booléen indiquant si la séquence est une séquence racine. Une séquence racine n'a pas de parent et l'objet Map \p iterDesc ne contient qu'une entrée : <1:1>.
 	  *
 	  * \see TracesAnalyser::getInfosOnExecution
 	  */
 	bool root;
+
+	/**
+	  * \brief Fusion de deux séquences
+	  *
+	  * Cette fonction permet de construire une nouvelle séquence la plus générale possible à partir de deux séquences \p sps_up et \p sps_down qui doivent être égales pour que la fusion ait lieue.
+	  *
+	  * \param sps_up la première séquence passée en entrée de la fusion.
+	  * \param sps_down la seconde séquence passée en entrée de la fusion.
+	  *
+	  * \return la nouvelle séquence créée résultante de la fusion de \p sps_up et \p sps_down.
+	  *
+	  * \see Sequence::compare
+	  * \see TracesParser::compressSequences
+	  */
+	static Sequence::sp_sequence mergeSequences(Sequence::sp_sequence sps_up, Sequence::sp_sequence sps_down);
+
+	/**
+	  * \brief Test de la possibilité de répétitions d'un groupe de traces.
+	  *
+	  * Cette fonction est utilisée par la fonction Sequence::compressSequences lors de la recherche de répétitions d'un groupe de traces dans workingSequence. Le test consiste à vérifier si workingSequence contient assez de traces à partir d'un certain indice. Cette fonction est une optimisation permettant d'éviter le lancement d'opérations de comparaison qui retourneront forcément des résultats négatifs.
+	  */
+	static bool checkFeasibility(Sequence::sp_sequence workingSequence, unsigned int min_length, unsigned int ind_start);
 
 };
 

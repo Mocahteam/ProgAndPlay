@@ -607,7 +607,7 @@ std::pair<double,double> TracesAnalyser::findBestAlignment(const std::vector<Tra
 				match_score = res.first;
 				val[i][j].second = match_score;
 				if (expert_sps->hasNumberIterationFixed() && !learner_sps->isImplicit() && !expert_sps->isImplicit()) {
-					double mean_dis = learner_sps->getNumMapMeanDistance(expert_sps);
+					double mean_dis = learner_sps->getIterationDescriptionMeanDistance(expert_sps);
 					val[i][j].second += (1 - mean_dis) * (res.second / IND_SEQ_NUM_CONST);
 				}
 				match_score /= res.second;
@@ -1228,11 +1228,11 @@ void TracesAnalyser::setFeedbackInfo(Feedback& f, Feedback& ref_f) const {
 		}
 		else if (s.compare("learner_ind_seq_num") == 0 && f.type == IND_SEQ_NUM) {
 			Sequence::sp_sequence learner_sps = boost::dynamic_pointer_cast<Sequence>(f.learner_spt);
-			s = boost::lexical_cast<std::string>(learner_sps->getNumMap().begin()->first);
+			s = boost::lexical_cast<std::string>(learner_sps->getIterationDescription().begin()->first);
 		}
 		else if (s.compare("expert_ind_seq_num") == 0 && f.type == IND_SEQ_NUM) {
 			Sequence::sp_sequence expert_sps = boost::dynamic_pointer_cast<Sequence>(f.expert_spt);
-			s = boost::lexical_cast<std::string>(expert_sps->getNumMap().begin()->first);
+			s = boost::lexical_cast<std::string>(expert_sps->getIterationDescription().begin()->first);
 		}
 		else if (s.compare("info") == 0) {
 			s = "";
@@ -1344,12 +1344,12 @@ void TracesAnalyser::listAlignmentFeedbacks(const std::vector<Trace::sp_trace>& 
 					if (expert_sps->hasNumberIterationFixed()) {
 						if (learner_sps->getLevel() == 1 && expert_sps->getLevel() == 1) {
 							// sequences are at root
-							std::map<unsigned int,unsigned int> learner_numMap = learner_sps->getNumMap();
-							std::map<unsigned int, unsigned int> expert_numMap = expert_sps->getNumMap();
-							if (learner_numMap.size() == 1 && expert_numMap.size() == 1 && expert_numMap.find(learner_numMap.begin()->first) == expert_numMap.end())
+							std::map<unsigned int,unsigned int> learner_IterationDescription = learner_sps->getIterationDescription();
+							std::map<unsigned int, unsigned int> expert_IterationDescription = expert_sps->getIterationDescription();
+							if (learner_IterationDescription.size() == 1 && expert_IterationDescription.size() == 1 && expert_IterationDescription.find(learner_IterationDescription.begin()->first) == expert_IterationDescription.end())
 								f.type = IND_SEQ_NUM;
 						}
-						else if (learner_sps->getNumMapMeanDistance(expert_sps) >= DIST_SEQ_NUM_THRES)
+						else if (learner_sps->getIterationDescriptionMeanDistance(expert_sps) >= DIST_SEQ_NUM_THRES)
 							f.type = DIST_SEQ_NUM;
 					}
 					listAlignmentFeedbacks(learner_sps->getTraces(), expert_sps->getTraces());

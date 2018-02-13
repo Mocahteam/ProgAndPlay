@@ -41,7 +41,7 @@
   *
   * \see TracesParser::compressSequences
   */
-#define MAX_END_SEARCH 10
+#define MAX_END_SEARCH 5
 
 /**
  * \class TracesParser
@@ -68,6 +68,11 @@ public:
 	  * Variable utilisée pour stocker le numero de la ligne courante lorsqu'un fichier de traces brutes est parsé.
 	  */
 	static int lineNum;
+
+	/**
+	 * Outputstream for debug
+	 **/
+	static std::ostream& osParser;
 
 	/**
 	  * \brief Lancement de la compression d'un fichier de traces brutes avec l'algorithme de compression hors-ligne.
@@ -147,21 +152,6 @@ public:
 	  * \return un pointeur intelligent de type Trace::sp_trace pointant vers l'objet Trace créé, ou NULL si aucun objet n'a pu être créé à partir de la chaine de caractère (dans ce cas d'autres variable statiques ont pu être initialisées).
 	  */
 	static Trace::sp_trace parseLine(const std::string& s);
-
-	/**
-	  * \brief Fusion de deux séquences
-	  *
-	  * Cette fonction permet de construire une nouvelle séquence la plus générale possible à partir de deux séquences \p sps_up et \p sps_down qui doivent être égales pour que la fusion ait lieue.
-	  *
-	  * \param sps_up la première séquence passée en entrée de la fusion.
-	  * \param sps_down la seconde séquence passée en entrée de la fusion.
-	  *
-	  * \return la nouvelle séquence créée résultante de la fusion de \p sps_up et \p sps_down.
-	  *
-	  * \see Sequence::compare
-	  * \see TracesParser::compressSequences
-	  */
-	static Sequence::sp_sequence mergeSequences(Sequence::sp_sequence sps_up, Sequence::sp_sequence sps_down);
 
 	/**
 	  * \brief Importation de traces à partir d'un document XML.
@@ -334,21 +324,6 @@ private:
 	  * \param spt une nouvelle trace à ajouter dans le vecteur TracesParser::traces.
 	  */
 	void inlineCompression(Trace::sp_trace& spt);
-
-	/**
-	  * \brief Test de la possibilité de répétitions d'un groupe de traces.
-	  *
-	  * Cette fonction est utilisée par la fonction TracesParser::compressSequences lors de la recherche de répétitions d'un groupe de traces dans TracesParser::traces. Le test consiste à vérifier si TracesParser::traces contient assez de traces à partir d'un certain indice. Cette fonction est une optimisation permettant d'éviter le lancement d'opérations de comparaison qui retourneront forcément des résultats négatifs.
-	  */
-	bool checkFeasibility(unsigned int min_length, unsigned int ind_start);
-
-	/**
-	  * \brief Fonction principale de l'algorithme de compression hors-ligne.
-	  *
-	  * Cette fonction est la fonction qui va compresser les traces en effectuant des parcours du vecteur TracesParser::traces. La compression étant effectuée en mode hors-ligne, elle doit être appelée uniquement lorsque TracesParser::traces est complet, i.e. qu'aucune nouvelle trace ne doit être ajoutée en cours de traitement.
-	  */
-	void compressSequences();
-
 };
 
 #endif
