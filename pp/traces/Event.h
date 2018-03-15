@@ -81,6 +81,13 @@ public:
 	virtual void exportAsString(std::ostream &os = std::cout) const;
 
 	/**
+	  * \brief Export de la trace sous la forme d'une chaine de caractère compressée (sur une seule ligne).
+	  *
+	  * \param os : le flux de sortie utilisé pour l'export.
+	  */
+	virtual void exportAsCompressedString(std::ostream &os = std::cout) const;
+
+	/**
 	  * \brief Retourne les différents paramètres relatifs à l'événement sous forme de chaîne de caractères.
 	  *
 	  * Cette fonction doit être redéfinie par les classes héritant de Event.

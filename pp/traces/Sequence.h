@@ -51,8 +51,9 @@ public:
 	  *
 	  * \param num le nombre de répétitions contiguës de la séquence.
 	  * \param root booléen mis à vrai si la séquence créée est une racine.
+	  * \param opt booléen mis à vrai si la séquence créée est optionnelle.
 	  */
-	Sequence(unsigned int num, bool root = false);
+	Sequence(unsigned int num, bool root = false, bool opt=false);
 
 	/**
 	  * \brief Constructeur se basant sur une séquence.
@@ -67,7 +68,7 @@ public:
 	  * \param sps_up la première séquence.
 	  * \param sps_down la deuxième séquence.
 	  *
-	  * \see TracesParser::mergeSequences
+	  * \see TracesParser::mergeEquivalentSequences
 	  */
 	Sequence(const_sp_sequence sps_up, const_sp_sequence sps_down);
 
@@ -76,16 +77,37 @@ public:
 	  *
 	  * Cette fonction est la fonction qui va compresser les traces en effectuant des parcours du vecteur workingSequence en prenant comme point de départ "startingPoint" dans la sequence. Si "processOnlyCall" est à true on tente de ne compresser que les Calls (utile pour un pré-traitement en ligne)
 	  */
-	static void compressSequences(Sequence::sp_sequence& workingSequence, int startingPoint, bool processOnlyCall = false);
+	static void findAndAggregateSuccessiveSequences(Sequence::sp_sequence& workingSequence, int startingPoint, bool processOnlyCall = false);
 
 	/**
-	  * \brief Récupération de la longueur (l'espace occupé dans un vecteur de traces) d'une séquence.
+	  * \brief Tente de trouver des symboles en amont et en aval de chaque sequence pour corriger un décallage dans la compression du à un if.
 	  *
-	  * La longueur d'une séquence est calculée de façon récursive en parcourant ses séquences et sous-séquences et en appelant Trace::length sur les traces parcourues.
-	  *
-	  * \return la longueur de la séquence
+	  * Cas typique :
+		*  - Soit la trace : ABABABABACBABABAB
+		*  - Compression par default : [AB]AC[BA]B
+		*  - Correction visée : On cherche à transformer AC[BA]B en [A(C)B] où () dénote une alternative
 	  */
-	virtual unsigned int length() const;
+	static void findAndProcessRotatingSequences(Sequence::sp_sequence& workingSequence, int startingPoint);
+
+	/**
+	  * \brief Tente de trouver des séquences successives de longueurs différentes (éventuellement séparées par une suite de tokens) dont l'une est incluse dans l'autre.
+	  *
+	  * Cas singuliers :
+		*  1 - [ABC][ABDC] => [AB(D)C]
+		*  2 - [ABC]DE[ABC] => [ABC(DE)]
+	  */
+	static void findAndProcessInclusiveSequences(Sequence::sp_sequence& workingSequence, int startingPoint);
+
+	/**
+	  * \brief Fusion de deux séquences de longueurs différentes, la plus courte devant être incluse dans la plus longue.équivalentes (longueurs identiques et même succession de symboles en "applatissant" les sequences internes)
+	  *
+		* Exemple de cas singuliers :
+		*  1 - [ABC] et [ABEC] => [AB(E)C]
+		*  2 - [ABCDE] et [ABC] => [ABC(DE)]
+	  *
+	  * \return une sequence contenant la fusion des deux séquences si elles respecte le prérequis ou un shared pointer vide sinon.
+	  */
+	//static Sequence::sp_sequence mergeOptionalTracesFromSequences(Sequence::sp_sequence seqA, Sequence::sp_sequence seqB);
 
 	/**
 	  * \brief Comparaison de la séquence avec une trace.
@@ -111,6 +133,31 @@ public:
 	virtual bool operator==(Trace *t) const;
 
 	/**
+	  * \brief Comparaison de la séquence avec une trace.
+	  *
+	  * Cette fonction permet de tester l'égalité entre l'objet Sequence et une trace \p t. On considère dans ce cas qu'il y a égalité si \p t est une séquence et si la liste 'fl' des appels de l'objet Sequence est égale à la liste d'appels 'sl' de la séquence \p t (même taille et pour tout i, fl[i] est considéré égal à sl[i]).
+	  *
+	  * On peut noter que ce test d'égalité entre deux séquences est bien moins exigeant que celui de la fonction Sequence::operator==. Si l'on reprend l'exemple donné pour Sequence::operator==, les deux séquences sont cette fois-ci égales :
+	  *
+	  * 	Sequence
+	  *			A
+	  *			B
+	  *     Sequence
+	  *  			C
+	  *
+	  * 	Sequence
+	  *			Sequence
+	  *				A
+	  *				B
+	  *			C
+	  *
+	  * \return vrai si la séquence est considérée comme étant égale à \p t, et faux sinon.
+	  *
+	  * \see Sequence::getCalls
+	  */
+	bool compare(Trace *t);
+
+	/**
 	  * \brief Clonage d'une séquence.
 	  *
 	  * \return une copie de l'objet Sequence.
@@ -125,36 +172,18 @@ public:
 	virtual void exportAsString(std::ostream &os = std::cout) const;
 
 	/**
+	  * \brief Export de la trace sous la forme d'une chaine de caractère compressée (sur une seule ligne).
+	  *
+	  * \param os : le flux de sortie utilisé pour l'export.
+	  */
+	virtual void exportAsCompressedString(std::ostream &os = std::cout) const;
+
+	/**
 	  * \brief Réinitialisation récursive de l'alignement de la séquence.
 	  *
 	  * Cette fonction permet de supprimer le lien vers la trace avec laquelle la séquence était éventuellement alignée, i.e. de réinitialiser le pointeur intelligent Trace::aligned de la séquence. Ce traitement est effectué de façon récursive pour toutes les traces inclus dans la séquence.
 	  */
 	virtual void resetAligned();
-
-	/**
-	  * \brief Comparaison de la séquence avec une trace.
-	  *
-	  * Cette fonction permet de tester l'égalité entre l'objet Sequence et une trace \p t. On considère dans ce cas qu'il y a égalité si \p t est une séquence et si la liste 'fl' des appels de l'objet Sequence est égale à la liste d'appels 'sl' de la séquence \p t (même taille et pour tout i, fl[i] est considéré égal à sl[i]).
-	  *
-	  * On peut noter que ce test d'égalité entre deux séquences est bien moins exigeant que celui de la fonction Sequence::operator==. Si l'on reprend l'exemple donné pour Sequence::operator==, les deux séquences sont cette fois-ci égales :
-	  *
-	  * 	Sequence
-	  *			A
-	  *			B
-	  *         Sequence
-	  *  			C
-	  *
-	  * 	Sequence
-	  *			Sequence
-	  *				A
-	  *				B
-	  *			C
-	  *
-	  * \return vrai si la séquence est considérée comme étant égale à \p t, et faux sinon.
-	  *
-	  * \see Sequence::getCalls
-	  */
-	bool compare(Trace *t);
 
 	/**
 	  * \brief Construction d'une chaîne de caractères contenant les entrées d'un objet Sequence::iterDesc.
@@ -182,6 +211,13 @@ public:
 	  * \return le vecteur de traces de la séquence.
 	  */
 	std::vector<Trace::sp_trace>& getTraces();
+
+	/**
+	  * \brief Getter pour récupérer une sous partie du vecteur de traces de la séquence Sequence::traces à partir de l'indice "start".
+	  *
+	  * \return la sous partie du vecteur de traces de la séquence.
+	  */
+	std::vector<Trace::sp_trace> getSubTraces(int start);
 
 	/**
 	  * \brief Getter pour la variable Sequence::pt.
@@ -233,6 +269,20 @@ public:
 	bool isRoot() const;
 
 	/**
+	  * \brief Getter pour la variable Sequence::opt.
+	  *
+	  * \see Sequence::opt
+	  */
+	bool isOptional() const;
+
+	/**
+	 * \brief Setter pour la variable Sequence::opt.
+	 *
+	 * \see Sequence::opt
+	 */
+	void setOptional(bool state);
+
+	/**
 	  * \brief Test si la séquence est une séquence implicite.
 	  *
 	  * Une séquence est implicite si la seule entrée contenue dans Sequence::iterDesc est <1:1>.
@@ -251,6 +301,15 @@ public:
 	unsigned int size() const;
 
 	/**
+	  * \brief Récupération de la longueur (l'espace occupé dans un vecteur de traces) d'une séquence.
+	  *
+	  * La longueur d'une séquence est calculée de façon récursive en parcourant ses séquences et sous-séquences et en appelant Trace::length sur les traces parcourues.
+	  *
+	  * \return la longueur de la séquence
+	  */
+	virtual unsigned int length() const;
+
+	/**
 	  * \brief Accès à une trace du vecteur de traces de la séquence.
 	  *
 	  * \param i l'indice de la trace à récupérer dans le vecteur.
@@ -267,6 +326,29 @@ public:
 	  * \return l'indice de la position de la trace dans le vecteur si elle s'y trouve, ou -1 sinon.
 	  */
 	int getIndex(const Trace::sp_trace& spt) const;
+
+	/**
+	 * \brief Recherche une séquence pas forcement contigüe dans un intervalle. Les bornes de recherche doivent être comprises dans les dimentions de this.
+	 */
+	bool findInTraces(Sequence::sp_sequence& toFind, int start, int end);
+
+	/**
+	 * \brief Linéarisation de l'ensemble des traces. Le vecteur retourné peut contenir des objets de type Sequence qui marquent le début ou la fin d'une séquence. Toutes les traces comprise entre un début et un fin de séquence font parties de la séquence.
+	 * Exemple, la séquence suivante (C modélisent un Call et S une séquence) :
+	 *       C
+	 *      \ /
+	 *   C C S
+	 *   \_ _/
+	 * C C S C
+	 *
+	 * Est linéarisée de la manière suivante où Sd est une séquence vide dont le champ info maqrue un début de séquence et Sf est une séquence vide dont le champ info maqrue une fin de séquence :
+	 * C C Sd C C Sd C Sf Sf C
+	 *
+	 * \param start point de départ de linéarisation de la séquence
+	 *
+	 * \return un vecteur de trace représentant une version linéarisée des traces
+	 */
+	std::vector<Trace::sp_trace>& getLinearSequence(int start = 0);
 
 	/**
 	  * \brief Récupération de l'ensemble des appels contenus dans la séquence et dans ses sous-séquences.
@@ -380,6 +462,15 @@ public:
 	  */
 	double getIterationDescriptionMeanDistance(const sp_sequence& sps) const;
 
+	/**
+	 * \brief Calcule et retourne le meilleur score d'alignement entre deux traces linéarisées. Le meilleur score est celui qui compte le plus d'alignements pour le moins d'options
+	 *
+	 * \return un couple (nbAlign, nbOpt) où nbAlign indique le nombre de traces alignées et nbOpt indique le nombre de traces optionnelles
+	 *
+	 * \see Sequence::getLinearSequence
+	 */
+	static std::pair<int, int> getMaxAlignAndMinOpt (std::vector<Trace::sp_trace>& linearTraces1, std::vector<Trace::sp_trace>& linearTraces2);
+
 protected:
 
 	/**
@@ -391,6 +482,13 @@ protected:
 	 * Le vecteur des traces de la séquence.
 	 */
 	std::vector<Trace::sp_trace> traces;
+
+	/**
+	 * Un vecteur contenant les traces linearisées.
+	 *
+	 * \see Sequence::getLinearSequence
+	 */
+	std::vector<Trace::sp_trace> linearizedTraces;
 
 	/**
 	 * Un entier indiquant le nombre d'occurrences actuel de la séquence.
@@ -417,7 +515,7 @@ protected:
 	/**
 	 * Un booléen utilisé uniquement lors de la fusion de deux séquences.
 	 *
-	 * \see TracesParser::mergeSequences
+	 * \see TracesParser::mergeEquivalentSequences
 	 */
 	bool shared;
 
@@ -429,24 +527,55 @@ protected:
 	bool root;
 
 	/**
-	  * \brief Fusion de deux séquences
+	 * Un booléen indiquant si la séquence est optionnelle. Une séquence optionnelle est une séquence qui peut ne pas être présente dans la trace.
+	 */
+	bool opt;
+
+	/**
+	 * \brief Initialise la position de la variable Sequence::pt et du booléen Sequence::endReached
+	 */
+	void setPtAndEndState(unsigned int pos, bool endState);
+
+	/**
+	 * \brief Modifie une trace linéarisée en y supprimant le premier Call (ou Event)
+	 *
+	 * \see Sequence::getLinearSequence
+	 */
+	static void removeFirstCall (std::vector<Trace::sp_trace>& linearTraces);
+
+	/**
+	 * \brief Compte le nombre de Call alignés et optionnels entre deux séquences linéarisées
+	 *
+	 * \return un couple (nbAlign, nbOpt) où nbAlign indique le nombre de traces alignées et nbOpt indique le nombre de traces optionnelles
+	 *
+	 * \see Sequence::getLinearSequence
+	 */
+	static std::pair<int, int> getNbAlignAndOpt(std::vector<Trace::sp_trace>& linearTraces1, std::vector<Trace::sp_trace>& linearTraces2);
+
+	/**
+	  * \brief Fusion de deux séquences équivalentes (longueurs identiques et même succession de symboles en "applatissant" les sequences internes)
 	  *
 	  * Cette fonction permet de construire une nouvelle séquence la plus générale possible à partir de deux séquences \p sps_up et \p sps_down qui doivent être égales pour que la fusion ait lieue.
+		*
+		* Exemple de cas singuliers :
+		*  1 - [AB[C]] et [[A]BC] => [[A]B[C]]
+		*  2 - [[A[B]]C] et [ABC] => [[A[B]]C]
 	  *
 	  * \param sps_up la première séquence passée en entrée de la fusion.
 	  * \param sps_down la seconde séquence passée en entrée de la fusion.
+		* \param avoidOptionalSequence si true ne réalise la fusion que si aucune séquence optionnelle n'est requise. Si false, la fusion pourra contenir des séquences optionnelles (true par défaut).
 	  *
 	  * \return la nouvelle séquence créée résultante de la fusion de \p sps_up et \p sps_down.
 	  *
 	  * \see Sequence::compare
-	  * \see TracesParser::compressSequences
+	  * \see Sequence::findAndAggregateSuccessiveSequences
 	  */
-	static Sequence::sp_sequence mergeSequences(Sequence::sp_sequence sps_up, Sequence::sp_sequence sps_down);
+	static Sequence::sp_sequence mergeEquivalentSequences(Sequence::sp_sequence sps_up, Sequence::sp_sequence sps_down, bool avoidOptionalSequence = true);
 
 	/**
 	  * \brief Test de la possibilité de répétitions d'un groupe de traces.
 	  *
-	  * Cette fonction est utilisée par la fonction Sequence::compressSequences lors de la recherche de répétitions d'un groupe de traces dans workingSequence. Le test consiste à vérifier si workingSequence contient assez de traces à partir d'un certain indice. Cette fonction est une optimisation permettant d'éviter le lancement d'opérations de comparaison qui retourneront forcément des résultats négatifs.
+	  * Cette fonction est utilisée par la fonction Sequence::findAndAggregateSuccessiveSequences lors de la recherche de répétitions d'un groupe de traces dans workingSequence. Le test consiste à vérifier si workingSequence contient assez de traces à partir d'un certain indice. Cette fonction est une optimisation permettant d'éviter le lancement d'opérations de comparaison qui retourneront forcément des résultats négatifs.
 	  */
 	static bool checkFeasibility(Sequence::sp_sequence workingSequence, unsigned int min_length, unsigned int ind_start);
 

@@ -2,6 +2,17 @@
 #include "TraceConstantList.h"
 #include <cerrno>
 
+/**
+  * Doit être mis à 1 pour prendre en compte les événements de Event::concatEventsArr rencontrés lors du parsage de fichier de traces brutes.
+  */
+#define INCLUDE_EVENTS 0
+
+
+/**
+  * Seuil utilisé pour stopper et éviter toute future recherche de répétitions d'un groupe de traces à partir d'une trace.
+  */
+#define MAX_END_SEARCH 5
+
 int TracesParser::lineNum = 0;
 int TracesParser::mission_end_time = 0;
 int TracesParser::execution_start_time = 0;
@@ -267,7 +278,7 @@ void TracesParser::parseLogFile(const std::string& dir_path, const std::string& 
 								#ifdef DEBUG_PARSER
 									osParser << "\tNew Execution: We try to detect and compress sequences" << std::endl;
 								#endif
-								Sequence::compressSequences(root, start);
+								offlineCompression();
 								// And we define the top of the trace as the new starting point
 								#ifdef DEBUG_PARSER
 									osParser << "\tNew Execution: The top of the trace is now the new starting point" << std::endl;
@@ -281,7 +292,7 @@ void TracesParser::parseLogFile(const std::string& dir_path, const std::string& 
 							#ifdef DEBUG_PARSER
 								osParser << "\tEnd Execution: We try to detect and compress sequences" << std::endl;
 							#endif
-							Sequence::compressSequences(root, start);
+							offlineCompression();
 							// And we define the top of the trace as the new starting point
 							#ifdef DEBUG_PARSER
 								osParser << "\tEnd Execution: The top of the trace is now the new starting point" << std::endl;
@@ -322,7 +333,7 @@ void TracesParser::parseLogFile(const std::string& dir_path, const std::string& 
 					#ifdef DEBUG_PARSER
 						osParser << "\tWe try to detect and compress sequences" << std::endl;
 					#endif
-					Sequence::compressSequences(root, start);
+					offlineCompression();
 				}
 				#ifdef DEBUG_PARSER
 					osParser << "\tWe save compression results in files" << std::endl;
@@ -539,48 +550,41 @@ Trace::sp_trace TracesParser::parseLine(const std::string& s) {
 void TracesParser::inlineCompression(Trace::sp_trace& spt) {
 	bool add = false;
 	if (root->size() > 1) {
-		Sequence::sp_sequence sps;
 		// Check if the last trace is an event
 		if (spt->isEvent()) {
-			// add this event (new trace) at the end of the sequence
-			sps->addTrace(spt);
+			// add this event (new trace) at the end of the traces
+			root->addTrace(spt);
 			add = true;
 		}
-		// Check if the last trace is a sequence
-		else if (root->getTraces().back()->isSequence()) {
-			sps = boost::dynamic_pointer_cast<Sequence>(root->getTraces().back());
-			// Check if this sequence contains only one trace equals to the new trace
-			if (sps->size() == 1 && sps->at(0)->operator==(spt.get())) {
-				// We include new trace in the sequence
-				sps->addOne();
-				add = true;
-			}
-		}
-		// Check if the two last traces are Calls equal with the new trace
 		else{
-			// on part du dernier élément de la trace
-			int i = root->size() - 1;
-			// Vérifier que les deux derniers éléments ainsi que le nouveau sont des Call
-			if (root->at(i)->isCall() && root->at(i-1)->isCall() && spt->isCall()){
-				Call::sp_call c1 = boost::dynamic_pointer_cast<Call>(root->at(i));
-				Call::sp_call c2 = boost::dynamic_pointer_cast<Call>(root->at(i-1));
-				Call::sp_call newCall = boost::dynamic_pointer_cast<Call>(spt);
-				// Vérifier que les trois Call sont égaux
-				if (c1->operator==(newCall.get()) && c2->operator==(newCall.get())){
-					// Supprimer les deux derniers de la trace
-					root->getTraces().pop_back();
-					root->getTraces().pop_back();
-					// Construire une séquence
-					sps = boost::make_shared<Sequence>(3);
-					// Filtrer la nouvelle trace
-					newCall->filterCall(c1.get());
-					newCall->filterCall(c2.get());
-					// Ajout de ce nouvelle trace filtrée à la nouvelle séquence
-					sps->addTrace(newCall);
-					// Ajout de cette nouvelle séquence au root
-					root->addTrace(sps);
-					add = true;
+			// Get the last trace into this last sequence and look for the last Call
+			Sequence::sp_sequence parent_seq = root;
+			// Check if the last trace is a sequence
+			if (root->getTraces().back()->isSequence()) {
+				// While the last trace of this sequence is a sequence, we continue to progress inside
+				while (parent_seq->getTraces().back()->isSequence())
+					parent_seq = boost::dynamic_pointer_cast<Sequence>(parent_seq->getTraces().back());
+				// Now "parent_seq" don't finish by a sequence
+			}
+			// Check if the last trace of this sequence is equal to the new trace
+			Trace::sp_trace lastTrace = parent_seq->getTraces().back();
+			if (spt->isCall() && lastTrace->operator==(spt.get())) {
+				if (parent_seq->size() == 1){
+					// We include new trace in the sequence
+					parent_seq->addOne();
+				} else {
+					// We filter newCall with the previous one
+					Call::sp_call newCall = boost::dynamic_pointer_cast<Call>(spt);
+					newCall->filterCall(boost::dynamic_pointer_cast<Call>(lastTrace).get());
+					// We create a new sequence to store merge result
+					Sequence::sp_sequence new_seq = boost::make_shared<Sequence>(2);
+					// Add this new filtered trace into the new sequence
+					new_seq->addTrace(newCall);
+					// Remove the last trace of the parent sequence and we replace it by the new sequence
+					parent_seq->getTraces().pop_back();
+					parent_seq->addTrace(new_seq);
 				}
+				add = true;
 			}
 		}
 	}
@@ -591,9 +595,33 @@ void TracesParser::inlineCompression(Trace::sp_trace& spt) {
 		int limit = root->size() - MAX_END_SEARCH*3;
 		// ... ou si on atteindrait le début de la trace
 		if (limit < start) limit = start;
-		// try to compression succesive Calls
-		Sequence::compressSequences(root, limit, true);
+		// try to compress succesive Calls
+		Sequence::findAndAggregateSuccessiveSequences(root, limit, true);
 	}
+}
+
+void TracesParser::offlineCompression() {
+	#ifdef DEBUG_PARSER
+		osParser << "\tWe try to aggregate successive sequences" << std::endl;
+	#endif
+	Sequence::findAndAggregateSuccessiveSequences(root, start);
+	#ifdef DEBUG_PARSER
+		root->exportAsString(osParser);
+	#endif
+/*	#ifdef DEBUG_PARSER
+		osParser << "\tWe try to rotate sequences due to if statements" << std::endl;
+	#endif
+	Sequence::findAndProcessRotatingSequences(root, start);
+	#ifdef DEBUG_PARSER
+		root->exportAsString(osParser);
+	#endif
+	#ifdef DEBUG_PARSER
+		osParser << "\tWe try merge inclusive sequences" << std::endl;
+	#endif
+	Sequence::findAndProcessInclusiveSequences(root, start);
+	#ifdef DEBUG_PARSER
+		root->exportAsString(osParser);
+	#endif*/
 }
 
 void TracesParser::exportTracesAsString(std::ostream &os) {

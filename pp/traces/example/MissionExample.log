@@ -5,6 +5,28 @@ programming_language_used C
 PP_Open
 PP_GetUnitAt 0 0 - 638
 PP_Unit_ActionOnPosition 638_4 10 1056 1792 0
+PP_GetUnitAt 0 0 - 638
+PP_Unit_ActionOnPosition 638_4 10 1056 1792 0
+PP_Close
+PP_Open
+PP_GetUnitAt 0 0 - 638
+PP_Unit_ActionOnPosition 638_4 10 1056 1792 0
+PP_GetUnitAt 0 0 - 638
+PP_Unit_ActionOnPosition 638_4 10 1056 1792 0
+PP_Close
+PP_Open
+PP_GetUnitAt 0 0 - 638
+PP_Open
+PP_GetUnitAt 0 0 - 638
+PP_Unit_ActionOnPosition 638_4 10 1056 1792 0
+PP_Close
+PP_Close
+PP_Open
+PP_GetUnitAt 0 0 - 638
+PP_Open
+PP_GetUnitAt 0 0 - 638
+PP_Unit_ActionOnPosition 638_4 10 1056 1792 0
+PP_Close
 PP_Close
 execution_end_time 1463495075
 mission_end_time 1463495080

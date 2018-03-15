@@ -9,7 +9,7 @@
 #define __CALL_H__
 
 #define MAX_SIZE_PARAMS 2
-#define FLOAT_EPSILON 0.5
+#define FLOAT_EPSILON 1
 
 #include <iostream>
 #include <fstream>
@@ -317,6 +317,13 @@ public:
 	  * \param os le flux de sortie utilisé pour la sortie.
 	  */
 	virtual void exportAsString(std::ostream &os = std::cout) const;
+
+	/**
+	  * \brief Export de la trace sous la forme d'une chaine de caractère compressée (sur une seule ligne).
+	  *
+	  * \param os : le flux de sortie utilisé pour l'export.
+	  */
+	virtual void exportAsCompressedString(std::ostream &os = std::cout) const;
 
 	/**
 	  * \brief Clonage d'un appel.

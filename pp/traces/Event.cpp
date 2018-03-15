@@ -27,8 +27,11 @@ Trace::sp_trace Event::clone() const {
 void Event::exportAsString(std::ostream &os) const {
 	for (int i = 0; i <= numTab; i++)
 		os << "\t";
-	os << label;
-	os << " " << getParams() << std::endl;
+	os << label << " " << getParams() << "\t" << std::endl;
+}
+
+void Event::exportAsCompressedString(std::ostream &os) const {
+	os << label << " " << std::flush;
 }
 
 unsigned int Event::length() const {

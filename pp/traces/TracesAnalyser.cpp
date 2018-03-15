@@ -541,7 +541,7 @@ const Sequence::sp_sequence TracesAnalyser::getClosestCommonParent(const Call::c
 	return parents[0];
 }
 
-std::pair<double,double> TracesAnalyser::findBestAlignment(const std::vector<Trace::sp_trace>& l, const std::vector<Trace::sp_trace>& e, bool align) const {
+std::pair<double,double> TracesAnalyser::findBestAlignment(const std::vector<Trace::sp_trace>& l, const std::vector<Trace::sp_trace>& e, bool align) {
 	int cpt_path = 0;
 	unsigned int lsize = l.size()+1, esize = e.size()+1;
 	double score = 0, norm = 0;

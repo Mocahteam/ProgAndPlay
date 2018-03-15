@@ -98,6 +98,10 @@ void Call::exportAsString(std::ostream &os) const {
 	os << std::endl;
 }
 
+void Call::exportAsCompressedString(std::ostream &os) const {
+	os << key << " " << std::flush;
+}
+
 unsigned int Call::length() const {
 	return 1;
 }

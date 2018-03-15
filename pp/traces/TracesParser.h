@@ -31,19 +31,6 @@
 #include "Sequence.h"
 
 /**
-  * Doit être mis à 1 pour prendre en compte les événements de Event::concatEventsArr rencontrés lors du parsage de fichier de traces brutes.
-  */
-#define INCLUDE_EVENTS 0
-
-
-/**
-  * Seuil utilisé pour stopper et éviter toute future recherche de répétitions d'un groupe de traces à partir d'une trace.
-  *
-  * \see TracesParser::compressSequences
-  */
-#define MAX_END_SEARCH 5
-
-/**
  * \class TracesParser
  *
  * \brief La classe TracesParser définit les méthodes de parsing de fichiers de traces brutes (que ce soit dans le contexte d'une partie de jeu ou en ligne de commandes), les différentes fonctions de l'algorithme hors-ligne, et les fonctions d'export et d'import de traces à partir d'un document XML.
@@ -79,7 +66,7 @@ public:
 	  *
 	  * \param dir_path le chemin d'accès au fichier.
 	  * \param filename le nom du fichier.
-	  * \param waitEndFlag si true (défaut) l'appel est bloquant jusqu'à ce que le flag "end" soit activé (voir TraceParser::setEnd) - utile si le fichier de trace est alimenté en mêùme temps qu'il est lu (cas de Prog&Play). Si false le fichier de trace est lu et analysé en une seule fois.
+	  * \param waitEndFlag si true (défaut) l'appel est bloquant jusqu'à ce que le flag "end" soit activé (voir TraceParser::setEnd) - utile si le fichier de trace est alimenté en même temps qu'il est lu (cas de Prog&Play). Si false le fichier de trace est lu et analysé en une seule fois.
 	  */
 	void parseLogFile(const std::string& dir_path, const std::string& filename, bool waitEndFlag = true);
 
@@ -319,11 +306,19 @@ private:
 	/**
 	  * \brief Fonction de pré-compression
 	  *
-	  * Cette fonction est utilisée pour compacter directement (i.e. avant tout appel à TracesParser::compressSequences) les appels qui se répètent dans la trace de façon contiguë. Elle permet ainsi de gagner un temps considérable dans certains cas comparé au temps de traitement qui serait requis par la fonction TracesParser::compressSequences.
+	  * Cette fonction est utilisée pour compacter directement (i.e. avant tout appel à TracesParser::offlineCompression) les appels qui se répètent dans la trace de façon contiguë. Elle permet ainsi de gagner un temps considérable dans certains cas comparé au temps de traitement qui serait requis par la fonction TracesParser::offlineCompression.
 	  *
 	  * \param spt une nouvelle trace à ajouter dans le vecteur TracesParser::traces.
 	  */
 	void inlineCompression(Trace::sp_trace& spt);
+
+	/**
+	  * \brief Fonction de compression
+	  *
+	  * Cette fonction est utilisée pour compacter la trace et appliqué plusieurs étapes de compression et de corrections
+	  *
+	  */
+	void offlineCompression();
 };
 
 #endif

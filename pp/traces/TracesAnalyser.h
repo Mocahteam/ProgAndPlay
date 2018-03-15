@@ -447,6 +447,49 @@ public:
 	  */
 	static bool isLearnerRelatedFeedback(FeedbackType type);
 
+	/**
+		* \brief Calcul du meilleur alignement possible entre deux vecteurs de traces.
+		*
+		* Cette fonction est la fonction permettant de déterminer le meilleur alignement possible entre les traces de \p l et les traces de \p e. Le traitement est effectué de façon récursive, i.e. que le meilleur alignement possible pour le contenu des séquences et de leurs sous-séquences est également cherché. Enfin, cette fonction permet également de calculer le score du joueur.
+		*
+		* \param l un vecteur de traces correspondant à l'apprenant
+		* \param e un vecteur de traces correspondant à l'expert
+		* \param align booléen permettant d'indiquer si le meilleur alignement trouvé doit être conservé, i.e. si les champs Trace::aligned doivent être modifiés. Sa valeur par défaut est vrai.
+		*
+		* \return un couple (gs,nv) où gs est le score de similarité brut (non normalisé) obtenu à partir du meilleur alignement trouvé et nv est la valeur de normalisation qui doit être utilisée pour ramener ce score dans l'intervalle [0,1].
+		*/
+	static std::pair<double,double> findBestAlignment(const std::vector<Trace::sp_trace>& l, const std::vector<Trace::sp_trace>& e, bool align = true);
+
+	/**
+		* \brief Construction d'un vecteur permettant de faciliter le parcours de l'alignement courant entre deux vecteurs de traces.
+		*
+		* Cette fonction se base sur l'alignement effectué entre \p l et \e pour construire un vecteur de couples d'indices reflétant cet alignement. On donne un exemple ci-dessous :
+		*
+		* Prenons les deux vecteurs de traces suivants :
+		*
+		*		root					root
+		*			Sequence				C
+		*				A
+		*				B
+		*			C
+		*
+		* Après alignement, on obtient le résultat suivant :
+		*
+		*    root
+		*    		Sequence	-		GAP
+		*				A
+		*				B
+		*			C			-		C
+		*
+		* L'appel à cette fonction va alors permettre de construire le chemin suivant :
+		*
+		*		(0,	-1) : la trace d'indice 0 du premier vecteur est aligné avec un GAP
+		* 	(1,	0) : la trace d'indice 1 du premier vecteur est aligné avec la trace d'indice 0 du second vecteur
+		*
+		* Remarque : Ce qui est appelé "chemin" ici n'est pas de la même nature que le "chemin" utilisé par la fonction TracesAnalyser::findBestAlignment pour trouver le meilleur alignement possible entre deux vecteurs de traces.
+		*/
+	path constructAlignmentPath(const std::vector<Trace::sp_trace>& l, const std::vector<Trace::sp_trace>& e) const;
+
 private:
 
 	/**
@@ -601,19 +644,6 @@ private:
 	const Sequence::sp_sequence getClosestCommonParent(const Call::call_vector& pattern) const;
 
 	/**
-	  * \brief Calcul du meilleur alignement possible entre deux vecteurs de traces.
-	  *
-	  * Cette fonction est la fonction permettant de déterminer le meilleur alignement possible entre les traces de \p l et les traces de \p e. Le traitement est effectué de façon récursive, i.e. que le meilleur alignement possible pour le contenu des séquences et de leurs sous-séquences est également cherché. Enfin, cette fonction permet également de calculer le score du joueur.
-	  *
-	  * \param l un vecteur de traces correspondant à l'apprenant
-	  * \param e un vecteur de traces correspondant à l'expert
-	  * \param align booléen permettant d'indiquer si le meilleur alignement trouvé doit être conservé, i.e. si les champs Trace::aligned doivent être modifiés. Sa valeur par défaut est vrai.
-	  *
-	  * \return un couple (gs,nv) où gs est le score de similarité brut (non normalisé) obtenu à partir du meilleur alignement trouvé et nv est la valeur de normalisation qui doit être utilisée pour ramener ce score dans l'intervalle [0,1].
-	  */
-	std::pair<double,double> findBestAlignment(const std::vector<Trace::sp_trace>& l, const std::vector<Trace::sp_trace>& e, bool align = true) const;
-
-	/**
 	  * \brief Affichage de l'alignement trouvé entre deux vecteurs de traces.
 	  *
 	  * \param l un vecteur de traces correspondant à l'apprenant.
@@ -684,36 +714,6 @@ private:
 	  * \param ref_f le feedback de référence
 	  */
 	void setFeedbackInfo(Feedback &f, Feedback &ref_f) const;
-
-	/**
-	  * \brief Construction d'un vecteur permettant de faciliter le parcours de l'alignement courant entre deux vecteurs de traces.
-	  *
-	  * Cette fonction se base sur l'alignement effectué entre \p l et \e pour construire un vecteur de couples d'indices reflétant cet alignement. On donne un exemple ci-dessous :
-	  *
-	  * Prenons les deux vecteurs de traces suivants :
-	  *
-	  *		root					root
-	  *			Sequence				C
-	  *				A
-	  *				B
-	  *			C
-	  *
-	  * Après alignement, on obtient le résultat suivant :
-	  *
-	  *    root
-	  *    		Sequence	-		GAP
-	  *				A
-	  *				B
-	  *			C			-		C
-	  *
-	  * L'appel à cette fonction va alors permettre de construire le chemin suivant :
-	  *
-	  *		(0,	-1) : la trace d'indice 0 du premier vecteur est aligné avec un GAP
-	  * 	(1,	0) : la trace d'indice 1 du premier vecteur est aligné avec la trace d'indice 0 du second vecteur
-	  *
-	  * Remarque : Ce qui est appelé "chemin" ici n'est pas de la même nature que le "chemin" utilisé par la fonction TracesAnalyser::findBestAlignment pour trouver le meilleur alignement possible entre deux vecteurs de traces.
-	  */
-	path constructAlignmentPath(const std::vector<Trace::sp_trace>& l, const std::vector<Trace::sp_trace>& e) const;
 
 	/**
 	  * \brief Récupération de l'indice d'un feedback listé à partir d'une trace et d'un type de feedback.
