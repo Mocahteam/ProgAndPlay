@@ -63,6 +63,9 @@ procédure fermerJeu ;
 -- Indique si le jeu est terminé
 fonction jeuEstTerminé retourne <Booléen> ;
 
+-- Indique si le jeu est en pause
+fonction jeuEstEnPause retourne <Booléen> ;
+
 -- Fournit la dimention de la carte de jeu sous la forme d'une Position (coin
 -- inférieure droit)
 fonction dimensionsCarte retourne <Position> ;
@@ -127,7 +130,10 @@ procédure affecterGroupe (entrée u <Unité>, entrée g <Entier>) ;
 -- nécessite u dirigée par le joueur  (u.coalition = MOI)
 procédure retirerGroupe (entrée u <Unité>) ;
 
--- L'unité u réalise l'action action sur l'unité cible cible
+-- L'unité u réalise l'action action sur l'unité cible cible. Si attendreFin
+-- est à faux, cette procédure retourne immediatement après donné l'ordre à
+-- l'unité. Si attendreFin est à vrai, cette procédure est bloquante jusqu'à
+-- ce que l'unité ait terminé de réaliser son action.
 -- nécessite u unité visible
 -- nécessite u dirigée par le joueur (u.coalition = MOI)
 -- nécessite cible unité visible
@@ -137,9 +143,12 @@ procédure retirerGroupe (entrée u <Unité>) ;
 -- BUILDSOCKET, BUILDTERMINAL, DEBUG, BUILDASSEMBLER, BUILDBYTE, BUILDPOINTER,
 -- BUILDBIT}
 procédure réaliserActionSurUnité (entrée u <Unité>, entrée action <Entier>,
-    entrée cible <Unité>) ;
+    entrée cible <Unité>, entrée attendreFin <Booléen>) ;
 
--- L'unité u réalise l'action action sur la position pos
+-- L'unité u réalise l'action action sur la position pos. Si attendreFin
+-- est à faux, cette procédure retourne immediatement après donné l'ordre à
+-- l'unité. Si attendreFin est à vrai, cette procédure est bloquante jusqu'à
+-- ce que l'unité ait terminé de réaliser son action.
 -- nécessite u unité visible
 -- nécessite u dirigée par le joueur (u.coalition = MOI)
 -- nécessite action est une action basique {DEPLACER, PATROUILLER, COMBATTRE,
@@ -147,15 +156,18 @@ procédure réaliserActionSurUnité (entrée u <Unité>, entrée action <Entier>,
 -- action de construction {BUILDBADBLOCK, BUILDLOGICBOMB, BUILDSOCKET,
 -- BUILDTERMINAL, DEBUG, BUILDASSEMBLER, BUILDBYTE, BUILDPOINTER, BUILDBIT}
 procédure réaliserActionSurPosition (entrée u <Unité>, entrée action <Entier>,
-    entrée pos <Position>) ;
+    entrée pos <Position>, entrée attendreFin <Booléen>) ;
 
--- L'unité u réalise l'action non ciblé action avec comme paramètre param
+-- L'unité u réalise l'action non ciblé action avec comme paramètre param.
+-- Si attendreFin est à faux, cette procédure retourne immediatement après
+-- donné l'ordre à l'unité. Si attendreFin est à vrai, cette procédure est
+-- bloquante jusqu'à ce que l'unité ait terminé de réaliser son action.
 -- nécessite u unité visible
 -- nécessite u dirigée par le joueur (u.coalition = MOI)
 -- nécessite action est une action basique {WAIT, FIRESTATE, SELFDESTRUCTION,
 -- REPEAT, MOVESTATE} ou une action spéciale {LAUNCHMINES, STOPBUILDING}
 procédure réaliserActionNonCiblée (entrée u <Unité>, entrée action <Entier>,
-    entrée param <Réel>) ;
+    entrée param <Réel>, entrée attendreFin <Booléen>) ;
 
 -------------------------------
 -- Opérations additionnelles --

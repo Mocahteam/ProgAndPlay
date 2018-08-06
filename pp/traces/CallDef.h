@@ -64,7 +64,7 @@ private:
 	virtual void filter(const Call *c) {}
 
 	virtual std::pair<int,int> distance(const Call *c) const {
-		return std::make_pair<int,int>(0,0);
+		return std::pair<int,int>(0,0);
 	}
 
 	virtual std::string getParams() const {
@@ -125,9 +125,9 @@ private:
 				Call::callMaps.contains(key,"resourceId") ||
 				Call::callMaps.contains(key,"coalition")){
 					if (param != cc->param)
-						return std::make_pair<int,int>(1,1);
+						return std::pair<int,int>(1,1);
 		}
-		return std::make_pair<int,int>(0,1);
+		return std::pair<int,int>(0,1);
 	}
 
 	virtual std::string getParams() const {
@@ -211,7 +211,7 @@ private:
 				sc++;
 		if ((Call::callMaps.contains(key,"indexSecond") || Call::callMaps.contains(key,"coalitionSecond")) && param2 != cc->param2)
 				sc++;
-		return std::make_pair<int,int>(sc,2);
+		return std::pair<int,int>(sc,2);
 	}
 
 	virtual std::string getParams() const {
@@ -303,7 +303,7 @@ private:
 			sc++;
 		if (Call::callMaps.contains(key,"unitType") && unit.type != cc->unit.type)
 			sc++;
-		return std::make_pair<int,int>(sc,2);
+		return std::pair<int,int>(sc,2);
 	}
 
 	virtual std::string getParams() const {
@@ -406,7 +406,7 @@ private:
 		 		Call::callMaps.contains(key,"coalition") ||
 				Call::callMaps.contains(key,"typeToCheck")) && param != cc->param)
 			sc++;
-		return std::make_pair<int,int>(sc,3);
+		return std::pair<int,int>(sc,3);
 	}
 
 	virtual std::string getParams() const {
@@ -524,7 +524,7 @@ private:
 			sc++;
 		if (Call::callMaps.contains(key,"synchronized") && param2 != cc->param2)
 			sc++;
-		return std::make_pair<int,int>(sc,4);
+		return std::pair<int,int>(sc,4);
 	}
 
 	virtual std::string getParams() const {
@@ -628,7 +628,7 @@ private:
 			sc++;
 		if (Call::callMaps.contains(key,"unitType") && unit.type != cc->unit.type)
 			sc++;
-		return std::make_pair<int,int>(sc,3);
+		return std::pair<int,int>(sc,3);
 	}
 
 	virtual std::string getParams() const {
@@ -735,7 +735,7 @@ private:
 			sc++;
 		if (Call::callMaps.contains(key,"unitType") && unit.type != cc->unit.type)
 			sc++;
-		return std::make_pair<int,int>(sc,4);
+		return std::pair<int,int>(sc,4);
 	}
 
 	virtual std::string getParams() const {
@@ -848,7 +848,7 @@ private:
 			sc++;
 		if (Call::callMaps.contains(key,"action") && param3 != cc->param3)
 			sc++;
-		return std::make_pair<int,int>(sc,4);
+		return std::pair<int,int>(sc,4);
 	}
 
 	virtual std::string getParams() const {
@@ -978,7 +978,7 @@ private:
 			sc++;
 		if (Call::callMaps.contains(key,"synchronized") && param2 != cc->param2)
 			sc++;
-		return std::make_pair<int,int>(sc,6);
+		return std::pair<int,int>(sc,6);
 	}
 
 	virtual std::string getParams() const {
@@ -1133,7 +1133,7 @@ private:
 		}
 		if (Call::callMaps.contains(key,"synchronized") && param2 != cc->param2)
 			sc++;
-		return std::make_pair<int,int>(sc,6);
+		return std::pair<int,int>(sc,6);
 	}
 
 	virtual std::string getParams() const {
@@ -1278,7 +1278,7 @@ private:
 			sc++;
 		if (Call::callMaps.contains(key,"synchronized") && param3 != cc->param3)
 			sc++;
-		return std::make_pair<int,int>(sc,5);
+		return std::pair<int,int>(sc,5);
 	}
 
 	virtual std::string getParams() const {

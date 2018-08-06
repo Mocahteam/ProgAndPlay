@@ -125,7 +125,7 @@ void TracesAnalyser::importMessagesFromXml(rapidxml::xml_document<> *doc) {
 							value = info_node->value();
 					}
 					if (!value.empty())
-						messages_map.insert(std::make_pair<std::string,std::string>(message_node->first_attribute("id")->value(),value));
+						messages_map.insert(std::pair<std::string,std::string>(message_node->first_attribute("id")->value(),value));
 				}
 			}
 		}
@@ -162,7 +162,7 @@ std::string TracesAnalyser::constructFeedback(const std::string& learner_xml, co
 						if (experts_calls_freq.find(expert_calls.at(j)->getKey()) != experts_calls_freq.end())
 							experts_calls_freq.at(expert_calls.at(j)->getKey())++;
 						else
-							experts_calls_freq.insert(std::make_pair<std::string,double>(expert_calls.at(j)->getKey(),1));
+							experts_calls_freq.insert(std::pair<std::string,double>(expert_calls.at(j)->getKey(),1));
 					}
 					reimport = addImplicitSequences(learner_gi.root_sps, expert_gi.root_sps);
 					if (reimport) {
@@ -454,10 +454,10 @@ bool TracesAnalyser::addImplicitSequences(Sequence::sp_sequence& mod_sps, Sequen
 						std::vector<Trace::sp_trace> adds;
 						for (unsigned int j = 0; j < patterns.at(i).size(); j++) {
 							Trace::sp_trace add = patterns.at(i).at(j);
-							Sequence::sp_sequence parent = boost::dynamic_pointer_cast<Sequence>(add->getParent());
+							Sequence::sp_sequence parent = boost::dynamic_pointer_cast<Sequence>(add->getParent().lock());
 							while (parent != common_parent) {
 								add = parent;
-								parent = boost::dynamic_pointer_cast<Sequence>(parent->getParent());
+								parent = boost::dynamic_pointer_cast<Sequence>(parent->getParent().lock());
 							}
 							if (std::find(adds.begin(), adds.end(), add) == adds.end())
 								adds.push_back(add);
@@ -514,7 +514,7 @@ const Sequence::sp_sequence TracesAnalyser::getClosestCommonParent(const Call::c
 	Sequence::sp_sequence parents[pattern.size()];
 	bool same = true;
 	for (unsigned int i = 0; i < pattern.size(); i++) {
-		parents[i] = boost::dynamic_pointer_cast<Sequence>(pattern.at(i)->getParent());
+		parents[i] = boost::dynamic_pointer_cast<Sequence>(pattern.at(i)->getParent().lock());
 		if (parents[i]->isRoot())
 			return parents[i]; // root is the closest common parent
 		if (i > 0 && parents[i] != parents[i-1])
@@ -529,7 +529,7 @@ const Sequence::sp_sequence TracesAnalyser::getClosestCommonParent(const Call::c
 				ind_max = i;
 			}
 		}
-		parents[ind_max] = boost::dynamic_pointer_cast<Sequence>(parents[ind_max]->getParent());
+		parents[ind_max] = boost::dynamic_pointer_cast<Sequence>(parents[ind_max]->getParent().lock());
 		if (parents[ind_max]->isRoot())
 			return parents[ind_max]; // root is the closest common parent
 		same = true;
@@ -567,31 +567,31 @@ std::pair<double,double> TracesAnalyser::findBestAlignment(const std::vector<Tra
 		help[i] = new char[esize];
 	}
 	for (unsigned int i = 0; i < lsize; i++) {
-		val[i][0] = std::make_pair<double,double>(ALIGN_GAP_SCORE * i, 0);
-		ind[i][0] = std::make_pair<int,int>(i-1,0);
+		val[i][0] = std::pair<double,double>(ALIGN_GAP_SCORE * i, 0);
+		ind[i][0] = std::pair<int,int>(i-1,0);
 		help[i][0] = 'h';
 	}
 	for (unsigned int j = 1; j < esize; j++) {
-		val[0][j] = std::make_pair<double,double>(ALIGN_GAP_SCORE * j, 0);
-		ind[0][j] = std::make_pair<int,int>(0,j-1);
+		val[0][j] = std::pair<double,double>(ALIGN_GAP_SCORE * j, 0);
+		ind[0][j] = std::pair<int,int>(0,j-1);
 		help[0][j] = 'g';
 	}
 	for (unsigned int i = 1; i < lsize; i++) {
 		for (unsigned int j = 1; j < esize; j++) {
 			if (l.at(i-1)->isEvent()) {
-				val[i][j] = std::make_pair<double,double>(val[i-1][j].first + ALIGN_GAP_SCORE, 0);
+				val[i][j] = std::pair<double,double>(val[i-1][j].first + ALIGN_GAP_SCORE, 0);
 				help[i][j] = 'h';
-				ind[i][j] = std::make_pair<int,int>(i-1,j);
+				ind[i][j] = std::pair<int,int>(i-1,j);
 				continue;
 			}
 			if (e.at(j-1)->isEvent()) {
-				val[i][j] = std::make_pair<double,double>(val[i][j-1].first + ALIGN_GAP_SCORE, 0);
+				val[i][j] = std::pair<double,double>(val[i][j-1].first + ALIGN_GAP_SCORE, 0);
 				help[i][j] = 'g';
-				ind[i][j] = std::make_pair<int,int>(i,j-1);
+				ind[i][j] = std::pair<int,int>(i,j-1);
 				continue;
 			}
-			val[i][j] = std::make_pair<double,double>(0,0);
-			ind[i][j] = std::make_pair<int,int>(i-1,j-1);
+			val[i][j] = std::pair<double,double>(0,0);
+			ind[i][j] = std::pair<int,int>(i-1,j-1);
 			double match_score = 0;
 			if (l.at(i-1)->isCall() && e.at(j-1)->isCall()) {
 				Call::sp_call learner_spc = boost::dynamic_pointer_cast<Call>(l.at(i-1));
@@ -706,30 +706,30 @@ std::pair<double,double> TracesAnalyser::findBestAlignment(const std::vector<Tra
 	delete[] ind;
 	delete[] help;
 	osAnalyser << "end findBestAlignment" << std::endl;
-	return std::make_pair<double,double>(score,norm);
+	return std::pair<double,double>(score,norm);
 }
 
 void TracesAnalyser::displayAlignment(const std::vector<Trace::sp_trace>& l, const std::vector<Trace::sp_trace>& e) const {
 	unsigned int i = 0, j = 0;
 	while (i < l.size() || j < e.size()) {
-		if (i < l.size() && j < e.size() && l.at(i)->getAligned() && e.at(j)->getAligned()) {
+		if (i < l.size() && j < e.size() && !l.at(i)->getAligned().expired() && !e.at(j)->getAligned().expired()) {
 			l.at(i)->exportAsString(osAnalyser);
 			osAnalyser << "with" << std::endl;
-			l.at(i)->getAligned()->exportAsString(osAnalyser); //l.at(i)->aligned is equal to e.at(j) in this case
-			if (l.at(i)->isSequence() && l.at(i)->getAligned()->isSequence()) {
+			l.at(i)->getAligned().lock()->exportAsString(osAnalyser); //l.at(i)->aligned is equal to e.at(j) in this case
+			if (l.at(i)->isSequence() && l.at(i)->getAligned().lock()->isSequence()) {
 				osAnalyser << "enter both sequence" << std::endl;
-				displayAlignment(dynamic_cast<Sequence*>(l.at(i).get())->getTraces(), dynamic_cast<Sequence*>(l.at(i)->getAligned().get())->getTraces());
+				displayAlignment(dynamic_cast<Sequence*>(l.at(i).get())->getTraces(), dynamic_cast<Sequence*>(l.at(i)->getAligned().lock().get())->getTraces());
 				osAnalyser << "exit both sequence" << std::endl;
 			}
 			i++;
 			j++;
 		}
-		else if (i < l.size() && !l.at(i)->getAligned()) {
+		else if (i < l.size() && l.at(i)->getAligned().expired()) {
 			l.at(i++)->exportAsString(osAnalyser);
 			osAnalyser << "with" << std::endl;
 			osAnalyser << "\t-" << std::endl;
 		}
-		else if (j < e.size() && !e.at(j)->getAligned()) {
+		else if (j < e.size() && e.at(j)->getAligned().expired()) {
 			osAnalyser << "\t-" << std::endl;
 			osAnalyser << "with" << std::endl;
 			e.at(j++)->exportAsString(osAnalyser);
@@ -1000,8 +1000,8 @@ void TracesAnalyser::filterFeedbacks() {
 	osAnalyser << "---\nFilter 3 (remove CALL_LACK feedbacks when the call could be aligned with an error call from the player if there was no error)" << std::endl;
 	Sequence::sequence_vector sequences = learner_gi.root_sps->getSequences();
 	for (unsigned int i = 0; i < sequences.size(); i++) {
-		if (sequences.at(i)->getAligned()) {
-			Sequence::sp_sequence aligned = boost::dynamic_pointer_cast<Sequence>(sequences.at(i)->getAligned());
+		if (!sequences.at(i)->getAligned().expired()) {
+			Sequence::sp_sequence aligned = boost::dynamic_pointer_cast<Sequence>(sequences.at(i)->getAligned().lock());
 			path p = constructAlignmentPath(sequences.at(i)->getTraces(),aligned->getTraces());
 			unsigned int j = 0, incr = 0;
 			Call::sp_call learner_spc, expert_spc;
@@ -1061,14 +1061,14 @@ void TracesAnalyser::filterFeedbacks() {
 	osAnalyser << "---\nFilter 4 (remove expert alignment feedbacks located after a learner endless sequence)" << std::endl;
 	if (endless_loop) {
 		Sequence::sp_sequence last_sps = learner_gi.root_sps->getSequences().back();
-		if (last_sps->getParent()) {
-			Sequence::sp_sequence parent = boost::dynamic_pointer_cast<Sequence>(last_sps->getParent());
-			while (!parent->getAligned() && parent->getParent()) {
+		if (!last_sps->getParent().expired()) {
+			Sequence::sp_sequence parent = boost::dynamic_pointer_cast<Sequence>(last_sps->getParent().lock());
+			while (parent->getAligned().expired() && !parent->getParent().expired()) {
 				last_sps = parent;
-				parent = boost::dynamic_pointer_cast<Sequence>(parent->getParent());
+				parent = boost::dynamic_pointer_cast<Sequence>(parent->getParent().lock());
 			}
-			if (parent->getAligned()) {
-				Sequence::sp_sequence aligned = boost::dynamic_pointer_cast<Sequence>(parent->getAligned());
+			if (!parent->getAligned().expired()) {
+				Sequence::sp_sequence aligned = boost::dynamic_pointer_cast<Sequence>(parent->getAligned().lock());
 				// recuperation de l'indice de last_sps dans le vecteur de traces de son parent
 				int ind = parent->getIndex(last_sps), ind_aligned = -1;
 				// construction du chemin d'alignement afin de pouvoir observer quelles sont les traces alignées avec un trou
@@ -1090,7 +1090,7 @@ void TracesAnalyser::filterFeedbacks() {
 						}
 					}
 					if (!aligned->isRoot()) {
-						parent = boost::dynamic_pointer_cast<Sequence>(aligned->getParent());
+						parent = boost::dynamic_pointer_cast<Sequence>(aligned->getParent().lock());
 						aligned = parent;
 					}
 				} while(!aligned->isRoot());
@@ -1127,12 +1127,12 @@ TracesAnalyser::path TracesAnalyser::constructAlignmentPath(const std::vector<Tr
 	TracesAnalyser::path p;
 	unsigned int i = 0, j = 0;
 	while (i < l.size() || j < e.size()) {
-		if (i < l.size() && j < e.size() && l.at(i)->getAligned() && e.at(j)->getAligned())
-			p.push_back(std::make_pair<int,int>(i++,j++));
-		else if (i < l.size() && !l.at(i)->getAligned())
-			p.push_back(std::make_pair<int,int>(i++,-1));
-		else if (j < e.size() && !e.at(j)->getAligned())
-			p.push_back(std::make_pair<int,int>(-1,j++));
+		if (i < l.size() && j < e.size() && !l.at(i)->getAligned().expired() && !e.at(j)->getAligned().expired())
+			p.push_back(std::pair<int,int>(i++,j++));
+		else if (i < l.size() && l.at(i)->getAligned().expired())
+			p.push_back(std::pair<int,int>(i++,-1));
+		else if (j < e.size() && e.at(j)->getAligned().expired())
+			p.push_back(std::pair<int,int>(-1,j++));
 	}
 	return p;
 }
@@ -1242,10 +1242,10 @@ void TracesAnalyser::setFeedbackInfo(Feedback& f, Feedback& ref_f) const {
 				spt = f.expert_spt; // if we have the expert trace, we can use it directly
 			else if (f.learner_spt) {
 				Trace::sp_trace learner_spt = f.learner_spt; //if we have the learner trace, we climb up the tree to get an aligned sequence
-				while (!learner_spt->getAligned() && learner_spt->getParent())
-					learner_spt = learner_spt->getParent();
-				if (learner_spt->getAligned() && !boost::dynamic_pointer_cast<Sequence>(learner_spt->getAligned())->isRoot())
-					spt = learner_spt->getAligned();
+				while (learner_spt->getAligned().expired() && !learner_spt->getParent().expired())
+					learner_spt = learner_spt->getParent().lock();
+				if (!learner_spt->getAligned().expired() && !boost::dynamic_pointer_cast<Sequence>(learner_spt->getAligned().lock())->isRoot())
+					spt = learner_spt->getAligned().lock();
 			}
 			std::string info;
 			bool filled = false;
@@ -1260,8 +1260,8 @@ void TracesAnalyser::setFeedbackInfo(Feedback& f, Feedback& ref_f) const {
 						s += " inclus dans ";
 					s += info;
 				}
-				if (spt->getParent()) {
-					Sequence::sp_sequence parent = boost::dynamic_pointer_cast<Sequence>(spt->getParent());
+				if (!spt->getParent().expired()) {
+					Sequence::sp_sequence parent = boost::dynamic_pointer_cast<Sequence>(spt->getParent().lock());
 					if (parent->isRoot())
 						spt.reset();
 					else
@@ -1330,11 +1330,11 @@ void TracesAnalyser::listAlignmentFeedbacks(const std::vector<Trace::sp_trace>& 
 		if (!l.at(i)->isEvent()) {
 			Feedback f;
 			f.type = NONE;
-			if (!l.at(i)->getAligned())
+			if (l.at(i)->getAligned().expired())
 				f.type = (l.at(i)->isSequence()) ? SEQ_EXTRA : CALL_EXTRA;
 			else if (l.at(i)->isSequence()) {
 				Sequence::sp_sequence learner_sps = boost::dynamic_pointer_cast<Sequence>(l.at(i));
-				Sequence::sp_sequence expert_sps = boost::dynamic_pointer_cast<Sequence>(l.at(i)->getAligned());
+				Sequence::sp_sequence expert_sps = boost::dynamic_pointer_cast<Sequence>(l.at(i)->getAligned().lock());
 				// learner_sps and expert_sps cannot be both implicit at the same time
 				if (learner_sps->isImplicit() && !expert_sps->isImplicit())
 					f.type = SEQ_LACK;
@@ -1357,22 +1357,22 @@ void TracesAnalyser::listAlignmentFeedbacks(const std::vector<Trace::sp_trace>& 
 			}
 			else {
 				Call::sp_call learner_call = boost::dynamic_pointer_cast<Call>(l.at(i));
-				Call::sp_call expert_call = boost::dynamic_pointer_cast<Call>(l.at(i)->getAligned());
+				Call::sp_call expert_call = boost::dynamic_pointer_cast<Call>(l.at(i)->getAligned().lock());
 				double match_score = 1 - learner_call->getEditDistance(expert_call.get());
 				if (match_score < 1)
 					f.type = CALL_PARAMS;
 			}
 			if (f.type != NONE) {
 				f.learner_spt = l.at(i);
-				if (l.at(i)->getAligned())
-					f.expert_spt = l.at(i)->getAligned();
+				if (!l.at(i)->getAligned().expired())
+					f.expert_spt = l.at(i)->getAligned().lock();
 				f.priority = -1;
 				feedbacks.push_back(f);
 			}
 		}
 	}
 	for (unsigned int i = 0; i < e.size(); i++) {
-		if (!e.at(i)->getAligned() && !e.at(i)->isEvent()) {
+		if (e.at(i)->getAligned().expired() && !e.at(i)->isEvent()) {
 			Feedback f;
 			f.expert_spt = e.at(i);
 			f.type = (e.at(i)->isSequence()) ? SEQ_LACK : CALL_LACK;

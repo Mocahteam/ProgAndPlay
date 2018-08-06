@@ -22,7 +22,7 @@
 
 #include "PP_Supplier.h"
 #include "PP_Private.h"
-#include "PP_Error_Private.h"
+#include "PP_Error_Private.h" 
 
 /*****************************************************************************/
 /* Defines global variables                                                  */
@@ -111,39 +111,63 @@ int PP_Init(){
 				(boost::interprocess::open_or_create
 				,"PP_SharedMemory"  //segment name
 				,1000000);          //segment size in bytes
+				
 			// constructs elements of the shared memory
 			shd.mutex = segment->find_or_construct<ShMutex>("mutex")();
+			
 			shd.gameOver = segment->find_or_construct<bool>("gameOver")();
+			*(shd.gameOver) = false; // set default value
+			
 			shd.gamePaused = segment->find_or_construct<bool>("gamePaused")();
+			*(shd.gamePaused) = false; // set default value
+			
 			shd.tracePlayer = segment->find_or_construct<bool>("tracePlayer")();
 			*(shd.tracePlayer) = false; // init trace functionality to false by default
+			
 			shd.timestamp = segment->find_or_construct<int>("timestamp")();
+			*(shd.timestamp) = 0; // set default value
+			
 			const ShMapDataAllocator mapDataAlloc_inst
 				(segment->get_segment_manager());
 			shd.units = segment->find_or_construct<ShMapUnits>("units")
 				(std::less<PP_UnitId>(), mapDataAlloc_inst);
+			shd.units->clear(); // set default value
 
 			const ShIntAllocator intAlloc_inst
 				(segment->get_segment_manager());
 			shd.coalitions = segment->find_or_construct<ShIntVector>("coalitions")
 				[NB_COALITIONS]
 				(intAlloc_inst);
+			shd.coalitions->clear(); // set default value
 
 			const ShPendingCommandAllocator commandAlloc_inst
 				(segment->get_segment_manager());
 			shd.pendingCommand = segment->find_or_construct<ShPendingCommands>
 				("pendingCommands") (std::less<int>(), commandAlloc_inst);
+			shd.pendingCommand->clear(); // set default value
 				
 			shd.mapSize = segment->find_or_construct<PP_Pos>("mapSize")();
+			shd.mapSize->x = 0; // set default value
+			shd.mapSize->y = 0; // set default value
+			
 			shd.startPosition = segment->find_or_construct<PP_Pos>("startPosition")();
+			shd.startPosition->x = 0; // set default value
+			shd.startPosition->y = 0; // set default value
+			
 			const ShPosAllocator posAlloc_inst(segment->get_segment_manager());
 			shd.specialAreas = segment->find_or_construct<ShVectPos>("specialAreas")
 				(posAlloc_inst);
+			shd.specialAreas->clear(); // set default value
+				
 			shd.resources = segment->find_or_construct<ShIntVector>("resources")
 				(intAlloc_inst);
+			shd.resources->clear(); // set default value
+			
 			const ShStringAllocator stringAlloc_inst(segment->get_segment_manager());
 			shd.history = segment->find_or_construct<ShStringList>("history")
 				(stringAlloc_inst);
+			shd.history->clear(); // set default value
+				
 		} catch (...){
 			PP_SetError("PP_Init : construct shared memory error");
 			delete segment;
@@ -168,6 +192,20 @@ int PP_Quit(void){
 		return -1;
 	}
 	initialized = false;
+	// delete segment content
+	segment->destroy<ShMutex>("mutex");
+	segment->destroy<bool>("gameOver");
+	segment->destroy<bool>("gamePaused");
+	segment->destroy<bool>("tracePlayer");
+	segment->destroy<int>("timestamp");
+	segment->destroy<ShMapUnits>("units");
+	segment->destroy<ShIntVector>("coalitions");
+	segment->destroy<ShPendingCommands>("pendingCommands");
+	segment->destroy<PP_Pos>("mapSize");
+	segment->destroy<PP_Pos>("startPosition");
+	segment->destroy<ShVectPos>("specialAreas");
+	segment->destroy<ShIntVector>("resources");
+	segment->destroy<ShStringList>("history");
 	// deletes the segment
 	delete segment;
 	segment = NULL;

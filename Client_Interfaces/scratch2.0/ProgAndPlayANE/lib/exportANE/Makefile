@@ -1,7 +1,7 @@
 
 .PHONY: all clean install
 
-FLASH_DEV_DIR = C:\Users\mmuratet\AppData\Local\FlashDevelop\Apps\flexairsdk\4.6.0+19.0.0\bin
+FLASH_DEV_DIR = "C:/Users/Mathieu Muratet/AppData/Local/FlashDevelop/Apps/flexairsdk/4.6.0+29.0.0/bin/"
 
 LIB_NAME = ProgAndPlayExtension
 
@@ -27,7 +27,7 @@ $(LIB_NAME).dll: $(LIB_NAME).o FlashRuntimeExtensions.lib $(PP_DIR)/PP_Client_Pr
 	g++ -shared -o $@ $^ $(OPTLIB)
 	
 $(CIBLE): ProgAndPlayANE.swc extensionDescriptor.xml library.swf $(LIB_NAME).dll
-	$(FLASH_DEV_DIR)\adt -package -target ane $(CIBLE) extensionDescriptor.xml -swc ProgAndPlayANE.swc -platform Windows-x86 library.swf $(LIB_NAME).dll
+	$(FLASH_DEV_DIR)adt -package -target ane $(CIBLE) extensionDescriptor.xml -swc ProgAndPlayANE.swc -platform Windows-x86 library.swf $(LIB_NAME).dll
 	
 library.swf: ProgAndPlayANE.swc
 	7za e -y ProgAndPlayANE.swc library.swf

@@ -25,12 +25,10 @@
 #include "PP_Error_Private.h"
 #include "traces/TraceConstantList.h"
 
+#include <chrono>
+#include <thread>
 #include <signal.h>
 #include <math.h>
-
-#include <boost/date_time/gregorian/gregorian.hpp>
-#include <boost/thread.hpp>
-
 #include <stdio.h>
 #include <fstream>
 #include <sstream>
@@ -179,7 +177,7 @@ void enterCriticalSection(){
 	if (locked == 0){
 		// make a pause every 8 call to avoid cpu consuming
 		if (nbCriticalCall > 8){
-			boost::this_thread::sleep(boost::posix_time::milliseconds(1));
+			std::this_thread::sleep_for(std::chrono::milliseconds(1));
 			nbCriticalCall = 0;
 		}
 		// intercept SIGINT signal in critical section

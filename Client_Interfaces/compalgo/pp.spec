@@ -29,28 +29,31 @@ fonction close retourne <Entier> ;
 -- retourne 0 si le jeu n'est pas terminé
 -- retourne -1 en cas d'erreur
 -- nécessite la PP initialisée
--- nécessite le jeu rafraîchit
 fonction isGameOver retourne <Entier> ;
+
+-- Indique si le jeu est en pause
+-- retourne une valeur > 0 si le jeu est en pause
+-- retourne 0 si le jeu n'est pas en pause
+-- retourne -1 en cas d'erreur
+-- nécessite la PP initialisée
+fonction isGamePaused retourne <Entier> ;
 
 -- Fournit la taille de la carte sous forme de deux coordonnées x (abcisse) et
 -- y (ordonnée) en cas de succès
 -- en cas d'erreur, x = y = -1
 -- nécessite la PP initialisée
--- nécessite le jeu rafraîchit
 procédure getMapSize (sortie x <Réel>, sortie y <Réel>) ;
 
 -- Fournit sous forme de deux coordonnées x (abcisse) et y (ordonnée) la
 -- position de départ du joueur courant en cas de succès
 -- en cas d'erreur, x = y = -1
 -- nécessite la PP initialisée
--- nécessite le jeu rafraîchit
 procédure getStartPosition (sortie x <Réel>, sortie y <Réel>) ;
 
 -- Fournit le niveau courant d'une certaine ressource
 -- Retourne le niveau courant de la ressource "id"
 -- Retourne -1 en cas d'erreur
 -- nécessite la PP initialisée
--- nécessite le jeu rafraîchit
 fonction getResource (entrée id <Entier>) retourne <Entier> ;
 
 ----------------------------------------
@@ -60,7 +63,6 @@ fonction getResource (entrée id <Entier>) retourne <Entier> ;
 -- Retourne le nombre de zones spéciales du jeu en cas de succès
 -- Retourne -1 en cas d'erreur
 -- nécessite la PP initialisée
--- nécessite le jeu rafraîchit
 fonction getNumSpecialAreas retourne <Entier> ;
 
 
@@ -70,7 +72,6 @@ fonction getNumSpecialAreas retourne <Entier> ;
 -- nécessite z doit être compris dans l'intervalle [0..n[ où n est le nombre de
 -- zones spéciales
 -- nécessite la PP initialisée
--- nécessite le jeu rafraîchit
 procédure getSpecialAreaPosition
     (entrée z <Entier>, sortie x <Réel>, sortie y <Réel>) ;
 
@@ -82,7 +83,6 @@ procédure getSpecialAreaPosition
 -- Retourne -1 en cas de problème
 -- nécessite c est une coalition valide : MOI, ENNEMI ou ALLIE
 -- nécessite la PP initialisée
--- nécessite le jeu rafraîchit
 fonction getNumUnits (entrée c <Entier>) retourne <Entier> ;
 
 -- Retourne le numéro de la ième unité visible de la coalition c en cas de
@@ -92,7 +92,6 @@ fonction getNumUnits (entrée c <Entier>) retourne <Entier> ;
 -- la coalition c
 -- nécessite c est une coalition valide : MOI, ENNEMI ou ALLIE
 -- nécessite la PP initialisée
--- nécessite le jeu rafraîchit
 fonction getUnitAt (entrée c <Entier>, entrée i <Entier>) retourne <Entier> ;
 
 -------------------------------
@@ -102,27 +101,23 @@ fonction getUnitAt (entrée c <Entier>, entrée i <Entier>) retourne <Entier> ;
 -- Retourne la coalition de l'unité u en cas de succès
 -- Retourne -1 en cas d'erreur
 -- nécessite la PP initialisée
--- nécessite le jeu rafraîchit
 fonction unitGetCoalition (entrée u <Entier>) retourne <Entier> ;
 
 -- Retourne le type d'une unité u en cas de succès
 -- Retourne -1 en cas d'erreur
 -- nécessite la PP initialisée
--- nécessite le jeu rafraîchit
 fonction unitGetType (entrée u <Entier>) retourne <Entier> ;
 
 -- Retourne la position de l'unité u sous forme de coordonnées x (abscisse) et
 -- y (ordonnée) en cas de succès
 -- en cas d'erreur, x = y = -1
 -- nécessite la PP initialisée
--- nécessite le jeu rafraîchit
 procédure unitGetPosition (entrée u <Entier>,
                            sortie x <Réel>, sortie y <Réel>);
 
 -- Retourne le niveau de santé de l'unité u en cas de succès
 -- Retourne -1.0 en cas d'erreur
 -- nécessite la PP initialisée
--- nécessite le jeu rafraîchit
 fonction unitGetHealth (entrée u <Entier>) retourne <Réel> ;
 
 
@@ -130,14 +125,12 @@ fonction unitGetHealth (entrée u <Entier>) retourne <Réel> ;
 -- succès
 -- Retourne -1.0 en cas d'erreur
 -- nécessite la PP initialisée
--- nécessite le jeu rafraîchit
 fonction unitGetMaxHealth (entrée u <Entier>) retourne <Réel> ;
 
 -- Retourne le numéro du groupe dont fait partie l'unité u en cas de succès
 -- Retourne -1 en cas d'erreur
 -- Retourne -2 si l'unité n'est affectée à aucun groupe
 -- nécessite la PP initialisée
--- nécessite le jeu rafraîchit
 fonction unitGetGroup (entrée u <Entier>) retourne <Entier> ;
 
 -- Donne l'ordre à l'unité u de s'affecter au groupe g
@@ -147,7 +140,6 @@ fonction unitGetGroup (entrée u <Entier>) retourne <Entier> ;
 -- nécessite u soit dirigée par le joueur
 -- nécessite g >= -1 
 -- nécessite la PP initialisée
--- nécessite le jeu rafraîchit
 fonction unitSetGroup (entrée u <Entier>, entrée g <Entier>)
 retourne <Entier> ;
 
@@ -156,10 +148,12 @@ retourne <Entier> ;
 -- Retourne 0 en cas de succès
 -- Retourne -1 en cas d'erreur
 -- nécessite la PP initialisée
--- nécessite le jeu rafraîchit
 fonction unitRemoveFromGroup (entrée u <Entier>) retourne <Entier> ;
 
--- Donne l'ordre à l'unité u de réaliser l'action action sur l'unité cible cible
+-- Donne l'ordre à l'unité u de réaliser l'action action sur l'unité cible cible.
+-- Si attendreFin est à faux, cette procédure retourne immediatement après donné
+-- l'ordre à l'unité. Si attendreFin est à vrai, cette procédure est bloquante
+-- jusqu'à ce que l'unité ait terminé de réaliser son action.
 -- Retourne 0 en cas de succès
 -- Retourne -1 en cas d'erreur
 -- nécessite u soit dirigée par le joueur
@@ -168,12 +162,14 @@ fonction unitRemoveFromGroup (entrée u <Entier>) retourne <Entier> ;
 -- SIGTERM} ou une action de construction {-BADBLOCK, -LOGICBOMB, -DEBUG,
 -- -KERNEL, -SOCKET, -TERMINAL, -ASSEMBLER, -BIT, -BYTE, -POINTER}
 -- nécessite la PP initialisée
--- nécessite le jeu rafraîchit
 fonction unitActionOnUnit
-    (entrée u <Entier>, entrée action <Entier>, entrée cible <Entier>)
+    (entrée u <Entier>, entrée action <Entier>, entrée cible <Entier>, entrée attendreFin <Booléen>)
 retourne <Entier> ;
 
--- Donne l'ordre à l'unité u de réaliser l'action action à la position (x, y)
+-- Donne l'ordre à l'unité u de réaliser l'action action à la position (x, y).
+-- Si attendreFin est à faux, cette procédure retourne immediatement après donné
+-- l'ordre à l'unité. Si attendreFin est à vrai, cette procédure est bloquante
+-- jusqu'à ce que l'unité ait terminé de réaliser son action.
 -- Retourne 0 en cas de succès
 -- Retourne -1 en cas d'erreur
 -- nécessite u soit dirigée par le joueur
@@ -182,22 +178,23 @@ retourne <Entier> ;
 -- action de construction {-BADBLOCK, -LOGICBOMB, -DEBUG, -KERNEL, -SOCKET,
 -- -TERMINAL, -ASSEMBLER, -BIT, -BYTE, -POINTER}
 -- nécessite la PP initialisée
--- nécessite le jeu rafraîchit
 fonction unitActionOnPosition
     (entrée u <Entier>, entrée action <Entier>, entrée x <Réel>,
-    entrée y <Réel>)
+    entrée y <Réel>, entrée attendreFin <Booléen>)
 retourne <Entier> ;
 
--- Donne l'ordre à l'unité u de réaliser l'action action avec le paramètre param
+-- Donne l'ordre à l'unité u de réaliser l'action action avec le paramètre param.
+-- Si attendreFin est à faux, cette procédure retourne immediatement après donné
+-- l'ordre à l'unité. Si attendreFin est à vrai, cette procédure est bloquante
+-- jusqu'à ce que l'unité ait terminé de réaliser son action.
 -- Retourne 0 en cas de succès
 -- Retourne -1 en cas d'erreur
 -- nécessite u soit dirigée par le joueur
 -- nécessite action est une action basique {WAIT, FIRESTATE, SELFDESTRUCTION,
 -- REPEAT, MOVESTATE} ou une action spéciale {LAUNCHMINES}
 -- nécessite la PP initialisée
--- nécessite le jeu rafraîchit
 fonction unitUntargetedAction
-    (entrée u <Entier>, entrée action <Entier>, entrée param <Réel>)
+    (entrée u <Entier>, entrée action <Entier>, entrée param <Réel>, entrée attendreFin <Booléen>)
 retourne <Entier> ;
 
 ------------------------------------------------------------------------------
@@ -210,7 +207,6 @@ retourne <Entier> ;
 -- Retourne -1 en cas d'erreur
 -- nécessite u soit dirigée par le joueur
 -- nécessite la PP initialisée
--- nécessite le jeu rafraîchit
 fonction unitGetNumPdgCmds (entrée u <Entier>) retourne <Entier> ;
 
 -- Retourne le code de la ième commande en attente pour l'unité u en cas de
@@ -220,7 +216,6 @@ fonction unitGetNumPdgCmds (entrée u <Entier>) retourne <Entier> ;
 -- nécessite i doit être compris dans l'intervalle [0..n[ où n est le nombre de
 -- commande en attente pour l'unité u
 -- nécessite la PP initialisée
--- nécessite le jeu rafraîchit
 fonction unitPdgCmdGetCode (entrée u <Entier>, entrée i <Entier>)
 retourne <Entier> ;
 
@@ -231,7 +226,6 @@ retourne <Entier> ;
 -- nécessite i doit être compris dans l'intervalle [0..n[ où n est le nombre de
 -- commande en attente pour l'unité u
 -- nécessite la PP initialisée
--- nécessite le jeu rafraîchit
 fonction unitPdgCmdGetNumParam (entrée u <Entier>, entrée i <Entier>)
 retourne <Entier> ;
 
@@ -244,7 +238,6 @@ retourne <Entier> ;
 -- nécessite idParam doit être compris dans l'intervalle [0..m[ où m est le
 -- nombre de paramètre de la commande en attente numéro idCmd pour l'unité u
 -- nécessite la PP initialisée
--- nécessite le jeu rafraîchit
 fonction unitPdgCmdGetParam (entrée u <Entier>, entrée idCmd <Entier>,
                              entrée idParam <Entier>) retourne <Réel> ;
 

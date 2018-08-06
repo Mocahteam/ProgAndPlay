@@ -42,11 +42,11 @@ void Trace::setInfo(std::string info) {
 	this->info = info;
 }
 
-const Trace::sp_trace& Trace::getParent() const {
+const Trace::wp_trace& Trace::getParent() const {
 	return parent;
 }
 
-const Trace::sp_trace& Trace::getAligned() const {
+const Trace::wp_trace& Trace::getAligned() const {
 	return aligned;
 }
 
@@ -64,9 +64,9 @@ void Trace::resetAligned() {
 
 unsigned int Trace::getLevel() const {
 	unsigned int level = 0;
-	sp_trace spt = parent;
+	sp_trace spt = parent.lock();
 	while (spt) {
-		spt = spt->getParent();
+		spt = spt->getParent().lock();
 		level++;
 	}
 	return level;

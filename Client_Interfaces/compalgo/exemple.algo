@@ -1,4 +1,4 @@
-importer jeu, listeConstantesKP41, entréeSortie;
+importer jeu, listeConstantesKP47, entréeSortie;
 
 programme exemple
 glossaire
@@ -11,6 +11,6 @@ début
     -- récupération de la ième unité
     unité <- ièmeUnité(MOI, 1);
     -- donner l'ordre de déplacament
-    réaliserActionSurPosition(unité, MOVE, pos);
+    réaliserActionSurPosition(unité, MOVE, pos, FAUX);
     fermerJeu;
 fin

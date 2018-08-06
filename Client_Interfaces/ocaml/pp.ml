@@ -18,6 +18,8 @@ type action = command
 (* pending command definition. It is represented by an action and a list of parameters *)
 type pdgCmd = (action * float list)
 
+external traceToken : string -> bool = "OCaml_TraceToken"
+
 (* Returns true if the connexion with the game is openned and false if not. *)
 external openConnexion : unit -> bool = "OCaml_OpenConnexion"
 
@@ -83,7 +85,7 @@ external untargetedAction : entity * command * float * bool -> bool = "OCaml_Uni
 let rec waitUnitProp = function (u, p) ->
 	let rec alwaysPresent = function
 		(e, []) -> false;
-		| (e, t::q) -> e = t or alwaysPresent (e, q) in
+		| (e, t::q) -> e = t || alwaysPresent (e, q) in
 	if not (p u) then
 		if alwaysPresent (u, (getEntities (getCoalition u))) then
 			waitUnitProp (u, p)

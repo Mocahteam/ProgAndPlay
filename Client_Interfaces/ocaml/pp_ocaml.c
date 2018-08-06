@@ -106,6 +106,12 @@ value getPendingCommand (value idCmd, value entity){
 	CAMLreturn (cmd);
 }
 
+value OCaml_TraceToken (value txt){
+	CAMLparam1 (txt);
+	printf("%s\n", String_val(txt));
+	CAMLreturn (Val_bool(1));
+}
+
 value OCaml_OpenConnexion (value unit) {
 	CAMLparam1 (unit);
 	int retour = try_catch (PP_Open_prim(), "Pp.openConnexion");

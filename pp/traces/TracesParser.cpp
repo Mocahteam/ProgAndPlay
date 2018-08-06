@@ -224,10 +224,10 @@ void TracesParser::saveCompression() {
 	*/
 void TracesParser::parseLogFile(const std::string& dir_path, const std::string& filename, bool waitEndFlag) {
 	// check if we can start parsing
+	#ifdef DEBUG_PARSER
+		osParser << "Start parsing traces" << std::endl;
+	#endif
 	if (InitResources(dir_path,filename)) {
-		#ifdef DEBUG_PARSER
-			osParser << "Start parsing traces" << std::endl;
-		#endif
 		std::string line;
 		bool executionDetected = false;
 		#ifdef DEBUG_PARSER
@@ -320,7 +320,7 @@ void TracesParser::parseLogFile(const std::string& dir_path, const std::string& 
 			// If no (means another error), then we stop to read input file
 			if (!ifs.eof()){
 				#ifdef DEBUG_PARSER
-					osParser << "error occurs => we stop to read traes" << std::endl;
+					osParser << "error occurs => we stop to read traces" << std::endl;
 				#endif
 				end = true; // Stop to read input file
 			}
@@ -353,6 +353,9 @@ void TracesParser::parseLogFile(const std::string& dir_path, const std::string& 
 		}
 		CloseResources();
 	}
+	#ifdef DEBUG_PARSER
+		osParser << "End parsing traces" << std::endl;
+	#endif
 }
 
 Trace::sp_trace TracesParser::parseLine(const std::string& s) {
@@ -588,16 +591,9 @@ void TracesParser::inlineCompression(Trace::sp_trace& spt) {
 			}
 		}
 	}
-	// If no direct compression occurs we add the new trace at the end of traces and we try a classic compression with a short window
-	if (!add){
+	// If no direct compression occurs we add the new trace at the end of traces
+	if (!add)
 		root->addTrace(spt);
-		// on remonte jusqu'à un maximum de 3 fois la fenêtre maximale...
-		int limit = root->size() - MAX_END_SEARCH*3;
-		// ... ou si on atteindrait le début de la trace
-		if (limit < start) limit = start;
-		// try to compress succesive Calls
-		Sequence::findAndAggregateSuccessiveSequences(root, limit, true);
-	}
 }
 
 void TracesParser::offlineCompression() {

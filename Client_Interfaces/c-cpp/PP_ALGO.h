@@ -2,8 +2,14 @@
 #ifndef PP_ALGO
 #define PP_ALGO
 
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include <unistd.h>
+#endif
+
 #include "PP_Client_Private.h"
-#include "constantList_KP4.1.h"
+#include "constantList_KP4.7.h"
 
 /****************************************/
 /* Definition des mots clefs du langage */
@@ -41,6 +47,13 @@ static float getPosY(){
 	PP_Unit_GetPosition_prim(current_unit, &pos);
 	return pos.y;
 }
+static void mySleep(int nbSec){
+	#ifdef _WIN32
+		Sleep(nbSec*1000);
+	#else
+		sleep(nbSec);
+	#endif	
+}
 
 /* Ouvre la connexion avec le jeu.
    Cet operateur doit etre appele avant tout autre operateur */
@@ -76,5 +89,10 @@ static float getPosY(){
                             }
 /* Donne l'odre a l'unite courante d'attaquer le premier ennemi */
 #define ATTAQUER PP_Unit_ActionOnUnit_prim (current_unit, ATTACK, PP_GetUnitAt_prim(ENEMY_COALITION, 0))
-					
-#endif
+
+/* Donne l'ordre au programme d'attendre X secondes */
+#define ATTENDRE(x) {\
+				mySleep(x);\
+			}
+
+#endif // End PP_ALGO

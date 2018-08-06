@@ -66,7 +66,7 @@ public:
 								v.push_back(key);
 							else if (key.compare("call_type") == 0){
 								std::string call_type = _it->value.GetString();
-								keyToCallType_map.insert(std::make_pair<std::string, std::string>(label, call_type));
+								keyToCallType_map.insert(std::pair<std::string, std::string>(label, call_type));
 							} else if (key.compare(p_lang+"_public_label") == 0){
 								std::string public_label = _it->value.GetString();
 								if (public_label.find("["+h_lang+"]")!=std::string::npos){ // try to find human language use in game
@@ -82,10 +82,10 @@ public:
 										public_label = locale_label.substr (0, locale_label.find("[en]"));
 									}
 								}
-								keyToPublicLabel_map.insert(std::make_pair<std::string, std::string>(label, public_label));
+								keyToPublicLabel_map.insert(std::pair<std::string, std::string>(label, public_label));
 							}
 						}
-						keyToUsefullParams_map.insert(std::make_pair<std::string,string_vector>(label,v));
+						keyToUsefullParams_map.insert(std::pair<std::string,string_vector>(label,v));
 					}
 				}
 				loaded = true;

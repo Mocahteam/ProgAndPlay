@@ -13,6 +13,7 @@
 #include <iostream>
 #include <string.h>
 #include <boost/shared_ptr.hpp>
+#include <boost/weak_ptr.hpp>
 #include <boost/make_shared.hpp>
 
 /**
@@ -27,6 +28,10 @@ public:
 	  * Définition du type pointeur intelligent vers un objet Trace.
 	  */
 	typedef boost::shared_ptr<Trace> sp_trace;
+	/**
+	  * Définition du type pointeur faible intelligent vers un objet Trace.
+	  */
+	typedef boost::weak_ptr<Trace> wp_trace;
 
 	/**
 	  * \brief Enumeration utilisée pour connaître le type de la trace. Une trace peut être de type Trace::TraceType::SEQUENCE, Trace::TraceType::CALL ou Trace::TraceType::EVENT.
@@ -192,14 +197,14 @@ public:
 	  *
 	  * \return une référence constante à la variable \p parent de la trace.
 	  */
-	const sp_trace& getParent() const;
+	const wp_trace& getParent() const;
 
 	/**
 	  * \brief Getter pour la variable \p aligned.
 	  *
 	  * \return une référence constante à la variable \p aligned de la trace.
 	  */
-	const sp_trace& getAligned() const;
+	const wp_trace& getAligned() const;
 
 	/**
 	  * \brief Setter pour la variable \p parent.
@@ -259,13 +264,13 @@ protected:
 	  *
 	  * \see TracesAnalyser::findBestAlignment
 	  */
-	sp_trace aligned;
+	wp_trace aligned;
 
 	/**
 	  * Contient un pointeur vers la séquence contenant cette trace. Si le pointeur est à 0, la trace n'a pas de parent. Si le pointeur pointe vers un objet, cet objet est forcément
 	  * une séquence.
 	  */
-	sp_trace parent;
+	wp_trace parent;
 
 };
 

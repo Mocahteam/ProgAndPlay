@@ -1,7 +1,7 @@
 /**
  * \file TracesParser.h
  * \brief Déclaration de la classe TracesParser.
- * \author meresse
+ * \author Meresse/Muratet
  * \version 0.1
  */
 

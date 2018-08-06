@@ -333,26 +333,26 @@ début
 fin
 
 procédure réaliserActionSurUnité
-    (entrée u <Unité>, entrée action <Entier>, entrée cible <Unité>)
+    (entrée u <Unité>, entrée action <Entier>, entrée cible <Unité>, entrée attendreFin <Booléen>)
 début
     afficherErreur
-        ("réaliserActionSurUnité", unitActionOnUnit (u.id, action, cible.id)) ;
+        ("réaliserActionSurUnité", unitActionOnUnit (u.id, action, cible.id, attendreFin)) ;
 fin
 
 procédure réaliserActionSurPosition
-    (entrée u <Unité>, entrée action <Entier>, entrée pos <Position>)
+    (entrée u <Unité>, entrée action <Entier>, entrée pos <Position>, entrée attendreFin <Booléen>)
 début
     afficherErreur
         ("réaliserActionSurPosition",
-        unitActionOnPosition (u.id, action, pos.x, pos.y)) ;
+        unitActionOnPosition (u.id, action, pos.x, pos.y, attendreFin)) ;
 fin
 
 procédure réaliserActionNonCiblée
-    (entrée u <Unité>, entrée action <Entier>, entrée param <Réel>)
+    (entrée u <Unité>, entrée action <Entier>, entrée param <Réel>, entrée attendreFin <Booléen>)
 début
     afficherErreur
         ("réaliserActionNonCiblée",
-        unitUntargetedAction (u.id, action, param)) ;
+        unitUntargetedAction (u.id, action, param, attendreFin)) ;
 fin
 
 

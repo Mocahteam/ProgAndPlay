@@ -75,9 +75,9 @@ public:
 	/**
 	  * \brief Fonction principale de l'algorithme de compression hors-ligne.
 	  *
-	  * Cette fonction est la fonction qui va compresser les traces en effectuant des parcours du vecteur workingSequence en prenant comme point de départ "startingPoint" dans la sequence. Si "processOnlyCall" est à true on tente de ne compresser que les Calls (utile pour un pré-traitement en ligne)
+	  * Cette fonction est la fonction qui va compresser les traces en effectuant des parcours du vecteur workingSequence en prenant comme point de départ "startingPoint" dans la sequence.
 	  */
-	static void findAndAggregateSuccessiveSequences(Sequence::sp_sequence& workingSequence, int startingPoint, bool processOnlyCall = false);
+	static void findAndAggregateSuccessiveSequences(Sequence::sp_sequence& workingSequence, int startingPoint);
 
 	/**
 	  * \brief Tente de trouver des symboles en amont et en aval de chaque sequence pour corriger un décallage dans la compression du à un if.

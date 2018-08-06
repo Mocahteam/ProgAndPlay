@@ -32,7 +32,7 @@ $(TARGETLIB): pythonSpecialFeatures.o $(PP_DIR)/PP_Client_Private.o $(PP_DIR)/PP
 	g++ -shared -o $@ $^ $(OPTLIB)
 
 pythonSpecialFeatures.o: pythonSpecialFeatures.c $(PP_CLIENT)/PP_Client.h $(PP_DIR)/PP.h $(PP_DIR)/PP_Client_Private.h $(PP_DIR)/traces/TraceConstantList.h
-	g++ -c $< $(INCLUDES) -fPIC
+	g++ -c $< $(INCLUDES)
 
 clean:
 	rm -f $(CIBLES) pythonSpecialFeatures.o $(FILE_SUPPR) exemples/$(TARGETLIB) exemples/pp.py

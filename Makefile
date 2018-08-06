@@ -1,7 +1,7 @@
 
-.PHONY: all clean install
+.PHONY: all clean
 
-export SPRING_VERSION = ../SpringPP/spring-0.82.5.1_official
+export SPRING_VERSION = ../SpringPP/spring_103.0
 
 # Try to find Spring folder
 ifeq ($(wildcard $(SPRING_VERSION)),)

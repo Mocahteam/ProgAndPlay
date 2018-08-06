@@ -286,7 +286,7 @@ std::map<unsigned int,double> Sequence::getPercentageIterationDescription() cons
 		sum += (it++)->second;
 	it = iterDesc.begin();
 	while(it != iterDesc.end()) {
-		pIterDesc.insert(std::make_pair<unsigned int,double>(it->first,it->second/sum));
+		pIterDesc.insert(std::pair<unsigned int,double>(it->first,it->second/sum));
 		it++;
 	}
 	return pIterDesc;
@@ -295,7 +295,7 @@ std::map<unsigned int,double> Sequence::getPercentageIterationDescription() cons
 void Sequence::addIteration(unsigned int nbIter, int appearance) {
 	// If no key value exists, we create it and set value to "appearance"
 	if (iterDesc.find(nbIter) == iterDesc.end() && appearance > 0){
-		iterDesc.insert(std::make_pair<unsigned int, unsigned int>(nbIter,appearance));
+		iterDesc.insert(std::pair<unsigned int, unsigned int>(nbIter,appearance));
 	}
 	// Else we add appearance to the current value
 	else {
@@ -319,8 +319,8 @@ void Sequence::mergeIterationDescription(const std::map<unsigned int,unsigned in
 }
 
 void Sequence::completeIterationDescription() {
-	if (getParent()) {
-		Sequence::sp_sequence sps = boost::dynamic_pointer_cast<Sequence>(getParent());
+	if (!getParent().expired()) {
+		Sequence::sp_sequence sps = boost::dynamic_pointer_cast<Sequence>(getParent().lock());
 		unsigned int num = 0;
 		std::map<unsigned int,unsigned int>::const_iterator it = sps->getIterationDescription().begin();
 		while(it != sps->getIterationDescription().end()) {
@@ -391,13 +391,17 @@ std::pair<int, int> Sequence::getNbAlignAndOpt(std::vector<Trace::sp_trace>& lin
 			Sequence * s1 = dynamic_cast<Sequence*>(linearTraces1.at(i).get());
 			// Si c'est une entrée de séquence on insère dans la pile la valeur 1 pour indiquer qu'on entre dans une séquence des traces 1
 			if (s1->getInfo().compare("Begin") == 0){
-				TracesParser::osParser << "[A ";
+				#ifdef DEBUG_PARSER
+					TracesParser::osParser << "[A ";
+				#endif
 				stack.push(1);
 				// Si la trace 2 est aussi sur une entrée de séquence, on monte aussi pour garder les deux synchronisées
 				if (j < linearTraces2.size() && linearTraces2.at(j)->isSequence()){
 					Sequence * s2 = dynamic_cast<Sequence*>(linearTraces2.at(j).get());
 					if (s2->getInfo().compare("Begin") == 0){
-						TracesParser::osParser << "[B ";
+						#ifdef DEBUG_PARSER
+							TracesParser::osParser << "[B ";
+						#endif
 						stack.push(2);
 						j++;
 					}
@@ -411,22 +415,30 @@ std::pair<int, int> Sequence::getNbAlignAndOpt(std::vector<Trace::sp_trace>& lin
 					if (linearTraces2.at(j)->isSequence()){
 						Sequence * s2 = dynamic_cast<Sequence*>(linearTraces2.at(j).get());
 						if (s2->getInfo().compare("Begin") == 0){
-							TracesParser::osParser << "[B ";
+							#ifdef DEBUG_PARSER
+								TracesParser::osParser << "[B ";
+							#endif
 							stack.push(2);
 						}
 						else if (s2->getInfo().compare("End") == 0){
-							TracesParser::osParser << "B] ";
+							#ifdef DEBUG_PARSER
+								TracesParser::osParser << "B] ";
+							#endif
 							stack.pop();
 						}
 						else std::runtime_error("Sequence::getNbAlignAndOpt => linear traces malformed");
 					} else{
-						TracesParser::osParser << "(B" << j << ") ";
+						#ifdef DEBUG_PARSER
+							TracesParser::osParser << "(B" << j << ") ";
+						#endif
 						nbOpt++;
 					}
 					j++;
 				}
 				if (!stack.empty()){
-					TracesParser::osParser << "A] ";
+					#ifdef DEBUG_PARSER
+						TracesParser::osParser << "A] ";
+					#endif
 					stack.pop(); // Libérer cette séquence
 				}
 			} else {
@@ -489,12 +501,16 @@ std::pair<int, int> Sequence::getNbAlignAndOpt(std::vector<Trace::sp_trace>& lin
 				// restaurer les compteurs pour repartir après le dernier alignement trouvé
 				i = k;
 				j = l;
-				TracesParser::osParser << "(A" << i << ") ";
+				#ifdef DEBUG_PARSER
+					TracesParser::osParser << "(A" << i << ") ";
+				#endif
 				nbOpt++;
 			} else{
 				// On a trouvé un alignement
 				nbAlign++;
-				TracesParser::osParser << oss.str() << "{AB" << i << "/" << j << "} ";
+				#ifdef DEBUG_PARSER
+					TracesParser::osParser << oss.str() << "{AB" << i << "/" << j << "} ";
+				#endif
 				j++;
 				nbOpt += nbOpt2; // prise en compte des sauts dans les traces 2
 				stack = stack2; // prise en compte de l'état de la pile
@@ -505,7 +521,9 @@ std::pair<int, int> Sequence::getNbAlignAndOpt(std::vector<Trace::sp_trace>& lin
 					if (linearTraces1.at(i+1)->isSequence() && stack.top() == 1){
 						Sequence * s = dynamic_cast<Sequence*>(linearTraces1.at(i+1).get());
 						if (s->getInfo().compare("End") == 0){
-							TracesParser::osParser << "A] ";
+							#ifdef DEBUG_PARSER
+								TracesParser::osParser << "A] ";
+							#endif
 							stack.pop();
 							i++;
 							stop = false;
@@ -514,7 +532,9 @@ std::pair<int, int> Sequence::getNbAlignAndOpt(std::vector<Trace::sp_trace>& lin
 					if (linearTraces2.at(j)->isSequence() && stack.top() == 2){
 						Sequence * s = dynamic_cast<Sequence*>(linearTraces2.at(j).get());
 						if (s->getInfo().compare("End") == 0){
-							TracesParser::osParser << "B] ";
+							#ifdef DEBUG_PARSER
+								TracesParser::osParser << "B] ";
+							#endif
 							stack.pop();
 							j++;
 							stop = false;
@@ -528,22 +548,28 @@ std::pair<int, int> Sequence::getNbAlignAndOpt(std::vector<Trace::sp_trace>& lin
 	// prise en compte de ce qui reste dans les traces 2
 	for (unsigned int i = j ; i < linearTraces2.size() ; i++)
 		if (!linearTraces2.at(i)->isSequence()){
-			TracesParser::osParser << "(B" << i << ") ";
+			#ifdef DEBUG_PARSER
+				TracesParser::osParser << "(B" << i << ") ";
+			#endif
 			nbOpt++;
 		}
-	TracesParser::osParser << std::endl;
-	return std::make_pair<int, int>(nbAlign, nbOpt);
+	#ifdef DEBUG_PARSER
+		TracesParser::osParser << std::endl;
+	#endif
+	return std::pair<int, int>(nbAlign, nbOpt);
 }
 
 // Retourne le meilleur score d'alignement entre deux traces linéarisées
 std::pair<int, int> Sequence::getMaxAlignAndMinOpt (std::vector<Trace::sp_trace>& linearTraces1, std::vector<Trace::sp_trace>& linearTraces2){
 	// Affichage du contenu des traces liéarisées
-	/*TracesParser::osParser << "Up:" << std::endl;
-	for (unsigned int i = 0 ; i < linearTraces1.size() ; i++)
-		linearTraces1.at(i)->exportAsString(TracesParser::osParser);
-	TracesParser::osParser << "Down:" << std::endl;
-	for (unsigned int i = 0 ; i < linearTraces2.size() ; i++)
-		linearTraces2.at(i)->exportAsString(TracesParser::osParser);*/
+	/*#ifdef DEBUG_PARSER
+		TracesParser::osParser << "Up:" << std::endl;
+		for (unsigned int i = 0 ; i < linearTraces1.size() ; i++)
+			linearTraces1.at(i)->exportAsString(TracesParser::osParser);
+		TracesParser::osParser << "Down:" << std::endl;
+		for (unsigned int i = 0 ; i < linearTraces2.size() ; i++)
+			linearTraces2.at(i)->exportAsString(TracesParser::osParser);
+	#endif*/
 	// compter le nombre de Call (et d'Event) dans la première trace linéarisée
 	unsigned int nbCalls1 = 0;
 	for (unsigned int i = 0 ; i < linearTraces1.size() ; i++)
@@ -569,7 +595,9 @@ std::pair<int, int> Sequence::getMaxAlignAndMinOpt (std::vector<Trace::sp_trace>
 		if ((int)linearTraces1.size() < ret.first)
 			break;
 	}
-	//TracesParser::osParser << "Result => " << ret.first << "/" << ret.second << std::endl;
+	//#ifdef DEBUG_PARSER
+	//	TracesParser::osParser << "Result => " << ret.first << "/" << ret.second << std::endl;
+	//#endif
 	return ret;
 }
 
@@ -707,14 +735,16 @@ Call::call_vector Sequence::getCalls(bool setMod) {
 	return v;
 }
 
-void Sequence::findAndAggregateSuccessiveSequences(Sequence::sp_sequence& workingSequence, int startingPoint, bool processOnlyCall) {
+void Sequence::findAndAggregateSuccessiveSequences(Sequence::sp_sequence& workingSequence, int startingPoint) {
 	// Taille courrante des fenêtres utilisées pour les fusions. Cette taille augmente progressivement au cours de l'algorithme pour commencer par fusionner des petites séquences puis de plus en plus grandes.
 	unsigned int max_length = 2;
 
   bool climb = false;
 
-	TracesParser::osParser << "WorkingSequence (start at " << startingPoint << "):" << std::endl;
-	workingSequence->exportAsString(TracesParser::osParser);
+	#ifdef DEBUG_PARSER
+		TracesParser::osParser << "WorkingSequence (start at " << startingPoint << "):" << std::endl;
+		workingSequence->exportAsString(TracesParser::osParser);
+	#endif
 
 	// Initialisation des indices de recherche
 	for (int i = startingPoint ; i < (int)workingSequence->size() ; i++)
@@ -756,8 +786,6 @@ void Sequence::findAndAggregateSuccessiveSequences(Sequence::sp_sequence& workin
 					else{
 						// on alimente la séquence de travail avec les éléments de la trace
 						while(j < startId){
-							if (processOnlyCall && !workingSequence->at(j)->isCall())
-								break;
 							sps_up->addTrace(workingSequence->at(j));
 							j++;
 						}
@@ -783,7 +811,7 @@ void Sequence::findAndAggregateSuccessiveSequences(Sequence::sp_sequence& workin
 									sps_down->addTrace(workingSequence->at(j++));
 								}
 							}
-							// tentative de fusion des séquences "up" et "down". Si processOnlyCall == true alors on fait une fusion stricte, sinon on accepte les options
+							// tentative de fusion des séquences "up" et "down".
 							Sequence::sp_sequence sps_res = mergeEquivalentSequences(sps_up, sps_down);
 							// Vérifier si la fusion a réussie
 							if (sps_res) {
@@ -854,9 +882,9 @@ int computeLength (std::vector<Trace::sp_trace> _traces){
 }
 
 Sequence::sp_sequence Sequence::mergeEquivalentSequences(Sequence::sp_sequence sps_up, Sequence::sp_sequence sps_down, bool strict) {
-	TracesParser::osParser << "###############################################" << std::endl;
-	TracesParser::osParser << "###############################################" << std::endl;
 	#ifdef DEBUG_PARSER
+		TracesParser::osParser << "###############################################" << std::endl;
+		TracesParser::osParser << "###############################################" << std::endl;
 		TracesParser::osParser << std::endl;
 		TracesParser::osParser << "start merging:" << std::endl;
 		sps_up->exportAsString(TracesParser::osParser);
@@ -900,7 +928,9 @@ Sequence::sp_sequence Sequence::mergeEquivalentSequences(Sequence::sp_sequence s
 	}
 	// while the up and down stack are not empty (means it is reamaining traces to merge)
 	while (!upStack.empty() || !downStack.empty()) {
-		TracesParser::osParser << "===============================================" << std::endl;
+		#ifdef DEBUG_PARSER
+			TracesParser::osParser << "===============================================" << std::endl;
+		#endif
 		// Check if current up and down trace are defined
 		if (!spt_up && !spt_down){
 			// There is a problem with the stacks, we can't pop and we can't get next traces
@@ -942,10 +972,12 @@ Sequence::sp_sequence Sequence::mergeEquivalentSequences(Sequence::sp_sequence s
 				sps_merging->addTrace(sps_opt);
 				next_up = true;
 			} else {
-				TracesParser::osParser << "Do we have to align:" << std::endl;
-				spt_up->exportAsString(TracesParser::osParser);
-				TracesParser::osParser << "WITH" << std::endl;
-				spt_down->exportAsString(TracesParser::osParser);
+				#ifdef DEBUG_PARSER
+					TracesParser::osParser << "Do we have to align:" << std::endl;
+					spt_up->exportAsString(TracesParser::osParser);
+					TracesParser::osParser << "WITH" << std::endl;
+					spt_down->exportAsString(TracesParser::osParser);
+				#endif
 				// Here we are sure that stp_up and stp_down are defined
 				// Création d'une trace pour recevoir les options
 				Trace::sp_trace spt_opt;
@@ -959,13 +991,19 @@ Sequence::sp_sequence Sequence::mergeEquivalentSequences(Sequence::sp_sequence s
 				if (sps_down->isEndReached()) startLinearisationDown = sps_down->size()-1;
 				// Obtenir le meilleur score d'alignement entre la trace up à partir de la trace courante et la trace down à partir de la trace courante
 				std::pair<int, int> pair_scoreUpDown = Sequence::getMaxAlignAndMinOpt(sps_up->getLinearSequence(startLinearisationUp), sps_down->getLinearSequence(startLinearisationDown));
-				TracesParser::osParser << "Result for h1::q1 and h2::q2 => " << pair_scoreUpDown.first << "/" << pair_scoreUpDown.second << "\n" << std::endl;
+				#ifdef DEBUG_PARSER
+					TracesParser::osParser << "Result for h1::q1 and h2::q2 => " << pair_scoreUpDown.first << "/" << pair_scoreUpDown.second << "\n" << std::endl;
+				#endif
 				// Obtenir le meilleur score d'alignement entre la trace up à partir de la trace SUIVANTE la trace courante et la trace down à partir de la trace courante
 				std::pair<int, int> pair_scoreNextUpDown = Sequence::getMaxAlignAndMinOpt(sps_up->getLinearSequence(startLinearisationUp+1), sps_down->getLinearSequence(startLinearisationDown));
-				TracesParser::osParser << "Result for q1 and h2::q2 => " << pair_scoreNextUpDown.first << "/" << pair_scoreNextUpDown.second << "\n" << std::endl;
+				#ifdef DEBUG_PARSER
+					TracesParser::osParser << "Result for q1 and h2::q2 => " << pair_scoreNextUpDown.first << "/" << pair_scoreNextUpDown.second << "\n" << std::endl;
+				#endif
 				// Obtenir le meilleur score d'alignement entre la trace up à partir de la trace courante et la trace down à partir de la trace SUIVANTE la trace courante
 				std::pair<int, int> pair_scoreUpNextDown = Sequence::getMaxAlignAndMinOpt(sps_up->getLinearSequence(startLinearisationUp), sps_down->getLinearSequence(startLinearisationDown+1));
-				TracesParser::osParser << "Result for h1::q1 and q2 => " << pair_scoreUpNextDown.first << "/" << pair_scoreUpNextDown.second << "\n" << std::endl;
+				#ifdef DEBUG_PARSER
+					TracesParser::osParser << "Result for h1::q1 and q2 => " << pair_scoreUpNextDown.first << "/" << pair_scoreUpNextDown.second << "\n" << std::endl;
+				#endif
 				// Interprétation des scores
 				int scoreUpDown = 0;
 				int scoreNextUpDown = 0;
@@ -1020,7 +1058,9 @@ Sequence::sp_sequence Sequence::mergeEquivalentSequences(Sequence::sp_sequence s
 				len_up = spt_up->length();
 				len_down = spt_down->length();
 
-				TracesParser::osParser << "------------------------------------------" << std::endl;
+				#ifdef DEBUG_PARSER
+					TracesParser::osParser << "------------------------------------------" << std::endl;
+				#endif
 				// Si le score obtenu avec les traces courantes est meilleur que les scores obtenu sans une des deux traces courante => On doit procéder à la fusion
 				if (scoreUpDown > scoreNextUpDown && scoreUpDown > scoreUpNextDown){
 					// If both current up and down traces are not sequences (this means they are Calls because Events has been cashed previously) => we merge the two Calls
@@ -1034,18 +1074,23 @@ Sequence::sp_sequence Sequence::mergeEquivalentSequences(Sequence::sp_sequence s
 						}
 						// Check if Calls are equals
 						if (spt_up->operator==(spt_down.get())){
-							TracesParser::osParser << "We choose to merge the two Calls" << std::endl;
+							#ifdef DEBUG_PARSER
+								TracesParser::osParser << "We choose to merge the two Calls" << std::endl;
+							#endif
 							nbAlign++; // On compte un alignement
 							// filter up call with the down Call
 							dynamic_cast<Call*>(spt_up.get())->filterCall(dynamic_cast<const Call*>(spt_down.get()));
 							// and add the up Call to the merged sequence
 							sps_merging->addTrace(spt_up);
-						} else{
-							TracesParser::osParser << "ERROR (Sequence::mergeEquivalentSequences): Ask to merge two different Calls!!!" << std::endl;
-							spt_up->exportAsString(TracesParser::osParser);
-							TracesParser::osParser << "WITH" << std::endl;
-							spt_down->exportAsString(TracesParser::osParser);
 						}
+						#ifdef DEBUG_PARSER
+							else{
+								TracesParser::osParser << "ERROR (Sequence::mergeEquivalentSequences): Ask to merge two different Calls!!!" << std::endl;
+								spt_up->exportAsString(TracesParser::osParser);
+								TracesParser::osParser << "WITH" << std::endl;
+								spt_down->exportAsString(TracesParser::osParser);
+							}
+						#endif
 						// ask to get next traces into up and down sequence
 						next_up = true;
 						next_down = true;
@@ -1053,7 +1098,9 @@ Sequence::sp_sequence Sequence::mergeEquivalentSequences(Sequence::sp_sequence s
 						// On fusionner deux éléments qui ne sont pas des Call => empilement d'une séquence de fusion (voir fin de ce cas)
 						// Si on doit aligner un Call du up avec une séquence du down OU une sequence up est plus courte qu'une séquence down
 						if ((!spt_up->isSequence() && spt_down->isSequence()) || len_up < len_down) {
-							TracesParser::osParser << "We choose to inter into down Sequence" << std::endl;
+							#ifdef DEBUG_PARSER
+								TracesParser::osParser << "We choose to inter into down Sequence" << std::endl;
+							#endif
 							// We build a new empty sequence based on down working sequence (the previous merged sequence has bee store in mergedStack)
 							sps_merging = boost::make_shared<Sequence>(sps_down);
 							// if down is a sequence and not up trace (means it's a Call)
@@ -1068,7 +1115,9 @@ Sequence::sp_sequence Sequence::mergeEquivalentSequences(Sequence::sp_sequence s
 						}
 						// Si on doit aligner un Call du down avec une séquence du up OU une sequence down est plus courte qu'une séquence up
 						else if ((spt_up->isSequence() && !spt_down->isSequence()) || len_up > len_down) {
-							TracesParser::osParser << "We choose to inter into up Sequence" << std::endl;
+							#ifdef DEBUG_PARSER
+								TracesParser::osParser << "We choose to inter into up Sequence" << std::endl;
+							#endif
 							// We build a new empty sequence based on up working sequence (the previous merged sequence has been stored in mergedStack)
 							sps_merging = boost::make_shared<Sequence>(sps_up);
 							// if up trace is a sequence and not down trace (means it's a Call)
@@ -1083,7 +1132,9 @@ Sequence::sp_sequence Sequence::mergeEquivalentSequences(Sequence::sp_sequence s
 						}
 						// Si on doit aligner deux séquences de même taille
 						else {
-							TracesParser::osParser << "We choose to merge both sequences" << std::endl;
+							#ifdef DEBUG_PARSER
+								TracesParser::osParser << "We choose to merge both sequences" << std::endl;
+							#endif
 							// So we build a new empty sequence based on up and down working sequences (the previous merged sequence has bee store in mergedStack)
 							sps_merging = boost::make_shared<Sequence>(sps_up, sps_down);
 							// Add on stacks up and down working sequences in order to enter possible sub-sequences
@@ -1110,7 +1161,9 @@ Sequence::sp_sequence Sequence::mergeEquivalentSequences(Sequence::sp_sequence s
 					}
 					// Si le score obtenu sans la trace courante up est supérieur au score sans la trace courante down => mettre la trace up en option
 					else if (scoreNextUpDown > scoreUpNextDown || (scoreNextUpDown == scoreUpNextDown && len_up >= len_down)){
-						TracesParser::osParser << "We choose to set optional the up trace" << std::endl;
+						#ifdef DEBUG_PARSER
+							TracesParser::osParser << "We choose to set optional the up trace" << std::endl;
+						#endif
 						// construction de la sequence optionnelle
 						Sequence::sp_sequence sps_opt;
 						// si la trace up est une sequence, on la passe en optionnelle sinon on en crée une nouvelle pour acceuillir la trace
@@ -1119,8 +1172,8 @@ Sequence::sp_sequence Sequence::mergeEquivalentSequences(Sequence::sp_sequence s
 							sps_up->setOptional(true);
 							sps_opt = sps_up;
 							// On repositionne sps_up sur son parent
-							if (sps_up->getParent())
-								sps_up = boost::dynamic_pointer_cast<Sequence>(sps_up->getParent());
+							if (!sps_up->getParent().expired())
+								sps_up = boost::dynamic_pointer_cast<Sequence>(sps_up->getParent().lock());
 						} else{
 							// construction de la sequence optionnelle
 							sps_opt = boost::make_shared<Sequence>(1, false, true);
@@ -1134,7 +1187,9 @@ Sequence::sp_sequence Sequence::mergeEquivalentSequences(Sequence::sp_sequence s
 					}
 					// Si le score obtenu sans la trace courante down est supérieur au score sans la trace courante up => mettre la trace down en option
 					else if (scoreUpNextDown > scoreNextUpDown || (scoreUpNextDown == scoreNextUpDown && len_down > len_up)){
-						TracesParser::osParser << "We choose to set optional the down trace" << std::endl;
+						#ifdef DEBUG_PARSER
+							TracesParser::osParser << "We choose to set optional the down trace" << std::endl;
+						#endif
 						// construction de la sequence optionnelle
 						Sequence::sp_sequence sps_opt;
 						// si la trace down est une sequence, on la passe en optionnelle sinon on en crée une nouvelle pour acceuillir la trace
@@ -1143,8 +1198,8 @@ Sequence::sp_sequence Sequence::mergeEquivalentSequences(Sequence::sp_sequence s
 							sps_down->setOptional(true);
 							sps_opt = sps_down;
 							// On repositionne sps_down sur son parent
-							if (sps_down->getParent())
-								sps_down = boost::dynamic_pointer_cast<Sequence>(sps_down->getParent());
+							if (!sps_down->getParent().expired())
+								sps_down = boost::dynamic_pointer_cast<Sequence>(sps_down->getParent().lock());
 						} else{
 							// construction de la sequence optionnelle
 							sps_opt = boost::make_shared<Sequence>(1, false, true);
@@ -1157,7 +1212,9 @@ Sequence::sp_sequence Sequence::mergeEquivalentSequences(Sequence::sp_sequence s
 						next_down = true;
 					}
 				}
-				TracesParser::osParser << "------------------------------------------" << std::endl;
+				#ifdef DEBUG_PARSER
+					TracesParser::osParser << "------------------------------------------" << std::endl;
+				#endif
 			}
 		}
 		bool endPop = false;
@@ -1252,48 +1309,50 @@ Sequence::sp_sequence Sequence::mergeEquivalentSequences(Sequence::sp_sequence s
 			}
 		}
 
-		/*TracesParser::osParser << "\nAffichage de UP STACK" << std::endl;
-		std::stack<Sequence::sp_sequence> tmp;
-		while (!upStack.empty()){
-			tmp.push(upStack.top());
-			upStack.pop();
-		}
-		int i = 0;
-		while (!tmp.empty()){
-			TracesParser::osParser << " " << i << " - ";
-			tmp.top()->exportAsCompressedString(TracesParser::osParser);
-			upStack.push(tmp.top());
-			tmp.pop();
-			i++;
-		}
-		TracesParser::osParser << "\nAffichage de DOWN STACK" << std::endl;
-		std::stack<Sequence::sp_sequence> tmp2;
-		while (!downStack.empty()){
-			tmp2.push(downStack.top());
-			downStack.pop();
-		}
-		i = 0;
-		while (!tmp2.empty()){
-			TracesParser::osParser << " " << i << " - ";
-			tmp2.top()->exportAsCompressedString(TracesParser::osParser);
-			downStack.push(tmp2.top());
-			tmp2.pop();
-			i++;
-		}
-		TracesParser::osParser << "\nAffichage de MERGE STACK" << std::endl;
-		std::stack<Sequence::sp_sequence> tmp3;
-		while (!mergedStack.empty()){
-			tmp3.push(mergedStack.top());
-			mergedStack.pop();
-		}
-		i = 0;
-		while (!tmp3.empty()){
-			TracesParser::osParser << " " << i << " - ";
-			tmp3.top()->exportAsCompressedString(TracesParser::osParser);
-			mergedStack.push(tmp3.top());
-			tmp3.pop();
-			i++;
-		}*/
+		/*#ifdef DEBUG_PARSER
+			TracesParser::osParser << "\nAffichage de UP STACK" << std::endl;
+			std::stack<Sequence::sp_sequence> tmp;
+			while (!upStack.empty()){
+				tmp.push(upStack.top());
+				upStack.pop();
+			}
+			int i = 0;
+			while (!tmp.empty()){
+				TracesParser::osParser << " " << i << " - ";
+				tmp.top()->exportAsCompressedString(TracesParser::osParser);
+				upStack.push(tmp.top());
+				tmp.pop();
+				i++;
+			}
+			TracesParser::osParser << "\nAffichage de DOWN STACK" << std::endl;
+			std::stack<Sequence::sp_sequence> tmp2;
+			while (!downStack.empty()){
+				tmp2.push(downStack.top());
+				downStack.pop();
+			}
+			i = 0;
+			while (!tmp2.empty()){
+				TracesParser::osParser << " " << i << " - ";
+				tmp2.top()->exportAsCompressedString(TracesParser::osParser);
+				downStack.push(tmp2.top());
+				tmp2.pop();
+				i++;
+			}
+			TracesParser::osParser << "\nAffichage de MERGE STACK" << std::endl;
+			std::stack<Sequence::sp_sequence> tmp3;
+			while (!mergedStack.empty()){
+				tmp3.push(mergedStack.top());
+				mergedStack.pop();
+			}
+			i = 0;
+			while (!tmp3.empty()){
+				TracesParser::osParser << " " << i << " - ";
+				tmp3.top()->exportAsCompressedString(TracesParser::osParser);
+				mergedStack.push(tmp3.top());
+				tmp3.pop();
+				i++;
+			}
+		#endif*/
 	}
 	float ratio = nbOpt != 0 ? (float)nbAlign/nbOpt : nbAlign;
 /*	#ifdef DEBUG_PARSER

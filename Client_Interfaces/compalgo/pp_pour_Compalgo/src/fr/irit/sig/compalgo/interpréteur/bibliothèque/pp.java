@@ -1,5 +1,6 @@
 package fr.irit.sig.compalgo.interpréteur.bibliothèque;
 
+import fr.irit.sig.compalgo.interpréteur.runtime.wrap.InBooléen;
 import fr.irit.sig.compalgo.interpréteur.runtime.wrap.InEntier;
 import fr.irit.sig.compalgo.interpréteur.runtime.wrap.InRéel;
 import fr.irit.sig.compalgo.interpréteur.runtime.wrap.OutRéel;
@@ -53,6 +54,11 @@ public final class pp extends Thread{
 	/* Indique si le jeu est terminé */
 	public Integer isGameOver (){
 		return new Integer (PPNative.IsGameOver());
+	}
+	
+	/* Indique si le jeu est en pause */
+	public Integer isGamePaused (){
+		return new Integer (PPNative.IsGamePaused());
 	}
 	
 	/* fournit la dimension de la carte de jeu. */
@@ -195,16 +201,16 @@ public final class pp extends Thread{
 			return new Float(-1);
 	}
 
-	public Integer unitActionOnUnit (InEntier u, InEntier action, InEntier cible){
-		return new Integer(PPNative.Unit_ActionOnUnit (u.valeur().intValue(), action.valeur().intValue(), cible.valeur().intValue(), false));
+	public Integer unitActionOnUnit (InEntier u, InEntier action, InEntier cible, InBooléen lock){
+		return new Integer(PPNative.Unit_ActionOnUnit (u.valeur().intValue(), action.valeur().intValue(), cible.valeur().intValue(), lock.valeur().booleanValue()));
 	}
 
-	public Integer unitActionOnPosition (InEntier u, InEntier action, InRéel x, InRéel y){
-		return new Integer(PPNative.Unit_ActionOnPosition (u.valeur().intValue(), action.valeur().intValue(), x.valeur().floatValue(), y.valeur().floatValue(), false));
+	public Integer unitActionOnPosition (InEntier u, InEntier action, InRéel x, InRéel y, InBooléen lock){
+		return new Integer(PPNative.Unit_ActionOnPosition (u.valeur().intValue(), action.valeur().intValue(), x.valeur().floatValue(), y.valeur().floatValue(), lock.valeur().booleanValue()));
 	}
 
-	public Integer unitUntargetedAction (InEntier u, InEntier action, InRéel param){
-		return new Integer(PPNative.Unit_UntargetedAction (u.valeur().intValue(), action.valeur().intValue(), param.valeur().floatValue(), false));
+	public Integer unitUntargetedAction (InEntier u, InEntier action, InRéel param, InBooléen lock){
+		return new Integer(PPNative.Unit_UntargetedAction (u.valeur().intValue(), action.valeur().intValue(), param.valeur().floatValue(), lock.valeur().booleanValue()));
 	}
 	
 	public String getError (){

@@ -1,4 +1,4 @@
-importer jeu, entréeSortie, listeConstantesKP41;
+importer jeu, entréeSortie, listeConstantesKP47;
 
 programme mission1
 glossaire
@@ -6,9 +6,9 @@ glossaire
     pos <Position>;
 début
     ouvrirJeu;
-    pos.x <- 1983.0;
-    pos.y <- 1279.0;
+    pos.x <- 1980.0;
+    pos.y <- 1676.0;
     unité <- ièmeUnité(MOI, 1);
-    réaliserActionSurPosition (unité, MOVE, pos);
+    réaliserActionSurPosition (unité, MOVE, pos, FAUX);
     fermerJeu;
 fin
