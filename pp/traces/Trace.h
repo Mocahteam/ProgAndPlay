@@ -123,23 +123,19 @@ public:
 	static unsigned int getLength(const std::vector<sp_trace>& traces, int ind_start = 0, int ind_end = -1);
 
 	/**
+	  * \brief Ecrit dans \p os le contenu de \p traces inclus dans l'intervalle [ind_start,ind_end[.
+	  *
+	  * \param os : flux d'écriture.
+	  * \param traces : le vecteur contenant les traces.
+	  * \param ind_start : l'indice du début du sous-vecteur dans \p traces. Sa valeur par défaut est 0.
+	  * \param ind_end : l'indice de fin du sous-vecteur dans \p traces. Sa valeur par défaut est traces.size().
+	  */
+	static void exportAsString(std::ostream &os, const std::vector<sp_trace>& traces, int ind_start = 0, int ind_end = -1);
+
+	/**
 	  * Variable utilisée pour obtenir une indentation valide des traces lors de leur affichage.
 	  */
 	static int numTab;
-
-	/**
-	  * Indice de la trace dans TracesParser::traces sur laquelle est placé le curseur lors de la recherche de répétitions d'un groupe de traces à partir de la trace possédant cette variable.
-	  *
-	  * \see TracesParser::compressSequences
-	  */
-	int indSearch;
-
-	/**
-	  * La somme des longueurs des traces contenues dans le vecteur TracesParser::traces et comprise entre la trace qui se trouve à la position Trace::indSearch (incluse) et celle possédant cette variable (excluse).
-	  *
-	  * \see TracesParser::compressSequences
-	  */
-	unsigned int lenSearch;
 
 	/**
 	  * \brief Teste si la trace est une séquence.

@@ -75,35 +75,58 @@ public:
 	/**
 	  * \brief Fonction principale de l'algorithme de compression hors-ligne.
 	  *
-	  * Cette fonction est la fonction qui va compresser les traces en effectuant des parcours du vecteur workingSequence en prenant comme point de départ "startingPoint" dans la sequence.
+	  * Cette fonction est la fonction qui va compresser les traces en effectuant des parcours du vecteur workingSequence en prenant comme point de départ "startingPoint" dans la sequence jusqu'à atteindre "endingPoint" (exclu).
+	  *
+	  * Exemple :
+	  *  - Transformer : ABCBCABCBCD en [A[BC]]D 
 	  */
 	static void findAndAggregateSuccessiveSequences(Sequence::sp_sequence& workingSequence, int startingPoint);
 
 	/**
-	  * \brief Tente de trouver des symboles en amont et en aval de chaque sequence pour corriger un décallage dans la compression du à un if.
+	  * \brief Tente de trouver des symboles en amont et en aval de chaque sequence pour effectuer une rotation.
 	  *
 	  * Cas typique :
-		*  - Soit la trace : ABABABABACBABABAB
-		*  - Compression par default : [AB]AC[BA]B
-		*  - Correction visée : On cherche à transformer AC[BA]B en [A(C)B] où () dénote une alternative
+	  *  - Soit la trace : ACBABABAB
+	  *  - Compression par default : AC[BA]B
+	  *  - Correction visée : ACB[AB]
 	  */
-	static void findAndProcessRotatingSequences(Sequence::sp_sequence& workingSequence, int startingPoint);
+	static void findAndProcessRotatedSequences(Sequence::sp_sequence& workingSequence, int startingPoint);
 
 	/**
-	  * \brief Tente de trouver des séquences successives de longueurs différentes (éventuellement séparées par une suite de tokens) dont l'une est incluse dans l'autre.
+	  * \brief Repositionne les séquences qui ont subit une rotation et qui n'ont pas été exploitées par les fusions.
+	  *
+	  * \return true si au moins une rotation a eut lieu
+	  *
+	  * Cas typique :
+	  *  - Soit la trace : D[ABCD]
+	  *  - Correction visée : [DABC]D
+	  */
+	static bool revertRemainingRotatedSequences(Sequence::sp_sequence& workingSequence, int startingPoint);
+
+	/**
+	 * \brief Tente de trouver les parties optionnelles et de les fusionner avec les séquences actuelles.
+	 *
+	 * Exemple :
+	 *  - ABC[AB]   => [AB(C)]
+	 *  - [AB]CAB   => [(C)AB]
+	 */
+	static void findAndProcessUnaggregateTracesDueToInsertedTokkens(Sequence::sp_sequence& workingSequence, int startingPoint);
+	
+	/**
+	  * \brief Tente de trouver des séquences successives de longueurs différentes (éventuellement séparées par une suite de tokens) qui peuvent être fusionnées.
 	  *
 	  * Cas singuliers :
-		*  1 - [ABC][ABDC] => [AB(D)C]
-		*  2 - [ABC]DE[ABC] => [ABC(DE)]
+	  *  1 - [ABC][ABDC] => [AB(D)C]
+	  *  2 - [ABC]DE[ABC] => [ABC(DE)]
 	  */
 	static void findAndProcessInclusiveSequences(Sequence::sp_sequence& workingSequence, int startingPoint);
 
 	/**
 	  * \brief Fusion de deux séquences de longueurs différentes, la plus courte devant être incluse dans la plus longue.équivalentes (longueurs identiques et même succession de symboles en "applatissant" les sequences internes)
 	  *
-		* Exemple de cas singuliers :
-		*  1 - [ABC] et [ABEC] => [AB(E)C]
-		*  2 - [ABCDE] et [ABC] => [ABC(DE)]
+	  * Exemple de cas singuliers :
+	  *  1 - [ABC] et [ABEC] => [AB(E)C]
+	  *  2 - [ABCDE] et [ABC] => [ABC(DE)]
 	  *
 	  * \return une sequence contenant la fusion des deux séquences si elles respecte le prérequis ou un shared pointer vide sinon.
 	  */
@@ -218,6 +241,13 @@ public:
 	  * \return la sous partie du vecteur de traces de la séquence.
 	  */
 	std::vector<Trace::sp_trace> getSubTraces(int start);
+	
+	/**
+	  * \brief Getter pour récupérer une sous partie de la séquence comprise entre l'indice "start" (inclus) et l'indice "end" (exclus).
+	  *
+	  * \return la sous partie de la séquence.
+	  */
+	Sequence::sp_sequence getSubSequence(int start, int end = -1);
 
 	/**
 	  * \brief Getter pour la variable Sequence::pt.
@@ -310,6 +340,17 @@ public:
 	virtual unsigned int length() const;
 
 	/**
+	  * \brief Calcul partiel de la longueur (l'espace occupé dans un vecteur de traces) d'une séquence.
+	  *
+	  * La longueur d'une séquence est calculée de façon récursive en parcourant ses séquences et sous-séquences et en appelant Trace::length sur les traces parcourues.
+	  *
+	  * \param start position dans la sequence à partir de laquelle le calcul de la longueur est calculé
+	  *
+	  * \return la longueur de la séquence
+	  */
+	unsigned int length(int start) const;
+
+	/**
 	  * \brief Accès à une trace du vecteur de traces de la séquence.
 	  *
 	  * \param i l'indice de la trace à récupérer dans le vecteur.
@@ -344,11 +385,12 @@ public:
 	 * Est linéarisée de la manière suivante où Sd est une séquence vide dont le champ info maqrue un début de séquence et Sf est une séquence vide dont le champ info maqrue une fin de séquence :
 	 * C C Sd C C Sd C Sf Sf C
 	 *
-	 * \param start point de départ de linéarisation de la séquence
+	 * \param start point de départ de linéarisation de la séquence (valeur par défaut : 0)
+     * \param end indice de fin de linéarisation de la séquence (valeur par défaut : -1 => fin de la trace)
 	 *
 	 * \return un vecteur de trace représentant une version linéarisée des traces
 	 */
-	std::vector<Trace::sp_trace>& getLinearSequence(int start = 0);
+	std::vector<Trace::sp_trace>& getLinearSequence(int start = 0, int end = -1);
 
 	/**
 	  * \brief Récupération de l'ensemble des appels contenus dans la séquence et dans ses sous-séquences.
@@ -556,14 +598,14 @@ protected:
 	  * \brief Fusion de deux séquences équivalentes (longueurs identiques et même succession de symboles en "applatissant" les sequences internes)
 	  *
 	  * Cette fonction permet de construire une nouvelle séquence la plus générale possible à partir de deux séquences \p sps_up et \p sps_down qui doivent être égales pour que la fusion ait lieue.
-		*
-		* Exemple de cas singuliers :
-		*  1 - [AB[C]] et [[A]BC] => [[A]B[C]]
-		*  2 - [[A[B]]C] et [ABC] => [[A[B]]C]
+	  *
+	  * Exemple de cas singuliers :
+	  *  1 - [AB[C]] et [[A]BC] => [[A]B[C]]
+	  *  2 - [[A[B]]C] et [ABC] => [[A[B]]C]
 	  *
 	  * \param sps_up la première séquence passée en entrée de la fusion.
 	  * \param sps_down la seconde séquence passée en entrée de la fusion.
-		* \param avoidOptionalSequence si true ne réalise la fusion que si aucune séquence optionnelle n'est requise. Si false, la fusion pourra contenir des séquences optionnelles (true par défaut).
+	  * \param avoidOptionalSequence si true ne réalise la fusion que si aucune séquence optionnelle n'est requise. Si false, la fusion pourra contenir des séquences optionnelles (true par défaut).
 	  *
 	  * \return la nouvelle séquence créée résultante de la fusion de \p sps_up et \p sps_down.
 	  *
@@ -571,6 +613,23 @@ protected:
 	  * \see Sequence::findAndAggregateSuccessiveSequences
 	  */
 	static Sequence::sp_sequence mergeEquivalentSequences(Sequence::sp_sequence sps_up, Sequence::sp_sequence sps_down, bool avoidOptionalSequence = true);
+	
+	/**
+	 * \brief Fusion de deux séquences alignées
+	 *
+	 * Cette fonction permet de construire une nouvelle séquence à partir de deux séquences \p seq1 et \p seq2 préalablement alignées (voir TracesAnalyser::findBestAlignment).
+	 *
+	 * Exemple de cas singuliers : [ABC] aligné avec [A-C] => [A(B)C]
+	 *
+	 * \param seq1 la première séquence alignée
+	 * \param seq2 la seconde séquence alignée
+	 *
+	 * \return la fusion des deux séquences alignées
+	 *
+	 * \see TracesAnalyser::findBestAlignment
+	 * \see Sequence::mergeEquivalentSequences
+	 */
+	static Sequence::sp_sequence mergeAlignedSequences(Sequence::sp_sequence seq1, Sequence::sp_sequence seq2);
 
 	/**
 	  * \brief Test de la possibilité de répétitions d'un groupe de traces.
@@ -578,6 +637,16 @@ protected:
 	  * Cette fonction est utilisée par la fonction Sequence::findAndAggregateSuccessiveSequences lors de la recherche de répétitions d'un groupe de traces dans workingSequence. Le test consiste à vérifier si workingSequence contient assez de traces à partir d'un certain indice. Cette fonction est une optimisation permettant d'éviter le lancement d'opérations de comparaison qui retourneront forcément des résultats négatifs.
 	  */
 	static bool checkFeasibility(Sequence::sp_sequence workingSequence, unsigned int min_length, unsigned int ind_start);
+	
+	/**
+	 * \brief Supprime dans "traces" toute trace comprise entre "upStart" (inclus) et "endDown" (exclus), insère ensuite "merge" à la position "upStart" dans "traces"
+	 */
+	static void cleanTracesAndAddMerge(std::vector<Trace::sp_trace>& traces, Sequence::sp_sequence merge, unsigned int upStart, unsigned int endDown);
+	
+	/**
+	 * \brief Calcule le meilleur alignement entre deux séquences de traces et retourne le score corrigé sans prise en compte des traces optionnelles initiales
+	 */
+	static std::pair<double,double> computeBestCorrectedScore(std::vector<Trace::sp_trace>& traces1, std::vector<Trace::sp_trace>& traces2);
 
 };
 

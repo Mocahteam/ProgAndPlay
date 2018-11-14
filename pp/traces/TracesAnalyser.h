@@ -461,6 +461,14 @@ public:
 	static std::pair<double,double> findBestAlignment(const std::vector<Trace::sp_trace>& l, const std::vector<Trace::sp_trace>& e, bool align = true);
 
 	/**
+	  * \brief Affichage de l'alignement trouvé entre deux vecteurs de traces.
+	  *
+	  * \param l un vecteur de traces correspondant à l'apprenant.
+	  * \param e un vecteur de traces correspondant à l'expert.
+	  */
+	static void displayAlignment(const std::vector<Trace::sp_trace>& l, const std::vector<Trace::sp_trace>& e, std::ostream &os = std::cout);
+
+	/**
 		* \brief Construction d'un vecteur permettant de faciliter le parcours de l'alignement courant entre deux vecteurs de traces.
 		*
 		* Cette fonction se base sur l'alignement effectué entre \p l et \e pour construire un vecteur de couples d'indices reflétant cet alignement. On donne un exemple ci-dessous :
@@ -642,14 +650,6 @@ private:
 	  * \return la séquence contenant l'ensemble des appels contenus dans \p pattern et de plus haut niveau dans la hiérarchie de traces.
 	  */
 	const Sequence::sp_sequence getClosestCommonParent(const Call::call_vector& pattern) const;
-
-	/**
-	  * \brief Affichage de l'alignement trouvé entre deux vecteurs de traces.
-	  *
-	  * \param l un vecteur de traces correspondant à l'apprenant.
-	  * \param e un vecteur de traces correspondant à l'expert.
-	  */
-	void displayAlignment(const std::vector<Trace::sp_trace>& l, const std::vector<Trace::sp_trace>& e) const;
 
 	/**
 	  * \brief Détermination de l'ensemble des feedbacks d'alignement.

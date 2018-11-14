@@ -2,6 +2,7 @@
 #include <dirent.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <fstream>
 
 #include "TracesParser.h"
 #include "TracesAnalyser.h"
@@ -9,6 +10,29 @@
 
 static std::string dir_path = "./example";
 static TracesParser tp;
+
+void saveCompressedTraces (const std::string& dir_path, const std::string& filename){
+	// Save compression results as txt file
+	std::string s = "\\" + filename;
+	s.replace(s.find(".log"), 4, "_compressed.txt");
+	s.insert(0, dir_path);
+	std::cout << "Write compressed traces into " << s << std::endl;
+	std::ofstream ofs(s.c_str(), std::ofstream::out | std::ofstream::trunc);
+	if (ofs.good()) {
+		ofs << tp.lastCompression;
+		ofs.close();
+	}
+	// Save compression results as xml file
+	s = "\\" + filename;
+	s.replace(s.find(".log"), 4, "_compressed.xml");
+	s.insert(0, dir_path);
+	std::cout << "Write compressed traces into " << s << std::endl;
+	std::ofstream ofsXml(s.c_str(), std::ofstream::out | std::ofstream::trunc);
+	if (ofsXml.good()) {
+		ofsXml << tp.lastCompressionXML;
+		ofsXml.close();
+	}
+}
 
 int compressAllTraces(std::string dir_path) {
 	DIR *pdir;
@@ -27,7 +51,10 @@ int compressAllTraces(std::string dir_path) {
 			std::string filename(pent->d_name);
 			if (filename.find("_compressed") == std::string::npos && filename.find(".log") != std::string::npos && filename.compare("meta.log") != 0) {
 				std::cout << "parse " << dir_path << "\\" << filename << std::endl;
-				tp.parseLogFile(dir_path, filename, false);
+				std::string s = dir_path + "\\" + filename;
+				std::ifstream ifs(s.c_str(), std::ios::in | std::ios::binary);
+				tp.parseLogs(ifs, false);
+				saveCompressedTraces(dir_path, filename);
 			}
 		}
 	}
@@ -144,8 +171,21 @@ int main(int argc, char *argv[]) {
 		return compressAllTraces(dir_path);
 	else {
 		// Compression
-		tp.parseLogFile(dir_path, argv[1], false);
+		std::string filename = argv[1];
+		if (filename.find(".log") == std::string::npos) {
+			std::cout << "not a log file" << std::endl;
+			return -1;
+		}
+		std::string s = dir_path + "\\" + filename;
+		std::ifstream ifs(s.c_str(), std::ios::in | std::ios::binary);
+		if (!ifs.good()) {
+			std::cout << "error opening file: " << strerror(errno) << std::endl;
+			return -1;
+		}
+		tp.parseLogs(ifs, false);
 		std::cout << "traces compressed" << std::endl;
+		saveCompressedTraces(dir_path, filename);
+		
 		if (analysis) {
 			std::cout << "launch analysis" << std::endl;
 			initExternalConstants ();
@@ -159,10 +199,11 @@ int main(int argc, char *argv[]) {
 				std::cout << "no expert solutions for mission " + TracesParser::mission_name << std::endl;
 				return -1;
 			}
-			std::string filename = argv[1];
 			filename.replace(filename.find(".log"), 4, "");
 			std::cout << "construct feedbacks" << std::endl;
-			std::string json = ta.constructFeedback(loadFile(std::string(dir_path) + "\\" + filename + "_compressed.xml"), experts_xml);
+			std::ostringstream oss;
+			oss << tp.lastCompressionXML;
+			std::string json = ta.constructFeedback(oss.str(), experts_xml);
 			std::cout << json << std::endl;
 			std::ofstream jsonFile;
 			jsonFile.open("feedback_result.json");

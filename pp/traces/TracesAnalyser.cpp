@@ -217,7 +217,7 @@ std::string TracesAnalyser::constructFeedback(const std::string& learner_xml, co
 				expert_gi.root_sps->setAligned(learner_gi.root_sps);
 
 				findBestAlignment(learner_gi.root_sps->getTraces(), expert_gi.root_sps->getTraces());
-				displayAlignment(learner_gi.root_sps->getTraces(), expert_gi.root_sps->getTraces());
+				displayAlignment(learner_gi.root_sps->getTraces(), expert_gi.root_sps->getTraces(), osAnalyser);
 			}
 
 			int num_attempts = learner_gi.getNumExecutions();
@@ -709,32 +709,32 @@ std::pair<double,double> TracesAnalyser::findBestAlignment(const std::vector<Tra
 	return std::pair<double,double>(score,norm);
 }
 
-void TracesAnalyser::displayAlignment(const std::vector<Trace::sp_trace>& l, const std::vector<Trace::sp_trace>& e) const {
+void TracesAnalyser::displayAlignment(const std::vector<Trace::sp_trace>& l, const std::vector<Trace::sp_trace>& e, std::ostream &os) {
 	unsigned int i = 0, j = 0;
 	while (i < l.size() || j < e.size()) {
 		if (i < l.size() && j < e.size() && !l.at(i)->getAligned().expired() && !e.at(j)->getAligned().expired()) {
-			l.at(i)->exportAsString(osAnalyser);
-			osAnalyser << "with" << std::endl;
-			l.at(i)->getAligned().lock()->exportAsString(osAnalyser); //l.at(i)->aligned is equal to e.at(j) in this case
+			l.at(i)->exportAsString(os);
+			os << "with" << std::endl;
+			l.at(i)->getAligned().lock()->exportAsString(os); //l.at(i)->aligned is equal to e.at(j) in this case
 			if (l.at(i)->isSequence() && l.at(i)->getAligned().lock()->isSequence()) {
-				osAnalyser << "enter both sequence" << std::endl;
-				displayAlignment(dynamic_cast<Sequence*>(l.at(i).get())->getTraces(), dynamic_cast<Sequence*>(l.at(i)->getAligned().lock().get())->getTraces());
-				osAnalyser << "exit both sequence" << std::endl;
+				os << "enter both sequence" << std::endl;
+				displayAlignment(dynamic_cast<Sequence*>(l.at(i).get())->getTraces(), dynamic_cast<Sequence*>(l.at(i)->getAligned().lock().get())->getTraces(), os);
+				os << "exit both sequence" << std::endl;
 			}
 			i++;
 			j++;
 		}
 		else if (i < l.size() && l.at(i)->getAligned().expired()) {
-			l.at(i++)->exportAsString(osAnalyser);
-			osAnalyser << "with" << std::endl;
-			osAnalyser << "\t-" << std::endl;
+			l.at(i++)->exportAsString(os);
+			os << "with" << std::endl;
+			os << "\t-" << std::endl;
 		}
 		else if (j < e.size() && e.at(j)->getAligned().expired()) {
-			osAnalyser << "\t-" << std::endl;
-			osAnalyser << "with" << std::endl;
-			e.at(j++)->exportAsString(osAnalyser);
+			os << "\t-" << std::endl;
+			os << "with" << std::endl;
+			e.at(j++)->exportAsString(os);
 		}
-		osAnalyser << std::endl;
+		os << std::endl;
 	}
 }
 

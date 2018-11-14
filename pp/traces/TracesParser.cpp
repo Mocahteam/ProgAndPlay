@@ -13,7 +13,6 @@
   */
 #define MAX_END_SEARCH 5
 
-int TracesParser::lineNum = 0;
 int TracesParser::mission_end_time = 0;
 int TracesParser::execution_start_time = 0;
 std::string TracesParser::lang = "";
@@ -37,47 +36,12 @@ TracesParser::~TracesParser() {
 	CloseResources();
 }
 
-bool TracesParser::InitResources(const std::string& dir_path, const std::string& filename) {
-	if (used) {
-		#ifdef DEBUG_PARSER
-			osParser << "parsing of traces file already launched" << std::endl;
-		#endif
-		return false;
-	}
-	if (filename.find(".log") == std::string::npos) {
-		#ifdef DEBUG_PARSER
-		 	osParser << "not a log file" << std::endl;
-		#endif
-		return false;
-	}
-	std::string s = dir_path + "\\" + filename;
-	if (ifs.is_open())
-		ifs.close();
-	ifs.open(s.c_str(), std::ios::in | std::ios::binary);
-	if (ifs.good()) {
-		if (root->size() != 0)
-			root->clear();
-		this->dir_path = dir_path;
-		this->filename = filename;
-		used = true;
-	}
-	else{
-		#ifdef DEBUG_PARSER
-			osParser << "error opening file: " << strerror(errno) << std::endl;
-		#endif
-	}
-	return used;
-}
-
 void TracesParser::CloseResources() {
-	lineNum = 0;
 	start = 0;
 	used = false;
 	end = false;
 	compressed = false;
 	proceed = false;
-	if (ifs.is_open())
-		ifs.close();
 	#ifdef DEBUG_PARSER
 		#ifdef LOG_IN_FILE
 			if (debugOfsParser.is_open())
@@ -90,23 +54,18 @@ void TracesParser::saveCompression() {
 	#ifdef DEBUG_PARSER
 		exportTracesAsString(osParser);
 	#endif
-	// Export compression results as txt file
-	std::string s = "\\" + filename;
-	s.replace(s.find(".log"), 4, "_compressed.txt");
-	s.insert(0, dir_path);
-	std::ofstream ofs(s.c_str(), std::ofstream::out | std::ofstream::trunc);
-	if (ofs.good()) {
-		exportTracesAsString(ofs);
-		ofs.close();
-	}
-	// Export compression results as xml file
-	rapidxml::xml_document<> doc;
-	rapidxml::xml_node<>* dec = doc.allocate_node(rapidxml::node_declaration);
-	dec->append_attribute(doc.allocate_attribute("version", "1.0"));
-	dec->append_attribute(doc.allocate_attribute("encoding", "utf-8"));
-	doc.append_node(dec);
-	rapidxml::xml_node<>* root_node = doc.allocate_node(rapidxml::node_element, "trace");
-	doc.append_node(root_node);
+	// Backup compression results as raw string
+	std::ostringstream oss;
+	exportTracesAsString(oss);
+	this->lastCompression = oss.str();
+	// Backup compression results with XML format
+	this->lastCompressionXML.clear();
+	rapidxml::xml_node<>* dec = this->lastCompressionXML.allocate_node(rapidxml::node_declaration);
+	dec->append_attribute(this->lastCompressionXML.allocate_attribute("version", "1.0"));
+	dec->append_attribute(this->lastCompressionXML.allocate_attribute("encoding", "utf-8"));
+	this->lastCompressionXML.append_node(dec);
+	rapidxml::xml_node<>* root_node = this->lastCompressionXML.allocate_node(rapidxml::node_element, "trace");
+	this->lastCompressionXML.append_node(root_node);
 	std::stack<rapidxml::xml_node<> *> node_stack;
 	node_stack.push(root_node);
 	rapidxml::xml_node<> *node;
@@ -140,9 +99,9 @@ void TracesParser::saveCompression() {
 					while (node_stack.size() > 1)
 						node_stack.pop();
 					StartMissionEvent *sme = dynamic_cast<StartMissionEvent*>(e);
-					node = doc.allocate_node(rapidxml::node_element, "mission");
-					node->append_attribute(doc.allocate_attribute("name", doc.allocate_string(sme->getMissionName().c_str())));
-					node->append_attribute(doc.allocate_attribute("start_time", doc.allocate_string(boost::lexical_cast<std::string>(sme->getStartTime()).c_str())));
+					node = this->lastCompressionXML.allocate_node(rapidxml::node_element, "mission");
+					node->append_attribute(this->lastCompressionXML.allocate_attribute("name", this->lastCompressionXML.allocate_string(sme->getMissionName().c_str())));
+					node->append_attribute(this->lastCompressionXML.allocate_attribute("start_time", this->lastCompressionXML.allocate_string(boost::lexical_cast<std::string>(sme->getStartTime()).c_str())));
 					node_stack.top()->append_node(node);
 					node_stack.push(node);
 				}
@@ -150,84 +109,76 @@ void TracesParser::saveCompression() {
 					EndMissionEvent *eme = dynamic_cast<EndMissionEvent*>(e);
 					if (node_stack.size() > 2)
 						node_stack.pop();
-					node_stack.top()->append_attribute(doc.allocate_attribute("end_time", doc.allocate_string(boost::lexical_cast<std::string>(eme->getEndTime()).c_str())));
-					node_stack.top()->append_attribute(doc.allocate_attribute("status", doc.allocate_string(eme->getStatus().c_str())));
+					node_stack.top()->append_attribute(this->lastCompressionXML.allocate_attribute("end_time", this->lastCompressionXML.allocate_string(boost::lexical_cast<std::string>(eme->getEndTime()).c_str())));
+					node_stack.top()->append_attribute(this->lastCompressionXML.allocate_attribute("status", this->lastCompressionXML.allocate_string(eme->getStatus().c_str())));
 					node_stack.pop();
 				}
 				else if (e->getLabel().compare(NEW_EXECUTION) == 0) {
 					NewExecutionEvent *nee = dynamic_cast<NewExecutionEvent*>(e);
 					if (node_stack.size() > 2)
 						node_stack.pop();
-					node = doc.allocate_node(rapidxml::node_element, "execution");
-					node->append_attribute(doc.allocate_attribute("start_time", doc.allocate_string(boost::lexical_cast<std::string>(nee->getStartTime()).c_str())));
-					node->append_attribute(doc.allocate_attribute("programming_language_used", doc.allocate_string(nee->getProgrammingLangageUsed().c_str())));
+					node = this->lastCompressionXML.allocate_node(rapidxml::node_element, "execution");
+					node->append_attribute(this->lastCompressionXML.allocate_attribute("start_time", this->lastCompressionXML.allocate_string(boost::lexical_cast<std::string>(nee->getStartTime()).c_str())));
+					node->append_attribute(this->lastCompressionXML.allocate_attribute("programming_language_used", this->lastCompressionXML.allocate_string(nee->getProgrammingLangageUsed().c_str())));
 					node_stack.top()->append_node(node);
 					node_stack.push(node);
 				}
 				else if (e->getLabel().compare(END_EXECUTION) == 0) {
-					node_stack.top()->append_attribute(doc.allocate_attribute("end_time", doc.allocate_string(boost::lexical_cast<std::string>(dynamic_cast<EndExecutionEvent*>(e)->getEndTime()).c_str())));
+					node_stack.top()->append_attribute(this->lastCompressionXML.allocate_attribute("end_time", this->lastCompressionXML.allocate_string(boost::lexical_cast<std::string>(dynamic_cast<EndExecutionEvent*>(e)->getEndTime()).c_str())));
 					node_stack.pop();
 				}
 				else {
-					node = doc.allocate_node(rapidxml::node_element, "event");
-					node->append_attribute(doc.allocate_attribute("label", doc.allocate_string(e->getLabel().c_str())));
+					node = this->lastCompressionXML.allocate_node(rapidxml::node_element, "event");
+					node->append_attribute(this->lastCompressionXML.allocate_attribute("label", this->lastCompressionXML.allocate_string(e->getLabel().c_str())));
 					if (!e->getInfo().empty())
-						node->append_attribute(doc.allocate_attribute("info", doc.allocate_string(e->getInfo().c_str())));
+						node->append_attribute(this->lastCompressionXML.allocate_attribute("info", this->lastCompressionXML.allocate_string(e->getInfo().c_str())));
 					node_stack.top()->append_node(node);
 				}
 			}
 			else if (spt->isCall()) {
 				Call *c = dynamic_cast<Call*>(spt.get());
-				node = doc.allocate_node(rapidxml::node_element, "call");
-				node->append_attribute(doc.allocate_attribute("label", doc.allocate_string(c->getKey().c_str())));
+				node = this->lastCompressionXML.allocate_node(rapidxml::node_element, "call");
+				node->append_attribute(this->lastCompressionXML.allocate_attribute("label", this->lastCompressionXML.allocate_string(c->getKey().c_str())));
 				if (c->getError() != Call::NONE)
-					node->append_attribute(doc.allocate_attribute("error", doc.allocate_string(Call::getEnumLabel<Call::ErrorType>(c->getError(),Call::errorsArr))));
-				s = c->getParams();
+					node->append_attribute(this->lastCompressionXML.allocate_attribute("error", this->lastCompressionXML.allocate_string(Call::getEnumLabel<Call::ErrorType>(c->getError(),Call::errorsArr))));
+				std::string s = c->getParams();
 				if (s.compare("") != 0)
-					node->append_attribute(doc.allocate_attribute("params", doc.allocate_string(s.c_str())));
+					node->append_attribute(this->lastCompressionXML.allocate_attribute("params", this->lastCompressionXML.allocate_string(s.c_str())));
 				s = c->getReturn();
 				if (s.compare("") != 0)
-					node->append_attribute(doc.allocate_attribute("return", doc.allocate_string(s.c_str())));
-				node->append_attribute(doc.allocate_attribute("info", doc.allocate_string(c->getInfo().c_str())));
+					node->append_attribute(this->lastCompressionXML.allocate_attribute("return", this->lastCompressionXML.allocate_string(s.c_str())));
+				node->append_attribute(this->lastCompressionXML.allocate_attribute("info", this->lastCompressionXML.allocate_string(c->getInfo().c_str())));
 				node_stack.top()->append_node(node);
 			}
 			else {
 				sps = boost::dynamic_pointer_cast<Sequence>(spt);
 				sps->reset();
-				node = doc.allocate_node(rapidxml::node_element, "sequence");
-				node->append_attribute(doc.allocate_attribute("num_map", doc.allocate_string(Sequence::getIterartionDescriptionString(sps->getIterationDescription()).c_str())));
-				node->append_attribute(doc.allocate_attribute("info", doc.allocate_string(sps->getInfo().c_str())));
+				node = this->lastCompressionXML.allocate_node(rapidxml::node_element, "sequence");
+				node->append_attribute(this->lastCompressionXML.allocate_attribute("num_map", this->lastCompressionXML.allocate_string(Sequence::getIterartionDescriptionString(sps->getIterationDescription()).c_str())));
+				node->append_attribute(this->lastCompressionXML.allocate_attribute("info", this->lastCompressionXML.allocate_string(sps->getInfo().c_str())));
 				std::string nb_iteration_fixed = (sps->hasNumberIterationFixed()) ? "true" : "false";
-				node->append_attribute(doc.allocate_attribute("nb_iteration_fixed", doc.allocate_string(nb_iteration_fixed.c_str())));
+				node->append_attribute(this->lastCompressionXML.allocate_attribute("nb_iteration_fixed", this->lastCompressionXML.allocate_string(nb_iteration_fixed.c_str())));
 				node_stack.top()->append_node(node);
 				node_stack.push(node);
 				seq_stack.push(sps);
 			}
 		}
 	}
-	s = "\\" + filename;
-	s.replace(s.find(".log"), 4, "_compressed.xml");
-	s.insert(0, dir_path);
-	std::ofstream ofsXml(s.c_str(), std::ofstream::out | std::ofstream::trunc);
-	if (ofsXml.good()) {
-		ofsXml << doc;
-		ofsXml.close();
-	}
-	doc.clear();
 }
 
 /**
-	* \brief Lancement de la compression d'un fichier de traces brutes avec l'algorithme de compression hors-ligne.
-	*
-	* \param dir_path le chemin d'accès au fichier.
-	* \param filename le nom du fichier.
-	*/
-void TracesParser::parseLogFile(const std::string& dir_path, const std::string& filename, bool waitEndFlag) {
+  * \brief Lancement de la compression de traces brutes avec l'algorithme de compression hors-ligne.
+  *
+  * \param logs contenu des traces brutes
+  * \param waitEndFlag si true (défaut) l'appel est bloquant jusqu'à ce que le flag "end" soit activé (voir TraceParser::setEnd) - utile si le flux d'entrée (logs) est alimenté en même temps qu'il est lu (cas de Prog&Play). Si false le flux d'entrée est lu et analysé en une seule fois.
+  */
+void TracesParser::parseLogs(std::istream& logs, bool waitEndFlag) {
 	// check if we can start parsing
 	#ifdef DEBUG_PARSER
 		osParser << "Start parsing traces" << std::endl;
 	#endif
-	if (InitResources(dir_path,filename)) {
+	if (!used) {
+		used = true;
 		std::string line;
 		bool executionDetected = false;
 		#ifdef DEBUG_PARSER
@@ -242,12 +193,14 @@ void TracesParser::parseLogFile(const std::string& dir_path, const std::string& 
 				proceed = true;
 			}
 			// we pop all new line included into the input file stream
-			while (std::getline(ifs, line)) {
-				lineNum++;
+			int cpt = 0;
+			while (std::getline(logs, line)) {
 				// we build a trace from the current line
 				#ifdef DEBUG_PARSER
 					osParser << std::endl << "Parse line: " << line;
 				#endif
+				std::cout << "Parse line number: " << cpt << std::endl;
+				cpt++;
 				Trace::sp_trace spt = parseLine(line);
 				if (spt) {
 					#ifdef DEBUG_PARSER
@@ -259,17 +212,17 @@ void TracesParser::parseLogFile(const std::string& dir_path, const std::string& 
 							osParser << "\tThis line is an event" << std::endl;
 						#endif
 						spe = boost::dynamic_pointer_cast<Event>(spt);
+					} else {
+						#ifdef DEBUG_PARSER
+							osParser << "\tThis line is NOT an event" << std::endl;
+						#endif
 					}
+						
 					// We check if this trace is an event that we can't aggregate
 					if (spe && Trace::inArray(spe->getLabel().c_str(), Event::noConcatEventsArr) > -1) {
 						#ifdef DEBUG_PARSER
 							osParser << "\tevent nature: "<< spe->getLabel().c_str() << std::endl;
 						#endif
-						// We add this event at the end of the trace
-						#ifdef DEBUG_PARSER
-							osParser << "\tadd event at the end of the trace" << std::endl;
-						#endif
-						root->addTrace(spe);
 						// If we detect a new execution
 						if (spe->getLabel().compare(NEW_EXECUTION) == 0){
 							// Check if a previous execution has been detected
@@ -287,7 +240,11 @@ void TracesParser::parseLogFile(const std::string& dir_path, const std::string& 
 							}
 							// we set execution flag
 							executionDetected = true;
+							// We end by adding this event at the end of the trace
+							root->addTrace(spe);
 						} else if (spe->getLabel().compare(END_EXECUTION) == 0){ // If we detect an end execution
+							// We start by adding this event at the end of the trace
+							root->addTrace(spe);
 							// We try to detect and compress sequences. Default case, if we receive an end execution event we have to compress last trace
 							#ifdef DEBUG_PARSER
 								osParser << "\tEnd Execution: We try to detect and compress sequences" << std::endl;
@@ -300,6 +257,9 @@ void TracesParser::parseLogFile(const std::string& dir_path, const std::string& 
 							start = root->size();
 							// we reset execution flag
 							executionDetected = false;
+						} else {
+							// We simply add this event at the end of the trace
+							root->addTrace(spe);
 						}
 					}
 					else{
@@ -318,17 +278,17 @@ void TracesParser::parseLogFile(const std::string& dir_path, const std::string& 
 			// No more lines to read, check if it's due to end of file
 			// If yes, we can continue
 			// If no (means another error), then we stop to read input file
-			if (!ifs.eof()){
+			if (!logs.eof()){
 				#ifdef DEBUG_PARSER
 					osParser << "error occurs => we stop to read traces" << std::endl;
 				#endif
 				end = true; // Stop to read input file
 			}
-			ifs.clear();
+			logs.clear();
 			// check if we have to compress agregate traces. proceed means game engine asks to proceed compression
 			if (proceed) {
-				// check if new traces are becoming since previous start mission event
-				if (start < (int)root->size()){
+				// check if at least two traces are becoming since previous start mission event
+				if (start < (int)root->size()-1){
 					// We try to detect and compress remaining traces
 					#ifdef DEBUG_PARSER
 						osParser << "\tWe try to detect and compress sequences" << std::endl;
@@ -352,6 +312,10 @@ void TracesParser::parseLogFile(const std::string& dir_path, const std::string& 
 			}
 		}
 		CloseResources();
+	} else {
+		#ifdef DEBUG_PARSER
+			osParser << "parsing of traces already launched" << std::endl;
+		#endif
 	}
 	#ifdef DEBUG_PARSER
 		osParser << "End parsing traces" << std::endl;
@@ -604,20 +568,61 @@ void TracesParser::offlineCompression() {
 	#ifdef DEBUG_PARSER
 		root->exportAsString(osParser);
 	#endif
-/*	#ifdef DEBUG_PARSER
+	#ifdef DEBUG_PARSER
 		osParser << "\tWe try to rotate sequences due to if statements" << std::endl;
 	#endif
-	Sequence::findAndProcessRotatingSequences(root, start);
+	Sequence::findAndProcessRotatedSequences(root, start);
 	#ifdef DEBUG_PARSER
 		root->exportAsString(osParser);
 	#endif
+	bool unaggregateFlag = false;
+	bool inclusiveFlag = true;
+	bool revertRotation;
+	// On traite les traces optionnelles tant que les traitements améliorent la longueur de la trace
+	/*do{
+		revertRotation = false;
+		int prevRootlength = 0;
+		// on tente d'aggréger les traces intercallées si l'étape sur les sequences inclusives a modifié la trace
+		if (inclusiveFlag){
+			do{
+				prevRootlength = root->length(start);
+				#ifdef DEBUG_PARSER
+					osParser << "\tWe try to identify unaggregate traces due to inserted tokkens" << std::endl;
+				#endif
+				Sequence::findAndProcessUnaggregateTracesDueToInsertedTokkens(root, start);
+				#ifdef DEBUG_PARSER
+					root->exportAsString(osParser);
+				#endif
+				if ((unsigned)prevRootlength > root->length(start))
+					unaggregateFlag = true;
+			}while ((unsigned)prevRootlength > root->length(start));
+		}
+		inclusiveFlag = false;
+		// on tente de traiter les sequences inclusives si l'étape sur les les traces intercallées a modifié la trace
+		if (unaggregateFlag){
+			do{
+				prevRootlength = root->length(start);
+				#ifdef DEBUG_PARSER
+					osParser << "\tWe try to identify inclusive sequences eventually separated by tokkens" << std::endl;
+				#endif
+				Sequence::findAndProcessInclusiveSequences(root, start);
+				#ifdef DEBUG_PARSER
+					root->exportAsString(osParser);
+				#endif
+				if ((unsigned)prevRootlength > root->length(start))
+					inclusiveFlag = true;
+			}while ((unsigned)prevRootlength > root->length(start));
+		}
+		// Si aucune des deux opérations précédente n'a produit d'effet, on tente faire une rotation inverse pour voir si on débloque la situation
+		if (!unaggregateFlag && !inclusiveFlag)
+			revertRotation = Sequence::revertRemainingRotatedSequences(root, start);
+		unaggregateFlag = false;
+	}while (inclusiveFlag || revertRotation);*/
 	#ifdef DEBUG_PARSER
-		osParser << "\tWe try merge inclusive sequences" << std::endl;
-	#endif
-	Sequence::findAndProcessInclusiveSequences(root, start);
-	#ifdef DEBUG_PARSER
+		osParser << "\tFinal result" << std::endl;
 		root->exportAsString(osParser);
-	#endif*/
+	#endif
+	
 }
 
 void TracesParser::exportTracesAsString(std::ostream &os) {
@@ -773,10 +778,6 @@ void TracesParser::setEnd() {
 	end = true;
 }
 
-bool TracesParser::getEnd() const {
-	return end;
-}
-
 bool TracesParser::compressionDone() {
 	if (compressed) {
 		compressed = false;
@@ -787,10 +788,6 @@ bool TracesParser::compressionDone() {
 
 void TracesParser::setProceed(bool proceed) {
 	this->proceed = proceed;
-}
-
-bool TracesParser::getProceed() {
-	return proceed;
 }
 
 void TracesParser::setLang(std::string lang){

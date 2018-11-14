@@ -2,7 +2,7 @@
 
 int Trace::numTab = 0;
 
-Trace::Trace(TraceType type, std::string info): indSearch(-1), lenSearch(1), type(type), info(info), delayed(false) {}
+Trace::Trace(TraceType type, std::string info): type(type), info(info), delayed(false) {}
 
 // Constructeur utilisé pour cloner un objet Trace
 Trace::Trace(const Trace *t) {
@@ -86,9 +86,22 @@ unsigned int Trace::getLength(const std::vector<Trace::sp_trace>& traces, int in
 	if (ind_end == -1)
 		ind_end = traces.size();
 	if (ind_start < ind_end && (ind_start < 0 || ind_start >= (int)traces.size()))
-		throw std::runtime_error("invalid index used in getLength() function");
+		throw std::runtime_error("invalid index used in Trace::getLength() function");
 	unsigned int len = 0;
 	for (int i = ind_start; i < ind_end; i++)
 		len += traces.at(i)->length();
 	return len;
+}
+
+void Trace::exportAsString(std::ostream &os, const std::vector<sp_trace>& traces, int ind_start, int ind_end){
+	if (ind_end == -1)
+		ind_end = traces.size();
+	if (ind_start < ind_end && (ind_start < 0 || ind_start >= (int)traces.size()))
+		throw std::runtime_error("invalid index used in Trace::exportAsString() function");
+	if (ind_start > 0)
+		os << "..." << std::endl;
+	for (int i = ind_start; i < ind_end; i++)
+		traces.at(i)->exportAsString(os);
+	if (ind_end < (int)traces.size())
+		os << "..." << std::endl;
 }

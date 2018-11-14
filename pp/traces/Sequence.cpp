@@ -3,8 +3,10 @@
 #include "TraceConstantList.h"
 #include "TracesParser.h"
 
-// Taille de la fenêtre maximale pour mettre en cache les traces intercallées lors de la tentative de rotation des séquences
+// Cette donnée est utilisée lors des différentes recherches de parties optionnelles. Lors de ces étapes on recherche en périphérie de la séquence à traiter des traces alignables avec cette séquence. Si la partie de la séquence analysée a une taille X, on s'autorise à regarder en périphérie (amont ou aval) X+MAX_OPT_WINDOW traces. Et donc potentiellement un nombre de traces optionnelles pour les parties périphériques égale à MAX_OPT_WINDOW.
 #define MAX_OPT_WINDOW 10
+// Toujours lors de ces étapes d'identification des partie optionnelles on acceptera une fusion uniquement si le score d'alignement est supérieur à MIN_SCORE
+#define MIN_SCORE 0.5
 
 Sequence::Sequence(std::string info, bool num_fixed) : Trace(SEQUENCE,info), num_fixed(num_fixed), num(0), pt(0), endReached(false), shared(false), root(false) {}
 
@@ -123,6 +125,14 @@ unsigned int Sequence::length() const {
 	return len;
 }
 
+unsigned int Sequence::length(int start) const {
+	start = start < 0 ? 0 : start;
+	unsigned int len = 0;
+	for (unsigned int i = start; i < traces.size(); i++)
+		len += traces.at(i)->length();
+	return len;
+}
+
 std::vector<Trace::sp_trace>& Sequence::getTraces() {
 	return traces;
 }
@@ -135,6 +145,17 @@ std::vector<Trace::sp_trace> Sequence::getSubTraces(int start) {
 	}
 	return remainingTraces;
 }
+
+Sequence::sp_sequence Sequence::getSubSequence(int start, int end){
+	start = start < 0 ? 0 : start;
+	end = end < 0 || end > (int)this->size() ? this->size() : end;
+	Sequence::sp_sequence subSeq = boost::make_shared<Sequence>(1, false, false);
+	for (int i = start ; i < end ; i++){
+		subSeq->addTrace(traces.at(i)->clone());
+	}
+	return subSeq;
+}
+
 
 int Sequence::getIndex(const Trace::sp_trace& spt) const {
 	for (unsigned int i = 0; i < traces.size(); i++) {
@@ -610,16 +631,19 @@ std::pair<int, int> Sequence::getMaxAlignAndMinOpt (std::vector<Trace::sp_trace>
  *   \_ _/
  * C C S C
  *
- * Est linéarisée de la manière suivante où Sd est une séquence vide dont le champ info maqrue un début de séquence et Sf est une séquence vide dont le champ info maqrue une fin de séquence :
+ * Est linéarisée de la manière suivante où Sd est une séquence vide dont le champ info marque un début de séquence et Sf est une séquence vide dont le champ info marque une fin de séquence :
  * C C Sd C C Sd C Sf Sf C
  *
- * \param start point de départ de linéarisation de la séquence
+ * \param start indice de départ de linéarisation de la séquence (valeur par défaut : 0)
+ * \param end indice de fin de linéarisation de la séquence (valeur par défaut : -1 => fin de la trace)
  *
  * \return un vecteur de trace représentant une version linéarisée des traces
  */
-std::vector<Trace::sp_trace>& Sequence::getLinearSequence(int start){
+std::vector<Trace::sp_trace>& Sequence::getLinearSequence(int start, int end){
 	linearizedTraces.clear();
 	Sequence::sp_sequence sps = shared_from_this();
+	start = start < 0 ? 0 : start;
+	end = end < 0 || end > (int)sps->size() ? sps->size() : end;
 	if (sps->length() > 0) {
 		Trace::sp_trace spt;
 		unsigned int back_pt = sps->getPt();
@@ -639,6 +663,9 @@ std::vector<Trace::sp_trace>& Sequence::getLinearSequence(int start){
 			}
 			if (!sps->isEndReached() && sps->length() > 0) {
 				spt = sps->next();
+				// Si on est au premier niveau de la pile (<=> root) on vérifie si on n'a pas atteint l'indice d'arrêt. Si oui on simule l'atteinte de la fin de la trace
+				if ((int)stack.size() == 1 && (int)this->pt >= end)
+					sps->setPtAndEndState(sps->size(), true);
 				if (spt->isSequence()) {
 					sps = boost::dynamic_pointer_cast<Sequence>(spt);
 					sps->reset();
@@ -737,131 +764,176 @@ Call::call_vector Sequence::getCalls(bool setMod) {
 
 void Sequence::findAndAggregateSuccessiveSequences(Sequence::sp_sequence& workingSequence, int startingPoint) {
 	// Taille courrante des fenêtres utilisées pour les fusions. Cette taille augmente progressivement au cours de l'algorithme pour commencer par fusionner des petites séquences puis de plus en plus grandes.
-	unsigned int max_length = 2;
-
-  bool climb = false;
+	unsigned int windowSize = 1;
+	
+	unsigned int workingId;
+	unsigned int upStart;
+	unsigned int endDown;
+	unsigned int lastEndFusion;
+	
+	bool mergeOccurs;
+	
+	// Recherche du point de départ effectif => le premier Call du workingSequence
+	while (startingPoint < (int)workingSequence->size())
+		if (workingSequence->at(startingPoint)->isEvent() && Trace::inArray(boost::dynamic_pointer_cast<Event>(workingSequence->at(startingPoint))->getLabel().c_str(), Event::noConcatEventsArr) > -1)
+			startingPoint++;
+		else
+			break;
+	
+	// Point de départ dans la trace en fonction de la taille de la fenêtre
+	unsigned int currentStartingPoint = startingPoint;
+	
+	Sequence::sp_sequence sps_up;
 
 	#ifdef DEBUG_PARSER
 		TracesParser::osParser << "WorkingSequence (start at " << startingPoint << "):" << std::endl;
-		workingSequence->exportAsString(TracesParser::osParser);
+		Trace::exportAsString(TracesParser::osParser, workingSequence->getTraces(), startingPoint);
 	#endif
 
-	// Initialisation des indices de recherche
-	for (int i = startingPoint ; i < (int)workingSequence->size() ; i++)
-		workingSequence->at(i)->indSearch = -1;
-
-	// Lorsque la taille des fenêtres dépassent la longueur des traces / 2 l'algorithme peut s'arrêter. En effet les deux fenêtres couvrent la totalité de la trace et n'ont pas pu être fusionnée, il ne sert donc à rien de tenter de continuer à augmenter la taille des fenêtres
-	while(max_length <= Trace::getLength(workingSequence->getTraces(),startingPoint) / 2) {
-		// Indice de travail initialisé au point de départ
-		unsigned int startId = startingPoint;
-		// On parcours toutes les traces
-		while (startId < workingSequence->size()) {
-			// Si on est sur le premier élément de la trace ou si la trace courante est un évènement, on passe au suivant
-			if (startId == 0 || workingSequence->at(startId)->isEvent()) {
-				startId++;
+	// Lorsque la taille des fenêtres * 2 dépassent la longueur des traces l'algorithme peut s'arrêter. En effet les deux fenêtres couvrent la totalité de la trace et n'ont pas pu être fusionnées, il ne sert donc plus à rien de tenter de continuer à augmenter la taille des fenêtres
+	while(Sequence::checkFeasibility(workingSequence, windowSize*2, startingPoint)) {
+		// On augmente la taille de la fenêtre
+		windowSize++;
+		#ifdef DEBUG_PARSER
+			TracesParser::osParser << "New window size: " << windowSize << std::endl;
+		#endif
+		// On recherche le point de départ permettant de construire une fenêtre "up" d'une taille supérieure ou égale à celle de la fenêtre
+		while (Trace::getLength(workingSequence->getTraces(),startingPoint, currentStartingPoint) < windowSize)
+			currentStartingPoint++;
+		// On positionne l'indice de travail à ce nouveau point de départ
+		workingId = currentStartingPoint;
+		mergeOccurs = false;
+		
+		// On parcours toutes les traces restantes jusqu'à ce qu'il n'y en ait plus assez pour construire une séquence "down" d'une taille correspondante à celle de la fenêtre
+		while (Sequence::checkFeasibility(workingSequence, windowSize, workingId)) {
+			std::cout << "Window size: " << windowSize << "; remaining traces: " << workingSequence->size() - workingId << std::endl;
+			#ifdef DEBUG_PARSER
+				TracesParser::osParser << "WorkingId " << workingId << std::endl;
+				Trace::exportAsString(TracesParser::osParser, workingSequence->getTraces(), startingPoint);
+			#endif
+			// Si la trace courante est un évènement, on passe au suivant
+			if (workingSequence->at(workingId)->isEvent()) {
+				workingId++;
+				#ifdef DEBUG_PARSER
+					TracesParser::osParser << "Move to next trace due to event detection" << std::endl;
+				#endif
 				continue;
 			}
-			// Vérifier si les indices de la trace courante doivent être initialisés
-			if (workingSequence->at(startId)->indSearch == -1) {
-				// On pointe la trace en amont de la trace courrante
-				workingSequence->at(startId)->indSearch = startId-1;
-				// On calcule la longueur séparant cette trace (excluse) de celle pointée en amont (incluse). Cette longueur peut être supérieure à 1 si la trace en amont n'est pas un simple Call mais une séquence par exemple.
-				workingSequence->at(startId)->lenSearch = workingSequence->at(startId-1)->length();
-			}
-			// Stoper si on a atteint la fin des traces OU si la taille de la fenêtre "up" dépasse la taille maximale fixée actuellement OU si la séquence "up" est remontée au delà du point du point de départ
-			while (startId < workingSequence->size() && workingSequence->at(startId)->lenSearch <= max_length && workingSequence->at(startId)->indSearch >= startingPoint) {
-				// Vérifier que la longueur de la fenêtre "up" est au moins égale à 2 car les répétitions succéssives ont déjà étaient aggrégées lors de la construction de la trace (voir TracesParser::inlineCompression)
-				if (workingSequence->at(startId)->lenSearch >= 2) {
-					// Création de la séquence "up" contenant les traces de la fenêtre
-					Sequence::sp_sequence sps_up = boost::make_shared<Sequence>(1);
-					// enregistrement de l'indice de départ de la séquence "up"
-					unsigned int up_start = workingSequence->at(startId)->indSearch;
-					// ajout à la séquence "up" de toutes les traces comprises dans la fenêtre
-					unsigned int j = up_start;
-					// si la fenêtre a une taille de 1 et que la trace précédente est une séquence, on l'utilise directement
-					if (startId-j == 1 && workingSequence->at(j)->isSequence()){
-					 	sps_up = boost::dynamic_pointer_cast<Sequence>(workingSequence->at(j));
-						j++;
+			// Tentative de création d'une séquence "up" de la taille de la fenêtre (mergeOccurs peut être à true si une fusion vient d'être faite à l'itération précédente, dans ce cas pas besoin de reconstruire la séquence "up" => Autrement dit, il faut construire une séquence "up" s'il n'y a pas eu de fusion à l'itération précédente)
+			if (!mergeOccurs){
+				//  1 - Création d'une séquence "up" pour acceuillir les traces de la fenêtre 
+				sps_up = boost::make_shared<Sequence>(1);
+				//  2 - Intégration des traces précédentes jusqu'à ce que la taille de la fenêtre soit atteinte
+				if (workingSequence->at(workingId-1)->length() == windowSize){
+					// 2.1 - Cas particulier où la trace précédente correspond à la taille de la fenêtre. Dans ce cas là on peut l'utiliser directement sans l'encapsuler dans une sequence artificielle
+					sps_up = boost::dynamic_pointer_cast<Sequence>(workingSequence->at(workingId-1));
+					upStart = workingId-1;
+				} else {
+					// 2.2 - Cas général, on remonte la trace pour construire la séquence "up"
+					// Initialisation du compteur sur la trace précédant la position de travail (rappel la trace correspondant à la position de travail fait partie de la séquence "down")
+					unsigned int _cpt = workingId-1;
+					// On construit la séquence "up" en remontant la trace
+					while (sps_up->length() < windowSize){
+						sps_up->addTrace(workingSequence->at(_cpt));
+						_cpt--;
 					}
-					else{
-						// on alimente la séquence de travail avec les éléments de la trace
-						while(j < startId){
-							sps_up->addTrace(workingSequence->at(j));
-							j++;
-						}
-					}
-					// Vérifier qu'il existe suffisament de traces à partir de la trace courante. En effet pour pouvoir compresser il faut qu'à partir de la trace courrante il y ait au moins autant de traces restantes que la taille de la séquence "up"
-					if (sps_up->size() > 0 && Sequence::checkFeasibility(workingSequence, sps_up->length(), startId)) {
-						bool found = true;
-						bool mergeOccurs = false;
-						// Indice max atteint en cas de fusion
-						unsigned int max_fusion = 0;
-						// tantque l'on trouve des séquences à fusionner et qu'on n'a pas atteint la fin de la séquence
-						while (found && j < workingSequence->size()) {
-							// Création de la séquence "down"
-							Sequence::sp_sequence sps_down = boost::make_shared<Sequence>(1);
-							// Vérifier si la prochaine trace ne serait pas une séquence déjà suffisamment grande
-							if (workingSequence->at(j)->isSequence() && workingSequence->at(j)->length() >= sps_up->length()){
-								// Alors on peut l'utiliser directement sans l'encapsuler dans une sequence artificielle
-								sps_down = boost::dynamic_pointer_cast<Sequence>(workingSequence->at(j));
-								j++;
-							} else {
-								// ajout à la séquence "down" d'autant de traces nécessaire pour obtenir une longueur équivalente à la séquence "up"
-								while(j < workingSequence->size() && sps_down->length() < sps_up->length()){
-									sps_down->addTrace(workingSequence->at(j++));
-								}
-							}
-							// tentative de fusion des séquences "up" et "down".
-							Sequence::sp_sequence sps_res = mergeEquivalentSequences(sps_up, sps_down);
-							// Vérifier si la fusion a réussie
-							if (sps_res) {
-								// dans ce cas la séquence "up" devient la fusion
-								sps_up = sps_res;
-								// et l'indice max atteint dans la fusion est mis à jour
-								max_fusion = j;
-								mergeOccurs = true;
-							}
-							else
-								found = false;
-						}
-						// Si une fusion a été réalisée
-						if (mergeOccurs) {
-							// Activer l'attribut "delayed" si toutes les traces de la séquence sont "delayed"
-							sps_up->checkDelayed();
-							std::vector<Trace::sp_trace>& traces = workingSequence->getTraces();
-							// Suppression des traces de toutes les traces comprises entre l'indice de début de la fenêtre "up" et l'indice max atteint dans les fusions
-							traces.erase(traces.begin() + up_start, traces.begin() + max_fusion);
-							// Ajout des traces de la séquence "up" (contenant la fusion des anciennes fenêtre "up" et "down")
-							traces.insert(traces.begin() + up_start, sps_up);
-							// Réinitialisation des indices de travail de chaque trace à partir du dernier de la dernière fusion
-							std::vector<Trace::sp_trace>::iterator it = traces.begin() + up_start;
-							while(it != traces.end())
-								(*it++)->indSearch = -1;
-							// Le nouveau point de départ est défini comme le début de la fenêtre "up" + sa longueur
-							startId = up_start + max_length;
-						}
-						else
-							climb = true;
-					}
-					else
-						break;
+					// We reverse "up" vector because we built it from end to start
+					std::reverse(sps_up->getTraces().begin(),sps_up->getTraces().end()); 
+					upStart = _cpt+1;
 				}
-				else
-					climb = true;
-				// Augmentation de la fenêtre de recherche
-				if (climb) {
-					// On regarde dans la trace un cran plus haut
-					workingSequence->at(startId)->indSearch--;
-					// Si on est toujours dans la trace on met à jour la longueur
-					if (workingSequence->at(startId)->indSearch > 0)
-						workingSequence->at(startId)->lenSearch += workingSequence->at(workingSequence->at(startId)->indSearch)->length();
-					climb = false;
+				//  3 - Si la fenêtre "up" n'a pas la taille souhaitée, on avance donc dans l'analyse des traces
+				if (sps_up->length() != windowSize){
+					workingId++;
+					#ifdef DEBUG_PARSER
+						TracesParser::osParser << "Move to next trace due to wrong up sequence size" << std::endl;
+					#endif
+					continue;
 				}
 			}
-			startId++;
+			
+			// Ici nous avons donc une séquence "up" d'une taille correspondant à la fenêtre de recherche
+			// Nous allons maintenant recherche une séquence "down" de la même taille et tenter une fusion
+			
+			// Même algo que pour la construction de la séquence "up"
+			// Tentative de création d'une séquence "down" de la taille de la fenêtre
+			//  1 - Création d'une séquence "down"
+			Sequence::sp_sequence sps_down = boost::make_shared<Sequence>(1);
+			//  2 - Intégration des traces faisant partie de la séquence "down" jusqu'à ce que la taille de la fenêtre soit atteinte
+			if (workingSequence->at(workingId)->length() == windowSize){
+				// 2.1 - Cas particulier où la trace courante correspond à la taille de la fenêtre. Dans ce cas là on peut l'utiliser directement sans l'encapsuler dans une sequence artificielle
+				sps_down = boost::dynamic_pointer_cast<Sequence>(workingSequence->at(workingId));
+				endDown = workingId;
+			} else {
+				// 2.2 - Cas général, on progresse dans la trace pour construire la séquence "down"
+				// Initialisation du compteur pour parcourir la trace en aval (ici pas de -1 car la trace courrante doit être intégrée à la séquence "down")
+				unsigned int _cpt = workingId;
+				// On construit la séquence "down" en avancant dans la trace
+				while (sps_down->length() < windowSize){
+					sps_down->addTrace(workingSequence->at(_cpt));
+					_cpt++;
+				}
+				endDown = _cpt;
+			}
+			//  3 - Si la fenêtre "down" n'a pas la taille souhaitée, on avance donc dans l'analyse des traces
+			if (sps_down->length() != windowSize){
+				workingId++;
+				#ifdef DEBUG_PARSER
+					TracesParser::osParser << "Move to next trace due to wrong down sequence size" << std::endl;
+				#endif
+				continue;
+			}
+			
+			// Ici nous avons donc une séquence "down" d'une taille correspondant à la fenêtre de recherche
+			// Nous allons maintenant tenter de fusionner les séquences "up" et "down"
+			Sequence::sp_sequence sps_res = mergeEquivalentSequences(sps_up, sps_down);
+			// Vérifier si la fusion a réussie
+			if (sps_res) {
+				// dans ce cas la séquence "up" devient la fusion
+				sps_up = sps_res;
+				// Optimisation: dans le cas où d'autres séquences "down" serait fusionnable, on continue à descendre dans la trace jusqu'à ce qu'on ne puisse plus fusionner. On ne nettoiera la trace qu'à ce moment là (suppression des séquences et ajout de la fusion).
+				mergeOccurs = true;
+				lastEndFusion = endDown;
+				// on repositionne l'indice de travail juste après la séquence "down"
+				workingId = endDown;
+			}
+			else{
+				// La fusion a échoué, si des fusions précédentes ont été détectées dans les itérations présédentes => on nettoie la trace
+				if (mergeOccurs){
+					cleanTracesAndAddMerge(workingSequence->getTraces(), sps_up, upStart, lastEndFusion);
+					// On repositionne l'indice de travail sur l'élément fusionné
+					workingId = upStart;
+					// Repositionner le dernier point de départ si la fusion a créé un décallage
+					// Exemple : soit la trace [AB*ABC] avec une fenêtre de 2 où * indique le dernier point de départ. Dans ce cas là "up" <=> [AB] et "down" <=> [AB]. la fusion va donc donner [[AB]C]. Si le dernier point de départ n'est pas recallé on sera dans la situation [[AB]C*] et la trace C sera "sautée". Il faut que le dernier point de départ soit repositionné au départ de la dernière fusion si celle-ci se trouve en amont : [*[AB]C]
+					if (upStart < currentStartingPoint)
+						currentStartingPoint = upStart;
+				}
+
+				// on avance maintenant dans l'analyse des traces
+				workingId++;
+				#ifdef DEBUG_PARSER
+					TracesParser::osParser << "Move to next trace due to fusion failed" << std::endl;
+				#endif
+				mergeOccurs = false;
+			}
 		}
-		max_length++;
+		// Gérer une éventuelle fusion en attente
+		if (mergeOccurs){
+			cleanTracesAndAddMerge(workingSequence->getTraces(), sps_up, upStart, lastEndFusion);
+			// Voir commentaire du même "if" précédant 
+			if (upStart < currentStartingPoint)
+				currentStartingPoint = upStart;
+		}
+			
 	}
+}
+
+void Sequence::cleanTracesAndAddMerge(std::vector<Trace::sp_trace>& traces, Sequence::sp_sequence merge, unsigned int upStart, unsigned int endDown){
+	// Activer l'attribut "delayed" si toutes les traces de la séquence sont "delayed"
+	merge->checkDelayed();
+	// Suppression de toutes les traces comprises entre l'indice de début et l'indice de fin
+	traces.erase(traces.begin() + upStart, traces.begin() + endDown);
+	// Ajout de la fusion
+	traces.insert(traces.begin() + upStart, merge);
 }
 
 bool Sequence::checkFeasibility(Sequence::sp_sequence workingSequence, unsigned int min_length, unsigned int ind_start) {
@@ -879,6 +951,62 @@ int computeLength (std::vector<Trace::sp_trace> _traces){
 	for (unsigned int i = 0; i < _traces.size(); i++)
 		len += _traces.at(i)->length();
 	return len;
+}
+
+Sequence::sp_sequence Sequence::mergeAlignedSequences(Sequence::sp_sequence seq1, Sequence::sp_sequence seq2) {
+	// create an empty new sequence based on up sequences and as many iterations defined in down sequence. This sequence will store merging of up and down sequences
+	Sequence::sp_sequence sps_merging = boost::make_shared<Sequence>(seq1);
+	for (int i = 0 ; i < (int)seq2->getNum() ; i++)
+		sps_merging->addOne();
+	// Process the two sequences in parallel
+	unsigned int i = 0, j = 0;
+	while (i < seq1->size() || j < seq2->size()) {
+		// check if the both traces are aligned
+		if (i < seq1->size() && j < seq2->size() && !seq1->at(i)->getAligned().expired() && !seq2->at(j)->getAligned().expired()) {
+			// Check if the both traces are Calls
+			if (!seq1->at(i)->isSequence() && !seq2->at(j)->isSequence()) {
+				// filter first call with the second
+				dynamic_cast<Call*>(seq1->at(i).get())->filterCall(dynamic_cast<const Call*>(seq2->at(j).get()));
+				// and add the up Call to the merged sequence
+				sps_merging->addTrace(seq1->at(i));
+			} else {
+				// merge the both sequences
+				sps_merging->addTrace(mergeAlignedSequences(boost::dynamic_pointer_cast<Sequence>(seq1->at(i)), boost::dynamic_pointer_cast<Sequence>(seq2->at(i))));
+			}
+			i++;
+			j++;
+		}
+		// Check if the first trace is aligned with a hole => move it as optional
+		else if (i < seq1->size() && seq1->at(i)->getAligned().expired()) {
+			if (!seq1->at(i)->isSequence()){
+				// construction de la sequence optionnelle
+				Sequence::sp_sequence sps_opt = boost::make_shared<Sequence>(1, false, true);
+				// Ajout du call
+				sps_opt->addTrace(seq1->at(i));
+				sps_merging->addTrace(sps_opt);
+			} else {
+				Sequence::sp_sequence seqTmp = boost::dynamic_pointer_cast<Sequence>(seq1->at(i));
+				seqTmp->setOptional(true);
+				sps_merging->addTrace(seqTmp);
+			}
+			i++;
+		}
+		else if (j < seq2->size() && seq2->at(j)->getAligned().expired()) {
+			if (!seq2->at(j)->isSequence()){
+				// construction de la sequence optionnelle
+				Sequence::sp_sequence sps_opt = boost::make_shared<Sequence>(1, false, true);
+				// Ajout du call
+				sps_opt->addTrace(seq2->at(j));
+				sps_merging->addTrace(sps_opt);
+			} else {
+				Sequence::sp_sequence seqTmp = boost::dynamic_pointer_cast<Sequence>(seq2->at(j));
+				seqTmp->setOptional(true);
+				sps_merging->addTrace(seqTmp);
+			}
+			j++;
+		}
+	}
+	return sps_merging;
 }
 
 Sequence::sp_sequence Sequence::mergeEquivalentSequences(Sequence::sp_sequence sps_up, Sequence::sp_sequence sps_down, bool strict) {
@@ -994,12 +1122,12 @@ Sequence::sp_sequence Sequence::mergeEquivalentSequences(Sequence::sp_sequence s
 				#ifdef DEBUG_PARSER
 					TracesParser::osParser << "Result for h1::q1 and h2::q2 => " << pair_scoreUpDown.first << "/" << pair_scoreUpDown.second << "\n" << std::endl;
 				#endif
-				// Obtenir le meilleur score d'alignement entre la trace up à partir de la trace SUIVANTE la trace courante et la trace down à partir de la trace courante
+				// Obtenir le meilleur score d'alignement entre la trace up à partir de la trace SUIVANT la trace courante et la trace down à partir de la trace courante
 				std::pair<int, int> pair_scoreNextUpDown = Sequence::getMaxAlignAndMinOpt(sps_up->getLinearSequence(startLinearisationUp+1), sps_down->getLinearSequence(startLinearisationDown));
 				#ifdef DEBUG_PARSER
 					TracesParser::osParser << "Result for q1 and h2::q2 => " << pair_scoreNextUpDown.first << "/" << pair_scoreNextUpDown.second << "\n" << std::endl;
 				#endif
-				// Obtenir le meilleur score d'alignement entre la trace up à partir de la trace courante et la trace down à partir de la trace SUIVANTE la trace courante
+				// Obtenir le meilleur score d'alignement entre la trace up à partir de la trace courante et la trace down à partir de la trace SUIVANT la trace courante
 				std::pair<int, int> pair_scoreUpNextDown = Sequence::getMaxAlignAndMinOpt(sps_up->getLinearSequence(startLinearisationUp), sps_down->getLinearSequence(startLinearisationDown+1));
 				#ifdef DEBUG_PARSER
 					TracesParser::osParser << "Result for h1::q1 and q2 => " << pair_scoreUpNextDown.first << "/" << pair_scoreUpNextDown.second << "\n" << std::endl;
@@ -1095,7 +1223,7 @@ Sequence::sp_sequence Sequence::mergeEquivalentSequences(Sequence::sp_sequence s
 						next_up = true;
 						next_down = true;
 					} else {
-						// On fusionner deux éléments qui ne sont pas des Call => empilement d'une séquence de fusion (voir fin de ce cas)
+						// On doit fusionner deux éléments qui ne sont pas des Call => empilement d'une séquence de fusion (voir fin de ce cas)
 						// Si on doit aligner un Call du up avec une séquence du down OU une sequence up est plus courte qu'une séquence down
 						if ((!spt_up->isSequence() && spt_down->isSequence()) || len_up < len_down) {
 							#ifdef DEBUG_PARSER
@@ -1375,154 +1503,427 @@ Sequence::sp_sequence Sequence::mergeEquivalentSequences(Sequence::sp_sequence s
 	}
 }
 
-void Sequence::findAndProcessRotatingSequences(Sequence::sp_sequence& workingSequence, int startingPoint) {
+void Sequence::findAndProcessRotatedSequences(Sequence::sp_sequence& workingSequence, int startingPoint) {
 	// On parcours toute la trace
-	for (int i = startingPoint ; i < (int)workingSequence->size() ; i++){
+	for (int currentPos = startingPoint ; currentPos < (int)workingSequence->size() ; currentPos++){
 		// Si la trace courante est une séquence
-		if (workingSequence->at(i)->isSequence()){
+		if (workingSequence->at(currentPos)->isSequence()){
 			// On garde une ref de cette sequence
-			Sequence::sp_sequence seq = boost::dynamic_pointer_cast<Sequence>(workingSequence->at(i));
+			Sequence::sp_sequence seq = boost::dynamic_pointer_cast<Sequence>(workingSequence->at(currentPos));
+			#ifdef DEBUG_PARSER
+				TracesParser::osParser << "Do we have to rotate:" << std::endl;
+				seq->exportAsString(TracesParser::osParser);
+			#endif
 			// On applique la rotation sur cette sous-sequence (appel récursif)
-			Sequence::findAndProcessRotatingSequences(seq, 0);
-			// On créé une séquence optionnelle pour stocker les traces intercallées
-			Sequence::sp_sequence opt = boost::make_shared<Sequence>(1, false, true);
+			Sequence::findAndProcessRotatedSequences(seq, 0);
+			
+			// On va maintenant chercher si la suite de la trace contient le début de cette séquence.
 			// on va compter le nombre de traces suivant la séquence identiques à celles de la tête de la séquence
-			int cpt = 0;
-			while (cpt < (int)seq->size() && cpt + i + 1 < (int)workingSequence->size() && seq->at(cpt)->operator==(workingSequence->at(i+cpt+1).get()))
+			int nbTraceFoundAfterwards = 0;
+			int headLength = 0;
+			while (nbTraceFoundAfterwards < (int)seq->size() && currentPos+nbTraceFoundAfterwards+1 < (int)workingSequence->size() && seq->at(nbTraceFoundAfterwards)->operator==(workingSequence->at(currentPos+nbTraceFoundAfterwards+1).get())){
 				// Tant qu'on n'a pas atteint la fin de la séquence, la fin des traces et que les deux traces sont égales => on continue à compter
-				cpt++;
-			if (cpt != 0){
-				// On a trouvé en aval des symboles identiques au début de la séquence, on cherche donc en amont des symboles identique de la fin de la sequence
-				int j = (int)seq->size()-1; // On part de la fin de la sequence et on la remonte jusqu'à atteindre la position du compteur
-				int k = i-1;
-				// position dans seq où insérer la partie optionnelle
-				// On stoppe si on est remonté jusqu'à la position du compteur OU si on a dépassé le seuil d'arrêt dans les traces OU si on a remonté toute les traces
-				while (j >= cpt && k > i-(int)seq->size()-1-MAX_OPT_WINDOW && k > startingPoint){
-					// Si la trace de la sequence est égale à la trace en amont
-					if (seq->at(j)->operator==(workingSequence->at(k).get()))
-						j--; // on remonte dans la sequence
-					else{
-						opt->addTrace(workingSequence->at(k), 0); // on enregistre cette trace dans la sequence optionnelle (en tête vue qu'on remonte)
-					}
-					k--; // dans tous les cas on remonte en aval de la sequence dans les traces
+				headLength += seq->at(nbTraceFoundAfterwards)->length();
+				nbTraceFoundAfterwards++;
+			}
+			// Vérifier qu'au moins la première trace ait été trouvée
+			if (nbTraceFoundAfterwards != 0){
+				// On a trouvé en aval des traces identiques au début de la séquence, on cherche donc en amont des symboles identiques à la fin de la sequence
+				// Calcul de la position jusqu'où on s'autorise à remonter
+				int maxLength = seq->length() + MAX_OPT_WINDOW;
+				int length = 0;
+				int minPos = currentPos-1;
+				while (minPos > 0 && length < maxLength) {
+					length += workingSequence->at(minPos)->length();
+					minPos--;
 				}
-				// On vérifie si on a atteint le compteur de la séquence <=> on a trouvé en aval de la séquence la tête de la sequence et en amont de la séquence, la queue de la séquence
-				if (j < cpt){
-					// S'assurer qu'une partie optionnelle a bien été détectée
-					if (opt->size() > 0){
-						// Enregistrement des tailles de la tête et la queue
-						int headSize = cpt;
-						int tailSize = seq->size()-cpt;
-						// Injection de la partie optionnelle dans la sequence
-						// Ex : ABD => ABopt(C)D
-						seq->addTrace(opt, headSize);
-						// Inverser la tête et la queue de la séquence
-						// on commence par recopier la tête à la fin
-						// Ex : ABopt(C)D => ABopt(C)DAB
-						for (int l = 0 ; l < headSize ; l++)
-							seq->addTrace(seq->at(l));
-						// puis on supprime la tête
-						// Ex : ABopt(C)DAB => opt(C)DAB
-						seq->getTraces().erase(seq->getTraces().begin(), seq->getTraces().begin()+headSize);
-						// on recopie la partie correspondant à l'ancienne fin
-						// Ex : opt(C)DAB => Dopt(C)DAB
-						for (int l = 0 ; l < tailSize ; l++)
-							seq->addTrace(seq->at(tailSize), 0); // Comme on ajoute un élément en tête on reutilise toujours l'élément position à l'indice tailSize
-						// puis on supprime l'ancienne fin
-						// Ex : Dopt(C)DAB => Dopt(C)AB
-						seq->getTraces().erase(seq->getTraces().begin()+tailSize+1, seq->getTraces().begin()+(tailSize*2)+1);
-						// On est donc passé de "ABopt(C)D" à "Dopt(C)AB"
+				// Calcul du meilleur score d'alignement entre la fin de la séquence courante et les traces précédant la séquence courante. On cherche le meilleur alignement à savoir celui qui permet d'aligner le plus de traces de la fin de la séquence avec le moins de trous possibles (maximiser le nombre d'alignement et minimiser la lonqueur des traces)
+				// On va donc chercher le meilleur alignement en augmentant progressivement la fenêtre d'alignement en amont de la séquence courrante
+				// On commence par récupérer les traces consituant la fin de la séquence courrante
+				std::vector<Trace::sp_trace> currentEndPart = seq->getSubSequence(nbTraceFoundAfterwards)->getTraces();
+				// Et on commence en positionnant le curseur d'analyse en amont à une taille de la fin de la séquence courrante + 1 (=> donc -1 car on remonte)
+				int reverseCounterPos = currentPos-currentEndPart.size()-1;
+				float bestScore = 0;
+				// On va augmenter la fenêtre jusqu'à atteindre la position min
+				while (reverseCounterPos > minPos){
+					// On construit les traces en aval de la séquence courrante
+					std::vector<Trace::sp_trace> upPart = workingSequence->getSubSequence(reverseCounterPos, currentPos)->getTraces();
+					// et on détermine son score
+					std::pair<double,double> localScore = computeBestCorrectedScore(seq->getTraces(), upPart);
+					// Evaluation du score
+					if (localScore.first / localScore.second > bestScore)
+						bestScore = localScore.first / localScore.second;
+					reverseCounterPos--;
+				}
+				
+				// Si le meilleur score calculé est supérieur au seuil => procéder à la rotation
+				if (bestScore >= MIN_SCORE){
+					// On peut donc opérer à la rotation
+					// Rappel : on veut donc passer de quelque chose comme CXDFY[ABCDEF]AB à CXDFYAB[CDEFAB] => on ne cherche pas ici à produire [C(X)D(E)F(Y)AB]. On cherche simplement à préparer le terrain pour "findAndProcessUnaggregateTracesDueToInsertedTokkens".
+					// Switch des traces identifiées en aval avec la séquence courante
+					// Ex : CXDFY[ABCDEF]AB => CXDFYAB[ABCDEF]
+					for (int i = 0 ; i < nbTraceFoundAfterwards ; i++){
+						workingSequence->getTraces()[currentPos+i] = workingSequence->at(currentPos+i+1);
+						if (workingSequence->at(currentPos+i)->isCall())
+							dynamic_cast<Call*>(workingSequence->at(currentPos+i).get())->filterCall(dynamic_cast<const Call*>(seq->at(i).get()));
+					}
+					workingSequence->getTraces()[currentPos+nbTraceFoundAfterwards] = seq;
+					// Switch des traces à l'intérieur de la séquence courante
+					// Ex : CXDFYAB[ABCDEF] => CXDFYAB[CDEFAB]
+					for (int i = 0 ; i < nbTraceFoundAfterwards ; i++)
+						seq->addTrace(seq->at(i));
+					seq->getTraces().erase(seq->getTraces().begin(), seq->getTraces().begin()+nbTraceFoundAfterwards);
+					// on est donc passé de CXDFY[ABCDEF]AB à CXDFYAB[CDEFAB]
+					// Terminer en repositionnant currentPos à l'emplacement de la séquence courante vue qu'elle a été déplacée
+					currentPos += nbTraceFoundAfterwards;
+				}
+			}
+		}
+	}
+}
 
-						// Supprimer la partie en aval des traces
-						workingSequence->getTraces().erase(workingSequence->getTraces().begin()+i+1, workingSequence->getTraces().begin()+i+cpt+1);
-						// Supprimer la partie amont des traces
-						workingSequence->getTraces().erase(workingSequence->getTraces().begin()+k+1, workingSequence->getTraces().begin()+i);
-						// Ajout d'une itération à la sequence_vector
-						seq->addOne();
-						i = i-k; // mise à jour du compteur en raison de la suppression des traces en amont
-					}
+bool Sequence::revertRemainingRotatedSequences(Sequence::sp_sequence& workingSequence, int startingPoint) {
+	bool rotationOccurs = false;
+	// On parcours toute la trace
+	for (int currentPos = startingPoint ; currentPos < (int)workingSequence->size() ; currentPos++){
+		// Si la trace courante est une séquence
+		if (workingSequence->at(currentPos)->isSequence()){
+			// On garde une ref de cette sequence
+			Sequence::sp_sequence seq = boost::dynamic_pointer_cast<Sequence>(workingSequence->at(currentPos));
+			#ifdef DEBUG_PARSER
+				TracesParser::osParser << "Do we have to unrotate:" << std::endl;
+				seq->exportAsString(TracesParser::osParser);
+			#endif
+			// On applique la rotation sur cette sous-sequence (appel récursif)
+			Sequence::revertRemainingRotatedSequences(seq, 0);
+			
+			// On va maintenant chercher si la séquence est précédée par la fin de la séquence.
+			// on va compter le nombre de traces précédant la séquence identiques à celles de la queue de la séquence
+			int nbTraceFoundBefore = 0;
+			int tailLength = 0;
+			while (nbTraceFoundBefore >= 0 && currentPos-nbTraceFoundBefore-1 >= 0 && seq->at(seq->size()-nbTraceFoundBefore-1)->operator==(workingSequence->at(currentPos-nbTraceFoundBefore-1).get())){
+				// Tant qu'on n'a pas atteint le début de la séquence, le début dees traces et que les deux traces sont égales => on continue à compter
+				tailLength += seq->at(seq->size()-nbTraceFoundBefore-1)->length();
+				nbTraceFoundBefore++;
+			}
+			// Vérifier qu'au moins la première trace ait été trouvée
+			if (nbTraceFoundBefore != 0){
+				// On peut donc opérer à la rotation
+				// Switch des traces identifiées en amont de la séquence courante
+				// Ex : D[ABCD] => [ABCD]D
+				for (int i = 0 ; i < nbTraceFoundBefore ; i++){
+					workingSequence->getTraces()[currentPos-i] = workingSequence->at(currentPos-i-1);
+					if (workingSequence->at(currentPos-i)->isCall())
+						dynamic_cast<Call*>(workingSequence->at(currentPos-i).get())->filterCall(dynamic_cast<const Call*>(seq->at(seq->size()-i-1).get()));
 				}
+				workingSequence->getTraces()[currentPos-nbTraceFoundBefore] = seq;
+				// Switch des traces à l'intérieur de la séquence courante
+				// Ex : [ABCD]D => [DABC]D
+				for (int i = 0 ; i < nbTraceFoundBefore ; i++)
+					seq->getTraces().insert(seq->getTraces().begin(), seq->at(seq->size()-i-1));
+				seq->getTraces().erase(seq->getTraces().end()-nbTraceFoundBefore, seq->getTraces().end());
+				// on est donc passé de D[ABCD] à [DABC]D
+				// Terminer en repositionnant currentPos à l'emplacement de la séquence courante vue qu'elle a été déplacée
+				currentPos -= nbTraceFoundBefore;
+				rotationOccurs = true;
+			}
+		}
+	}
+	return rotationOccurs;
+}
+
+void Sequence::findAndProcessUnaggregateTracesDueToInsertedTokkens(Sequence::sp_sequence& workingSequence, int startingPoint){
+	// On parcours toute la trace
+	for (int currentPos = startingPoint ; currentPos < (int)workingSequence->size() ; currentPos++){
+		// Si la trace courante est une séquence
+		if (workingSequence->at(currentPos)->isSequence()){
+			// On garde une ref de cette sequence
+			Sequence::sp_sequence seq = boost::dynamic_pointer_cast<Sequence>(workingSequence->at(currentPos));
+			// On applique le traitement sur cette sous-sequence (appel récursif)
+			Sequence::findAndProcessUnaggregateTracesDueToInsertedTokkens(seq, 0);
+			
+			// =================================================
+			// Etape 1 on regarde si les traces en amont peuvent être intégrées moyennant l'ajout d'options
+			// =================================================
+			// Calcul de la position jusqu'où on s'autorise à remonter
+			int maxLength = seq->length() + MAX_OPT_WINDOW;
+			int length = 0;
+			int minPos = currentPos-1;
+			while (minPos > 0 && length < maxLength) {
+				length += workingSequence->at(minPos)->length();
+				minPos--;
+			}
+			// Calcul du meilleur score d'alignement entre la séquence courante et les traces précédant la séquence courante. On cherche le meilleur alignement à savoir celui qui permet d'aligner le plus de traces de la séquence avec le moins de trous possibles (maximiser le nombre d'alignement et minimiser la lonqueur des traces)
+			// On va donc chercher le meilleur alignement en augmentant progressivement la fenêtre d'alignement en amont de la séquence courrante
+			// On commence en positionnant le curseur d'analyse en amont à une taille de la séquence courrante
+			int reverseCounterPos = currentPos-seq->size();
+			// et on ne compte pas les traces optionnelles
+			for (std::vector<Trace::sp_trace>::iterator it = seq->getTraces().begin() ; it != seq->getTraces().end() ; it++)
+				if ((*it)->isSequence() && dynamic_cast<Sequence*>(it->get())->isOptional())
+					reverseCounterPos++;
+			float bestScore = 0;
+			int bestPos = reverseCounterPos;
+			// On va augmenter la fenêtre jusqu'à atteindre la position min
+			while (reverseCounterPos > minPos){
+				// On construit les traces en amont de la séquence courrante
+				Sequence::sp_sequence upPart = workingSequence->getSubSequence(reverseCounterPos, currentPos);
+				// et on détermine son score
+				std::pair<double,double> localScore = computeBestCorrectedScore(seq->getTraces(), upPart->getTraces());
+				// Evaluation du score
+				if (localScore.first / localScore.second > bestScore){
+					bestScore = localScore.first / localScore.second;
+					bestPos = reverseCounterPos;
+				}
+				reverseCounterPos--;
+			}
+				
+			// Si le meilleur score calculé est supérieur au seuil => procéder à la fusion et ajouter les traces optionnelles
+			if (bestScore >= MIN_SCORE){
+				// Recalculer le meilleur alignement
+				Sequence::sp_sequence upPart = workingSequence->getSubSequence(bestPos, currentPos);
+				TracesAnalyser::findBestAlignment(seq->getTraces(), upPart->getTraces(), true);
+				// Et procéder à la fusion
+				Sequence::sp_sequence sps_merged = mergeAlignedSequences(seq, upPart);
+				// Intégrer la fusion dans la trace
+				workingSequence->getTraces()[bestPos] = sps_merged;
+				// Supprimer les éléments fusionnés
+				workingSequence->getTraces().erase(workingSequence->getTraces().begin()+bestPos+1, workingSequence->getTraces().begin()+currentPos+1);
+				// Terminer en repositionnant currentPos à l'emplacement de la séquence courante vue qu'elle a été remontée
+				currentPos = bestPos;
+				// Enregistrement le séquence fusionnée comme la nouvelle séquence de travail en prévision de l'étape 2 (voir ci-dessous)
+				seq = sps_merged;
+			}
+			
+			// =================================================
+			// Etape 2 on regarde maintenant en aval si les traces peuvent être intégrées moyennant l'ajout d'options
+			// =================================================
+			// Calcul de la position jusqu'où on s'autorise à avancer
+			length = 0;
+			maxLength = seq->length() + MAX_OPT_WINDOW;
+			int maxPos = currentPos+1;
+			while ((unsigned)maxPos < workingSequence->size() && length < maxLength) {
+				length += workingSequence->at(maxPos)->length();
+				maxPos++;
+			}
+			// Calcul du meilleur score d'alignement entre la séquence courante et les traces suivant la séquence courante. On cherche le meilleur alignement à savoir celui qui permet d'aligner le plus de traces de la séquence avec le moins de trous possibles (maximiser le nombre d'alignement et minimiser la lonqueur des traces)
+			// On va donc chercher le meilleur alignement en augmentant progressivement la fenêtre d'alignement en aval de la séquence courrante
+			// On commence en positionnant le curseur d'analyse en aval à une taille de la séquence courrante
+			int counterPos = currentPos+seq->size()+1;
+			// et on ne compte pas les traces optionnelles
+			for (std::vector<Trace::sp_trace>::iterator it = seq->getTraces().begin() ; it != seq->getTraces().end() ; it++)
+				if ((*it)->isSequence() && dynamic_cast<Sequence*>(it->get())->isOptional())
+					counterPos--;
+			bestScore = 0;
+			bestPos = counterPos;
+			// On va augmenter la fenêtre jusqu'à atteindre la position max
+			while (counterPos < maxPos){
+				// On construit les traces en aval de la séquence courrante
+				Sequence::sp_sequence downPart = workingSequence->getSubSequence(currentPos+1, counterPos);
+				// et on détermine son score
+				std::pair<double,double> localScore = computeBestCorrectedScore(seq->getTraces(), downPart->getTraces());
+				// Evaluation du score
+				if (localScore.first / localScore.second > bestScore){
+					bestScore = localScore.first / localScore.second;
+					bestPos = counterPos;
+				}
+				counterPos++;
+			}
+				
+			// Si le meilleur score calculé est supérieur au seuil => procéder à la fusion et ajouter les traces optionnelles
+			if (bestScore >= MIN_SCORE){
+				std::cout << bestScore << std::endl;
+				// Recalculer le meilleur alignement
+				Sequence::sp_sequence downPart = workingSequence->getSubSequence(currentPos+1, bestPos);
+				std::cout << "A" << std::endl;
+				TracesAnalyser::findBestAlignment(seq->getTraces(), downPart->getTraces(), true);
+				std::cout << "B" << std::endl;
+				// Et procéder à la fusion
+				seq->exportAsString();
+				downPart->exportAsString();
+				Sequence::sp_sequence sps_merged = mergeAlignedSequences(seq, downPart);
+				std::cout << "C" << std::endl;
+				// Intégrer la fusion dans la trace
+				workingSequence->getTraces()[currentPos] = sps_merged;
+				std::cout << "D" << std::endl;
+				// Supprimer les éléments fusionnés
+				workingSequence->getTraces().erase(workingSequence->getTraces().begin()+currentPos+1, workingSequence->getTraces().begin()+bestPos);
+				std::cout << "E" << std::endl;
+				// Ici on n'a pas à repositionner currentPos comme dans l'étape 1 car la séquence courante n'a pas bougé de place
 			}
 		}
 	}
 }
 
 void Sequence::findAndProcessInclusiveSequences(Sequence::sp_sequence& workingSequence, int startingPoint){
-	// On enregistre le dernier indice auquel l'appel récursif a été fait
-	int lastRecursiveId = -1;
-	// On parcours toute la trace jusqu'à l'avant dernier
-	for (int i = startingPoint ; i < (int)workingSequence->size()-1 ; i++){
+	// On parcours toute la trace
+	for (int currentPos = startingPoint ; currentPos < (int)workingSequence->size() ; currentPos++){
 		// Si la trace courante est une séquence
-		if (workingSequence->at(i)->isSequence()){
+		if (workingSequence->at(currentPos)->isSequence()){
 			// On garde une ref de cette sequence
-			Sequence::sp_sequence seq = boost::dynamic_pointer_cast<Sequence>(workingSequence->at(i));
-			// On applique le traitement sur cette sous-sequence (appel récursif) uniquement si l'appel récursif n'a pas déjà été réalisé à cet indice
-			if (lastRecursiveId < i){
-				Sequence::findAndProcessInclusiveSequences(seq, 0);
-				lastRecursiveId = i;
-			}
+			Sequence::sp_sequence seq = boost::dynamic_pointer_cast<Sequence>(workingSequence->at(currentPos));
+			// On applique le traitement sur cette sous-sequence (appel récursif)
+			Sequence::findAndProcessInclusiveSequences(seq, 0);
+			
 			// On créé une séquence optionnelle pour stocker les traces intercallées
 			Sequence::sp_sequence opt = boost::make_shared<Sequence>(1, false, true);
 			// On prépare le résultat
 			Sequence::sp_sequence seq_res;
 			// compteur permettant d'aller chercher en aval les séquences à analyser
-			int j = 1;
+			int afterwardsPos = 1;
+			// Calcul de la position jusqu'où on s'autorise à avancer
+			int length = 0;
+			int maxLength = seq->length() + MAX_OPT_WINDOW;
+			int maxPos = currentPos+1;
+			while ((unsigned)maxPos < workingSequence->size() && length < maxLength) {
+				length += workingSequence->at(maxPos)->length();
+				maxPos++;
+			}
+			// On calcule tous les scores d'alignement entre la séquences courante et les séquences suivantes dans la limite de la fenêtre autorisée
+			std::pair<double,double> bestScore (0, 1);
+			int bestPos = currentPos+afterwardsPos;
 			do{
-				if (workingSequence->at(i+j)->isSequence()){
+				if (currentPos+afterwardsPos < (signed)workingSequence->size() && workingSequence->at(currentPos+afterwardsPos)->isSequence()){
 					// On garde une ref de cette sequence
-					Sequence::sp_sequence seq_candidate = boost::dynamic_pointer_cast<Sequence>(workingSequence->at(i+j));
-					// On applique le traitement sur cette sous-sequence (appel récursif) uniquement si l'appel récursif n'a pas déjà été réalisé à cet indice
-					if (lastRecursiveId < i+j){
-						Sequence::findAndProcessInclusiveSequences(seq_candidate, 0);
-						lastRecursiveId = i+j;
+					Sequence::sp_sequence seq_candidate = boost::dynamic_pointer_cast<Sequence>(workingSequence->at(currentPos+afterwardsPos));
+					// et on détermine son score
+					std::pair<double,double> localScore = computeBestCorrectedScore(seq->getTraces(), seq_candidate->getTraces());
+					// Evaluation du score
+					if (localScore.first / localScore.second > bestScore.first / bestScore.second){
+						bestScore = localScore;
+						bestPos = currentPos+afterwardsPos;
 					}
+				}
+				afterwardsPos++;
+			} while (currentPos+afterwardsPos < maxPos);
+			
+			// Si le meilleur score calculé est supérieur au seuil => intégrer au calcul du score les traces intercallées
+			if (bestScore.first / bestScore.second >= MIN_SCORE){
+				// intégrer dans le calcul du score la longueur des traces intercallées
+				Sequence::sp_sequence seq_inserted = workingSequence->getSubSequence(currentPos+1, bestPos);
+				bestScore.second += seq_inserted->length();
+				// Si le score est toujours meilleur que le seuil minimal => fusionner les deux séquences et les traces intercallées
+				if (bestScore.first / bestScore.second >= MIN_SCORE){
+					// Effectuer la fusion entre la séquence courrante et la meilleur séquence suivante trouvée
+					Sequence::sp_sequence sps_merged = mergeAlignedSequences(seq, boost::dynamic_pointer_cast<Sequence>(workingSequence->at(bestPos)));
+					// Intégrer la fusion dans la trace
+					workingSequence->getTraces()[currentPos] = sps_merged;
+					// Ajout des traces intercallées s'il y en avait
+					if (bestPos-currentPos > 1){
+						seq_inserted->setOptional(true);
+						sps_merged->addTrace(seq_inserted);
+					}
+					// Supprimer les éléments fusionnés
+					workingSequence->getTraces().erase(workingSequence->getTraces().begin()+currentPos+1, workingSequence->getTraces().begin()+bestPos+1);
+				}
+			}
+		}
+	}	
+}
+
+std::pair<double,double> Sequence::computeBestCorrectedScore(std::vector<Trace::sp_trace>& traces1, std::vector<Trace::sp_trace>& traces2){
+	// Et on calcule l'alignement entre ces deux ensembles de traces
+	std::pair<double,double> res = TracesAnalyser::findBestAlignment(traces1, traces2, true);
+	// Les valeurs retournées ne prennent pas en compte deux critères important pour déterminer l'intérêt de procéder à une fusion ou pas :
+	//  1 - les parties optionnelles déjà présentes avant la fusion, en effet ici nous souhaitons uniquement considérer les trous directement liées à cet alignement. On corrige donc le score en considérant qu'une trace optionnelle non alignée est non pénalisante
+	//  2 - les séquences non alignées (et non optionnelles) impactent le score avec un poids de 1 (identique à celui d'un simple Call), on le corrige ici pour intégrer leur longueur 
+	// On parcours donc chacune des deux traces et on retire du score toute trace optionnelle non alignée
+	for (std::vector<Trace::sp_trace>::iterator it = traces1.begin() ; it != traces1.end() ; it++){
+		// Vérifier si la trace courrante est une séquence
+		if ((*it)->isSequence()){
+			Sequence * seqTmp = dynamic_cast<Sequence*>(it->get());
+			// Si aucun alignement a été possible pour cette séquence MAIS que c'est une séquence optionnelle => on remonte le score
+			if ((*it)->getAligned().expired() && seqTmp->isOptional())
+				res.second--;
+			// Si aucun alignement a été possible pour cette séquence ET que ce n'est pas une séquenc eoptionnelle => on baisse le score
+			if ((*it)->getAligned().expired() && !seqTmp->isOptional())
+				res.second += seqTmp->length()-1;
+		}
+	}
+	// On fait la même chose pour la seconde séquence de traces
+	for (std::vector<Trace::sp_trace>::iterator it = traces2.begin() ; it != traces2.end() ; it++){
+		if ((*it)->isSequence()){
+			Sequence * seqTmp = dynamic_cast<Sequence*>(it->get());
+			if ((*it)->getAligned().expired() && seqTmp->isOptional())
+				res.second--;
+			if ((*it)->getAligned().expired() && !seqTmp->isOptional())
+				res.second += seqTmp->length()-1;
+		}
+	}
+	return res;
+}
+
+/*void Sequence::findAndProcessInclusiveSequences_old(Sequence::sp_sequence& workingSequence, int startingPoint){
+	// On applique le traitement à toutes les sous séquences (appel récursifs)
+	for (int i = startingPoint ; i < (int)workingSequence->size() ; i++){
+		// Si la trace courante est une séquence
+		if (workingSequence->at(i)->isSequence()){
+			// On applique le traitement sur cette sous-sequence (appel récursif)
+			Sequence::findAndProcessInclusiveSequences_old(seq, 0);
+		}
+	}
+	// On parcours toute la trace jusqu'à l'avant dernier
+	for (int currentPos = startingPoint ; currentPos < (int)workingSequence->size()-1 ; i++){
+		// Si la trace courante est une séquence
+		if (workingSequence->at(currentPos)->isSequence()){
+			// On garde une ref de cette sequence
+			Sequence::sp_sequence seq = boost::dynamic_pointer_cast<Sequence>(workingSequence->at(currentPos));
+			// On créé une séquence optionnelle pour stocker les traces intercallées
+			Sequence::sp_sequence opt = boost::make_shared<Sequence>(1, false, true);
+			// On prépare le résultat
+			Sequence::sp_sequence seq_res;
+			// compteur permettant d'aller chercher en aval les séquences à analyser
+			int afterwardsPos = 1;
+			do{
+				if (workingSequence->at(currentPos+afterwardsPos)->isSequence()){
+					// On garde une ref de cette sequence
+					Sequence::sp_sequence seq_candidate = boost::dynamic_pointer_cast<Sequence>(workingSequence->at(currentPos+afterwardsPos));
 					// On tente de fusionner la sequence et son candidat
 					seq_res = Sequence::mergeEquivalentSequences(seq, seq_candidate, false);
 					// Si NULL est retourné cela signifie qu'aucune des deux séquences ne peut être incluse dans l'autre
 					if (seq_res){
 						if (opt->size() == 0){
 							// S'il n'y a pas de traces intercallées entre les deux séquences fusionnées, on supprime ces deux séquences, l'ajout du résultat de la fusion se fait ci-dessous
-							seq->getTraces().erase(seq->getTraces().begin()+i, seq->getTraces().begin()+i+j);
+							seq->getTraces().erase(seq->getTraces().begin()+currentPos, seq->getTraces().begin()+currentPos+afterwardsPos);
 						} else {
 							// Recherche de la sequence optionnelle en amont de seq
-							bool before = workingSequence->findInTraces(opt, i-(j-1), i);
+							bool before = workingSequence->findInTraces(opt, currentPos-(afterwardsPos-1), currentPos);
 							// Recherche de la sequence optionnelle en aval de seq_candidate
-							bool after = workingSequence->findInTraces(opt, i+j+1, i+2*j+1);
+							bool after = workingSequence->findInTraces(opt, currentPos+afterwardsPos+1, currentPos+2*afterwardsPos+1);
 							// mise en cache des traces de "workingSequence"
 							std::vector<Trace::sp_trace> workingTraces = workingSequence->getTraces();
 							if (before){
 								// si la séquence optionnelle a été détectée en amont de seq, on la rajoute à la tête du résultat
 								seq_res->addTrace(opt, 0);
-								workingTraces.erase(workingTraces.begin()+i-(j-1), workingTraces.begin()+i);
-								i -= j-1;
-								lastRecursiveId -= j-1;
+								workingTraces.erase(workingTraces.begin()+currentPos-(afterwardsPos-1), workingTraces.begin()+currentPos);
+								currentPos -= afterwardsPos-1;
+								lastRecursiveId -= afterwardsPos-1;
 							}
 							if (after || !before){
 								// on rajoute la sequence en queue si on l'a explicitement détectée après seq_candidate ou si elle n'a pas été détectée avant seq (dans ce dernier cas ça signifie que la séquence optionnelle est intercallée entre seq et seq_candidate et on choisi de l'insérer en fin)
 								seq_res->addTrace(opt);
 								if (after){
 									// Si on a trouvé la partie optionnelle après seq_candidate, on supprime ces éléments des traces
-									workingTraces.erase(workingTraces.begin()+i+j+1, workingTraces.begin()+i+2*j+1);
+									workingTraces.erase(workingTraces.begin()+currentPos+afterwardsPos+1, workingTraces.begin()+currentPos+2*afterwardsPos+1);
 								}
 							}
 							// Dans tous les cas on supprime la partie optionnelle intercallée entre seq et seq_candidate
-							workingTraces.erase(workingTraces.begin()+i+1, workingTraces.begin()+i+j);
+							workingTraces.erase(workingTraces.begin()+currentPos+1, workingTraces.begin()+currentPos+afterwardsPos);
 						}
-						workingSequence->addTrace(seq_res, i);
+						workingSequence->addTrace(seq_res, currentPos);
 					} else {
 						// Ajout de cette sequence qui est une séquence mais qui n'est pas compatible avec "seq"
-						opt->addTrace(workingSequence->at(i+j));
+						opt->addTrace(workingSequence->at(currentPos+afterwardsPos));
 					}
 				} else {
 					// Ajout de cette trace qui n'est pas une séquence
-					opt->addTrace(workingSequence->at(i+j));
+					opt->addTrace(workingSequence->at(currentPos+afterwardsPos));
 				}
 				j++;
 			// On stoppe lorsqu'on a atteint la taille max de la fenêtre de recherche ou si l'on a atteint la fin de la trace ou si on a obtenu un résultat.
-		} while (j < MAX_OPT_WINDOW && i+j < (int)workingSequence->size() && !seq_res);
+			} while (afterwardsPos < MAX_OPT_WINDOW && currentPos+afterwardsPos < (int)workingSequence->size() && !seq_res);
 		}
 	}
-}
+}*/
 
 /*
 Sequence::sp_sequence Sequence::mergeOptionalTracesFromSequences(Sequence::sp_sequence seqA, Sequence::sp_sequence seqB) {

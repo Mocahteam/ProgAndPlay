@@ -8,8 +8,8 @@
 #ifndef __TRACE_CONSTANT_LIST_H__
 #define __TRACE_CONSTANT_LIST_H__
 
-#define DEBUG_PARSER
-#define LOG_IN_FILE
+//#define DEBUG_PARSER
+//#define LOG_IN_FILE
 
 // Events
 #define START_MISSION "start_mission"
