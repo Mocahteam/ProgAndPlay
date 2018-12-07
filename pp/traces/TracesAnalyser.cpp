@@ -340,7 +340,7 @@ bool TracesAnalyser::getInfosOnMission(const std::vector<Trace::sp_trace>& trace
 	if (!traces.empty()) {
 		int ind_start = 0, ind_end = -1, cpt_mission = 0;
 		for (int i = 0; i < (int)traces.size(); i++) {
-			if (traces.at(i)->isEvent() && dynamic_cast<Event*>(traces.at(i).get())->getLabel().compare(START_MISSION) == 0) {
+			if (traces.at(i)->isEvent() && dynamic_cast<Event*>(traces.at(i).get())->getLabel().compare(MISSION_START_TIME) == 0) {
 				ind_start = i;
 				if ((++cpt_mission)-1 == ind_mission)
 					break;
@@ -351,9 +351,9 @@ bool TracesAnalyser::getInfosOnMission(const std::vector<Trace::sp_trace>& trace
 			for (int i = ind_start + 1; i < (int)traces.size(); i++) {
 				if (traces.at(i)->isEvent()) {
 					Event *e = dynamic_cast<Event*>(traces.at(i).get());
-					if (e->getLabel().compare(START_MISSION) == 0 || e->getLabel().compare(END_MISSION) == 0) {
+					if (e->getLabel().compare(MISSION_START_TIME) == 0 || e->getLabel().compare(MISSION_END_TIME) == 0) {
 						ind_end = i;
-						if (e->getLabel().compare(END_MISSION) == 0)
+						if (e->getLabel().compare(MISSION_END_TIME) == 0)
 							gi.eme = dynamic_cast<EndMissionEvent*>(traces.at(i).get());
 						break;
 					}
@@ -377,12 +377,12 @@ bool TracesAnalyser::getInfosOnExecution(GameInfos& gi, int ind_execution) {
 		for (int i = 0; i < (int)m_traces.size(); i++) {
 			if (m_traces.at(i)->isEvent()) {
 				Event *e = dynamic_cast<Event*>(m_traces.at(i).get());
-				if (e->getLabel().compare(NEW_EXECUTION) == 0) {
+				if (e->getLabel().compare(EXECUTION_START_TIME) == 0) {
 					ind_start = i;
 					if ((++cpt_execution)-1 == ind_execution)
 						break;
 				}
-				else if (e->getLabel().compare(START_MISSION) == 0)
+				else if (e->getLabel().compare(MISSION_START_TIME) == 0)
 					break;
 			}
 		}
@@ -391,9 +391,9 @@ bool TracesAnalyser::getInfosOnExecution(GameInfos& gi, int ind_execution) {
 			for (int i = ind_start + 1; i < (int)m_traces.size(); i++) {
 				if (m_traces.at(i)->isEvent()) {
 					Event *e = dynamic_cast<Event*>(m_traces.at(i).get());
-					if (e->getLabel().compare(START_MISSION) == 0 || e->getLabel().compare(NEW_EXECUTION) == 0 || e->getLabel().compare(END_EXECUTION) == 0) {
+					if (e->getLabel().compare(MISSION_START_TIME) == 0 || e->getLabel().compare(EXECUTION_START_TIME) == 0 || e->getLabel().compare(EXECUTION_END_TIME) == 0) {
 						ind_end = i;
-						if (e->getLabel().compare(END_EXECUTION) == 0)
+						if (e->getLabel().compare(EXECUTION_END_TIME) == 0)
 							gi.eee = dynamic_cast<EndExecutionEvent*>(m_traces.at(i).get());
 						break;
 					}

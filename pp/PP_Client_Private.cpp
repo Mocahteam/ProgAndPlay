@@ -956,7 +956,8 @@ int PP_PushMessage_prim(const char * msg, const int * error) {
 		if (ret == 0){
 			if (*(shd.tracePlayer) > 0) {
 				ret = PP_IsGamePaused_prim();
-				if (ret == 0) {
+				std::string msg_str (msg);
+				if (ret == 0 || msg_str.find(EXECUTION_START_TIME) || msg_str.find(PROGRAMMING_LANGUAGE_USED) || msg_str.find(EXECUTION_END_TIME)) {
 					//Create allocators
 					const ShCharAllocator charAlloc_inst(segment->get_segment_manager());
 					const ShStringAllocator stringAlloc_inst(segment->get_segment_manager());

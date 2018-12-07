@@ -15,7 +15,7 @@ class StartMissionEvent : public Event {
 
 public:
 
-	StartMissionEvent(std::string mission_name, int start_time): Event(START_MISSION), mission_name(mission_name), start_time(start_time) {}
+	StartMissionEvent(std::string mission_name, int start_time): Event(MISSION_START_TIME), mission_name(mission_name), start_time(start_time) {}
 
 	StartMissionEvent(const StartMissionEvent *sme): Event(sme) {
 		mission_name = sme->mission_name;
@@ -49,7 +49,7 @@ class EndMissionEvent : public Event {
 
 public:
 
-	EndMissionEvent(std::string status, int end_time): Event(END_MISSION), status(status), end_time(end_time) {}
+	EndMissionEvent(std::string status, int end_time): Event(MISSION_END_TIME), status(status), end_time(end_time) {}
 
 	EndMissionEvent(const EndMissionEvent *eme): Event(eme) {
 		status = eme->status;
@@ -83,7 +83,7 @@ class NewExecutionEvent : public Event {
 
 public:
 
-	NewExecutionEvent(int start_time, std::string prog_lang_used): Event(NEW_EXECUTION), start_time(start_time), prog_lang_used(prog_lang_used) {}
+	NewExecutionEvent(int start_time, std::string prog_lang_used): Event(EXECUTION_START_TIME), start_time(start_time), prog_lang_used(prog_lang_used) {}
 
 	NewExecutionEvent(const NewExecutionEvent *nee): Event(nee) {
 		start_time = nee->start_time;
@@ -118,7 +118,7 @@ class EndExecutionEvent : public Event {
 
 public:
 
-	EndExecutionEvent(int end_time): Event(END_EXECUTION), end_time(end_time) {}
+	EndExecutionEvent(int end_time): Event(EXECUTION_END_TIME), end_time(end_time) {}
 
 	EndExecutionEvent(const EndExecutionEvent *eee): Event(eee) {
 		end_time = eee->end_time;

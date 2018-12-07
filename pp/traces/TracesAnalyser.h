@@ -326,7 +326,7 @@ public:
 		int getNumExecutions() {
 			int num = 0;
 			for (unsigned int i = 0; i < mission_traces.size(); i++) {
-				if (mission_traces.at(i)->isEvent() && dynamic_cast<Event*>(mission_traces.at(i).get())->getLabel().compare(NEW_EXECUTION) == 0)
+				if (mission_traces.at(i)->isEvent() && dynamic_cast<Event*>(mission_traces.at(i).get())->getLabel().compare(EXECUTION_START_TIME) == 0)
 					num++;
 			}
 			return num;
@@ -347,7 +347,7 @@ public:
 			for (unsigned int i = 0; i < mission_traces.size(); i++) {
 				if (mission_traces.at(i)->isEvent()) {
 					Event *e = dynamic_cast<Event*>(mission_traces.at(i).get());
-					if (e->getLabel().compare(NEW_EXECUTION) == 0) {
+					if (e->getLabel().compare(EXECUTION_START_TIME) == 0) {
 						if (!in) {
 							in = true;
 							cpt++;
@@ -359,7 +359,7 @@ public:
 						else
 							return -1;
 					}
-					else if (e->getLabel().compare(END_EXECUTION) == 0) {
+					else if (e->getLabel().compare(EXECUTION_END_TIME) == 0) {
 						in = false;
 						eee = dynamic_cast<EndExecutionEvent*>(e);
 					}

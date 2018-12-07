@@ -95,7 +95,7 @@ void TracesParser::saveCompression() {
 			pass = false;
 			if (spt->isEvent()) {
 				Event *e = dynamic_cast<Event*>(spt.get());
-				if (e->getLabel().compare(START_MISSION) == 0) {
+				if (e->getLabel().compare(MISSION_START_TIME) == 0) {
 					while (node_stack.size() > 1)
 						node_stack.pop();
 					StartMissionEvent *sme = dynamic_cast<StartMissionEvent*>(e);
@@ -105,7 +105,7 @@ void TracesParser::saveCompression() {
 					node_stack.top()->append_node(node);
 					node_stack.push(node);
 				}
-				else if (e->getLabel().compare(END_MISSION) == 0) {
+				else if (e->getLabel().compare(MISSION_END_TIME) == 0) {
 					EndMissionEvent *eme = dynamic_cast<EndMissionEvent*>(e);
 					if (node_stack.size() > 2)
 						node_stack.pop();
@@ -113,7 +113,7 @@ void TracesParser::saveCompression() {
 					node_stack.top()->append_attribute(this->lastCompressionXML.allocate_attribute("status", this->lastCompressionXML.allocate_string(eme->getStatus().c_str())));
 					node_stack.pop();
 				}
-				else if (e->getLabel().compare(NEW_EXECUTION) == 0) {
+				else if (e->getLabel().compare(EXECUTION_START_TIME) == 0) {
 					NewExecutionEvent *nee = dynamic_cast<NewExecutionEvent*>(e);
 					if (node_stack.size() > 2)
 						node_stack.pop();
@@ -123,7 +123,7 @@ void TracesParser::saveCompression() {
 					node_stack.top()->append_node(node);
 					node_stack.push(node);
 				}
-				else if (e->getLabel().compare(END_EXECUTION) == 0) {
+				else if (e->getLabel().compare(EXECUTION_END_TIME) == 0) {
 					node_stack.top()->append_attribute(this->lastCompressionXML.allocate_attribute("end_time", this->lastCompressionXML.allocate_string(boost::lexical_cast<std::string>(dynamic_cast<EndExecutionEvent*>(e)->getEndTime()).c_str())));
 					node_stack.pop();
 				}
@@ -199,7 +199,8 @@ void TracesParser::parseLogs(std::istream& logs, bool waitEndFlag) {
 				#ifdef DEBUG_PARSER
 					osParser << std::endl << "Parse line: " << line;
 				#endif
-				std::cout << "Parse line number: " << cpt << std::endl;
+				if (cpt % 100 == 0)
+					std::cout << "Parse line number: " << cpt << std::endl;
 				cpt++;
 				Trace::sp_trace spt = parseLine(line);
 				if (spt) {
@@ -224,7 +225,7 @@ void TracesParser::parseLogs(std::istream& logs, bool waitEndFlag) {
 							osParser << "\tevent nature: "<< spe->getLabel().c_str() << std::endl;
 						#endif
 						// If we detect a new execution
-						if (spe->getLabel().compare(NEW_EXECUTION) == 0){
+						if (spe->getLabel().compare(EXECUTION_START_TIME) == 0){
 							// Check if a previous execution has been detected
 							if (executionDetected){
 								// We try to detect and compress sequences. This case appears when two executions are launched in a same mission without an end execution event
@@ -242,7 +243,7 @@ void TracesParser::parseLogs(std::istream& logs, bool waitEndFlag) {
 							executionDetected = true;
 							// We end by adding this event at the end of the trace
 							root->addTrace(spe);
-						} else if (spe->getLabel().compare(END_EXECUTION) == 0){ // If we detect an end execution
+						} else if (spe->getLabel().compare(EXECUTION_END_TIME) == 0){ // If we detect an end execution
 							// We start by adding this event at the end of the trace
 							root->addTrace(spe);
 							// We try to detect and compress sequences. Default case, if we receive an end execution event we have to compress last trace
@@ -561,63 +562,33 @@ void TracesParser::inlineCompression(Trace::sp_trace& spt) {
 }
 
 void TracesParser::offlineCompression() {
+	
+	// Recherche du point de départ effectif => le premier Call du root
+	while (start < (int)root->size())
+		if (root->at(start)->isEvent())
+			start++;
+		else
+			break;
+	
 	#ifdef DEBUG_PARSER
-		osParser << "\tWe try to aggregate successive sequences" << std::endl;
+		osParser << "\tWe try to aggregate successive sequences from " << start << std::endl;
 	#endif
-	Sequence::findAndAggregateSuccessiveSequences(root, start);
+	root->findAndAggregateSuccessiveSequences(start);
 	#ifdef DEBUG_PARSER
 		root->exportAsString(osParser);
 	#endif
-	#ifdef DEBUG_PARSER
-		osParser << "\tWe try to rotate sequences due to if statements" << std::endl;
-	#endif
-	Sequence::findAndProcessRotatedSequences(root, start);
-	#ifdef DEBUG_PARSER
-		root->exportAsString(osParser);
-	#endif
-	bool unaggregateFlag = false;
-	bool inclusiveFlag = true;
-	bool revertRotation;
-	// On traite les traces optionnelles tant que les traitements améliorent la longueur de la trace
-	/*do{
-		revertRotation = false;
-		int prevRootlength = 0;
-		// on tente d'aggréger les traces intercallées si l'étape sur les sequences inclusives a modifié la trace
-		if (inclusiveFlag){
-			do{
-				prevRootlength = root->length(start);
-				#ifdef DEBUG_PARSER
-					osParser << "\tWe try to identify unaggregate traces due to inserted tokkens" << std::endl;
-				#endif
-				Sequence::findAndProcessUnaggregateTracesDueToInsertedTokkens(root, start);
-				#ifdef DEBUG_PARSER
-					root->exportAsString(osParser);
-				#endif
-				if ((unsigned)prevRootlength > root->length(start))
-					unaggregateFlag = true;
-			}while ((unsigned)prevRootlength > root->length(start));
-		}
-		inclusiveFlag = false;
-		// on tente de traiter les sequences inclusives si l'étape sur les les traces intercallées a modifié la trace
-		if (unaggregateFlag){
-			do{
-				prevRootlength = root->length(start);
-				#ifdef DEBUG_PARSER
-					osParser << "\tWe try to identify inclusive sequences eventually separated by tokkens" << std::endl;
-				#endif
-				Sequence::findAndProcessInclusiveSequences(root, start);
-				#ifdef DEBUG_PARSER
-					root->exportAsString(osParser);
-				#endif
-				if ((unsigned)prevRootlength > root->length(start))
-					inclusiveFlag = true;
-			}while ((unsigned)prevRootlength > root->length(start));
-		}
-		// Si aucune des deux opérations précédente n'a produit d'effet, on tente faire une rotation inverse pour voir si on débloque la situation
-		if (!unaggregateFlag && !inclusiveFlag)
-			revertRotation = Sequence::revertRemainingRotatedSequences(root, start);
-		unaggregateFlag = false;
-	}while (inclusiveFlag || revertRotation);*/
+	
+	bool improvement;
+	do{
+		#ifdef DEBUG_PARSER
+			osParser << "\tWe try to find and process optional tokens" << std::endl;
+		#endif
+		improvement = root->findAndProcessOptionalTokens(start);
+		#ifdef DEBUG_PARSER
+			root->exportAsString(osParser);
+		#endif
+	}while (improvement);
+	
 	#ifdef DEBUG_PARSER
 		osParser << "\tFinal result" << std::endl;
 		root->exportAsString(osParser);
@@ -631,22 +602,25 @@ void TracesParser::exportTracesAsString(std::ostream &os) {
 	for (unsigned int i = 0; i < root->size(); i++) {
 		e = root->at(i)->isEvent() ? dynamic_cast<Event*>(root->at(i).get()) : NULL;
 		if (e != NULL && Trace::inArray(e->getLabel().c_str(), Event::noConcatEventsArr) > -1) {
-			if (e->getLabel().compare(START_MISSION) == 0) {
+			if (e->getLabel().compare(MISSION_START_TIME) == 0) {
 				if (num_start++ > 0)
 					os << std::endl;
 				StartMissionEvent *sme = dynamic_cast<StartMissionEvent*>(e);
-				os << GAME_START << " " << sme->getMissionName() << std::endl << MISSION_START_TIME << " " << sme->getStartTime() << std::endl;
+				os << GAME_START << " " << sme->getMissionName() << std::endl;
+				os << MISSION_START_TIME << " " << sme->getStartTime() << std::endl;
 			}
-			else if (e->getLabel().compare(END_MISSION) == 0) {
+			else if (e->getLabel().compare(MISSION_END_TIME) == 0) {
 				EndMissionEvent *eme = dynamic_cast<EndMissionEvent*>(e);
-				os << "status " << eme->getStatus() << std::endl << MISSION_END_TIME << " " << eme->getEndTime() << std::endl;
+				os << "status " << eme->getStatus() << std::endl;
+				os << MISSION_END_TIME << " " << eme->getEndTime() << std::endl;
 			}
-			else if (e->getLabel().compare(NEW_EXECUTION) == 0) {
+			else if (e->getLabel().compare(EXECUTION_START_TIME) == 0) {
 				NewExecutionEvent *nee = dynamic_cast<NewExecutionEvent*>(e);
-				os << "\t" << EXECUTION_START_TIME << " " << nee->getStartTime() << std::endl << "\t" << PROGRAMMING_LANGUAGE_USED << " " << nee->getProgrammingLangageUsed() << std::endl;
+				os << "\t" << EXECUTION_START_TIME << " " << nee->getStartTime() << std::endl;
+				os << "\t" << PROGRAMMING_LANGUAGE_USED << " " << nee->getProgrammingLangageUsed() << std::endl;
 				e->numTab = 1;
 			}
-			else if (e->getLabel().compare(END_EXECUTION) == 0) {
+			else if (e->getLabel().compare(EXECUTION_END_TIME) == 0) {
 				os << "\t" << EXECUTION_END_TIME << " " << dynamic_cast<EndExecutionEvent*>(e)->getEndTime() << std::endl;
 				e->numTab = 0;
 			}
@@ -683,6 +657,7 @@ std::vector<Trace::sp_trace> TracesParser::importTraceFromXml(const std::string&
 		#ifdef DEBUG_PARSER
 			os << e.what() << std::endl;
 		#endif
+		std::cout << e.what() << std::endl;
 	}
 	return traces;
 }
@@ -817,6 +792,7 @@ int TracesParser::stoi(const std::string& s) {
 		#ifdef DEBUG_PARSER
 		 	osParser << "error boost::lexical_cast<int>(" << s << ")" << std::endl;
 		#endif
+		std::cout << "error boost::lexical_cast<int>(" << s << ")" << std::endl;
 		exit(EXIT_FAILURE);
 	}
 	return res;
@@ -833,6 +809,7 @@ float TracesParser::stof(const std::string& s) {
 		#ifdef DEBUG_PARSER
 		 	osParser << "error boost::lexical_cast<float>" << std::endl;
 		#endif
+		std::cout << "error boost::lexical_cast<float>" << std::endl;
 		exit(EXIT_FAILURE);
 	}
 	return res;

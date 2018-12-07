@@ -75,62 +75,22 @@ public:
 	/**
 	  * \brief Fonction principale de l'algorithme de compression hors-ligne.
 	  *
-	  * Cette fonction est la fonction qui va compresser les traces en effectuant des parcours du vecteur workingSequence en prenant comme point de départ "startingPoint" dans la sequence jusqu'à atteindre "endingPoint" (exclu).
+	  * Cette fonction est la fonction qui va compresser les traces en effectuant des parcours successifs et en prenant comme point de départ "startingPoint" dans la sequence.
 	  *
 	  * Exemple :
 	  *  - Transformer : ABCBCABCBCD en [A[BC]]D 
 	  */
-	static void findAndAggregateSuccessiveSequences(Sequence::sp_sequence& workingSequence, int startingPoint);
-
-	/**
-	  * \brief Tente de trouver des symboles en amont et en aval de chaque sequence pour effectuer une rotation.
-	  *
-	  * Cas typique :
-	  *  - Soit la trace : ACBABABAB
-	  *  - Compression par default : AC[BA]B
-	  *  - Correction visée : ACB[AB]
-	  */
-	static void findAndProcessRotatedSequences(Sequence::sp_sequence& workingSequence, int startingPoint);
-
-	/**
-	  * \brief Repositionne les séquences qui ont subit une rotation et qui n'ont pas été exploitées par les fusions.
-	  *
-	  * \return true si au moins une rotation a eut lieu
-	  *
-	  * Cas typique :
-	  *  - Soit la trace : D[ABCD]
-	  *  - Correction visée : [DABC]D
-	  */
-	static bool revertRemainingRotatedSequences(Sequence::sp_sequence& workingSequence, int startingPoint);
-
-	/**
-	 * \brief Tente de trouver les parties optionnelles et de les fusionner avec les séquences actuelles.
-	 *
-	 * Exemple :
-	 *  - ABC[AB]   => [AB(C)]
-	 *  - [AB]CAB   => [(C)AB]
-	 */
-	static void findAndProcessUnaggregateTracesDueToInsertedTokkens(Sequence::sp_sequence& workingSequence, int startingPoint);
+	void findAndAggregateSuccessiveSequences(int startingPoint);
 	
 	/**
-	  * \brief Tente de trouver des séquences successives de longueurs différentes (éventuellement séparées par une suite de tokens) qui peuvent être fusionnées.
+	  * \brief Fonction d'amélioration de l'algorithme de compression hors-ligne.
 	  *
-	  * Cas singuliers :
-	  *  1 - [ABC][ABDC] => [AB(D)C]
-	  *  2 - [ABC]DE[ABC] => [ABC(DE)]
+	  * Cette fonction tente d'améliorer la compression en identifiant et intégrant des séquences optionnelles à pratir de "startingPoint".
+	  *
+	  * Exemple :
+	  *  - Transformer : [AB]C[AB][CAB]C en [AB(C)] 
 	  */
-	static void findAndProcessInclusiveSequences(Sequence::sp_sequence& workingSequence, int startingPoint);
-
-	/**
-	  * \brief Fusion de deux séquences de longueurs différentes, la plus courte devant être incluse dans la plus longue.équivalentes (longueurs identiques et même succession de symboles en "applatissant" les sequences internes)
-	  *
-	  * Exemple de cas singuliers :
-	  *  1 - [ABC] et [ABEC] => [AB(E)C]
-	  *  2 - [ABCDE] et [ABC] => [ABC(DE)]
-	  *
-	  * \return une sequence contenant la fusion des deux séquences si elles respecte le prérequis ou un shared pointer vide sinon.
-	  */
-	//static Sequence::sp_sequence mergeOptionalTracesFromSequences(Sequence::sp_sequence seqA, Sequence::sp_sequence seqB);
+	bool findAndProcessOptionalTokens(int startingPoint);
 
 	/**
 	  * \brief Comparaison de la séquence avec une trace.
@@ -245,7 +205,7 @@ public:
 	/**
 	  * \brief Getter pour récupérer une sous partie de la séquence comprise entre l'indice "start" (inclus) et l'indice "end" (exclus).
 	  *
-	  * \return la sous partie de la séquence.
+	  * \return la sous partie clonée de la séquence.
 	  */
 	Sequence::sp_sequence getSubSequence(int start, int end = -1);
 
@@ -367,11 +327,6 @@ public:
 	  * \return l'indice de la position de la trace dans le vecteur si elle s'y trouve, ou -1 sinon.
 	  */
 	int getIndex(const Trace::sp_trace& spt) const;
-
-	/**
-	 * \brief Recherche une séquence pas forcement contigüe dans un intervalle. Les bornes de recherche doivent être comprises dans les dimentions de this.
-	 */
-	bool findInTraces(Sequence::sp_sequence& toFind, int start, int end);
 
 	/**
 	 * \brief Linéarisation de l'ensemble des traces. Le vecteur retourné peut contenir des objets de type Sequence qui marquent le début ou la fin d'une séquence. Toutes les traces comprise entre un début et un fin de séquence font parties de la séquence.
@@ -634,9 +589,16 @@ protected:
 	/**
 	  * \brief Test de la possibilité de répétitions d'un groupe de traces.
 	  *
-	  * Cette fonction est utilisée par la fonction Sequence::findAndAggregateSuccessiveSequences lors de la recherche de répétitions d'un groupe de traces dans workingSequence. Le test consiste à vérifier si workingSequence contient assez de traces à partir d'un certain indice. Cette fonction est une optimisation permettant d'éviter le lancement d'opérations de comparaison qui retourneront forcément des résultats négatifs.
+	  * Cette fonction est utilisée par la fonction Sequence::findAndAggregateSuccessiveSequences lors de la recherche de répétitions d'un groupe de traces. Le test consiste à vérifier la trace contient assez de traces à partir d'un certain indice. Cette fonction est une optimisation permettant d'éviter le lancement d'opérations de comparaison qui retourneront forcément des résultats négatifs.
 	  */
-	static bool checkFeasibility(Sequence::sp_sequence workingSequence, unsigned int min_length, unsigned int ind_start);
+	bool checkFeasibility(unsigned int min_length, unsigned int ind_start);
+	
+	/**
+	  * \brief Teste si une séquence donnée contient au moins un evènement non concaténable
+	  *
+	  * \return true si la séquence donnée contient au moins un évènement non concaténable (voir Event::noConcatEventsArr) et false sinon
+	  */
+	bool includeNoConcatEvent();
 	
 	/**
 	 * \brief Supprime dans "traces" toute trace comprise entre "upStart" (inclus) et "endDown" (exclus), insère ensuite "merge" à la position "upStart" dans "traces"
@@ -647,6 +609,62 @@ protected:
 	 * \brief Calcule le meilleur alignement entre deux séquences de traces et retourne le score corrigé sans prise en compte des traces optionnelles initiales
 	 */
 	static std::pair<double,double> computeBestCorrectedScore(std::vector<Trace::sp_trace>& traces1, std::vector<Trace::sp_trace>& traces2);
+	
+	/**
+	 * \brief Extrait de la trace l'élément référencé à l'indice currentPos ainsi que son contexte (c'est à dire l'ensemble des traces en amont et en aval pouvant intervenir dans le fenêtre de recherche pour le calcul des partie optionnelles). Renseigne startPos et endPos comme étant les indices de départ et de fin du contexte dans la trace.
+	 *
+	 * \return une paire dont first indique dans second la position de la trace qui se trouvait à currentPos dans this. Null est retrouné si la trace à l'indice currentPos n'est pas une séquence.
+	 */
+	std::pair<int, Sequence::sp_sequence> extractContext(int currentPos, int* startPos, int* endPos);
+
+	/**
+	  * \brief Tente d'opérer une rotation de la séquence située à l'indice seqPos dans this->traces à l'aide des traces en amont.
+	  *
+	  * \return la nouvelle position de la séquence initialement positionnée à seqPos.
+	  *
+	  * Cas typique :
+	  *  - Soit la trace : D[ABCD]
+	  *  - Correction visée : [DABC]D
+	  */
+	int tryToProcessUpRotation(int seqPos);
+
+	/**
+	  * \brief Tente d'opérer une rotation de la séquence située à l'indice seqPos dans this->traces à l'aide des traces en aval.
+	  *
+	  * \return la nouvelle position de la séquence initialement positionnée à seqPos.
+	  *
+	  * Cas typique :
+	  *  - Soit la trace : [ABCD]A
+	  *  - Correction visée : A[BCDA]
+	  */
+	int tryToProcessDownRotation(int seqPos);
+	
+	/**
+	  * \brief Appele respectivement Sequence::processUnaggregateTracesDueToInsertedTokens et Sequence::processInclusiveSequences
+	  */
+	bool processOptionalTokens(int seqPos);
+
+	/**
+	 * \brief Tente de trouver les parties optionnelles et de les fusionner avec les séquences actuelles.
+	 *
+	 * \return la nouvelle position de la séquence initialement positionnée à seqPos.
+	 *
+	 * Exemple :
+	 *  - ABC[AB]   => [AB(C)]
+	 *  - [AB]CAB   => [(C)AB]
+	 */
+	int processUnaggregateTracesDueToInsertedTokens(int seqPos);
+	
+	/**
+	  * \brief Tente de trouver des séquences successives de longueurs différentes (éventuellement séparées par une suite de tokens) qui peuvent être fusionnées.
+	 *
+	 * \return la nouvelle position de la séquence initialement positionnée à seqPos.
+	  *
+	  * Cas singuliers :
+	  *  1 - [ABC][ABDC] => [AB(D)C]
+	  *  2 - [ABC]DE[ABC] => [ABC(DE)]
+	  */
+	int processInclusiveSequences(int seqPos);
 
 };
 
