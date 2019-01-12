@@ -11,14 +11,16 @@
 static std::string dir_path = "./example";
 static TracesParser tp;
 
-void saveCompressedTraces (const std::string& dir_path, const std::string& filename){
+void saveCompressedTraces(const std::string &dir_path, const std::string &filename)
+{
 	// Save compression results as txt file
 	std::string s = "\\" + filename;
 	s.replace(s.find(".log"), 4, "_compressed.txt");
 	s.insert(0, dir_path);
 	std::cout << "Write compressed traces into " << s << std::endl;
 	std::ofstream ofs(s.c_str(), std::ofstream::out | std::ofstream::trunc);
-	if (ofs.good()) {
+	if (ofs.good())
+	{
 		ofs << tp.lastCompression;
 		ofs.close();
 	}
@@ -28,28 +30,35 @@ void saveCompressedTraces (const std::string& dir_path, const std::string& filen
 	s.insert(0, dir_path);
 	std::cout << "Write compressed traces into " << s << std::endl;
 	std::ofstream ofsXml(s.c_str(), std::ofstream::out | std::ofstream::trunc);
-	if (ofsXml.good()) {
+	if (ofsXml.good())
+	{
 		ofsXml << tp.lastCompressionXML;
 		ofsXml.close();
 	}
 }
 
-int compressAllTraces(std::string dir_path) {
+int compressAllTraces(std::string dir_path)
+{
 	DIR *pdir;
 	struct dirent *pent;
 	pdir = opendir(dir_path.c_str());
-	if (!pdir) {
+	if (!pdir)
+	{
 		perror("");
 		return -1;
 	}
-	while ((pent = readdir(pdir))) {
-		if (strchr(pent->d_name, '.') == NULL) {
+	while ((pent = readdir(pdir)))
+	{
+		if (strchr(pent->d_name, '.') == NULL)
+		{
 			std::cout << "move to directory " << pent->d_name << std::endl;
 			compressAllTraces(dir_path + "\\" + pent->d_name);
 		}
-		else if (strcmp(pent->d_name, ".") != 0 && strcmp(pent->d_name, "..") != 0) {
+		else if (strcmp(pent->d_name, ".") != 0 && strcmp(pent->d_name, "..") != 0)
+		{
 			std::string filename(pent->d_name);
-			if (filename.find("_compressed") == std::string::npos && filename.find(".log") != std::string::npos && filename.compare("meta.log") != 0) {
+			if (filename.find("_compressed") == std::string::npos && filename.find(".log") != std::string::npos && filename.compare("meta.log") != 0)
+			{
 				std::cout << "parse " << dir_path << "\\" << filename << std::endl;
 				std::string s = dir_path + "\\" + filename;
 				std::ifstream ifs(s.c_str(), std::ios::in | std::ios::binary);
@@ -62,77 +71,83 @@ int compressAllTraces(std::string dir_path) {
 	return 0;
 }
 
-const std::string loadFile(std::string full_path) {
+const std::string loadFile(std::string full_path)
+{
 	std::string res;
 	std::ifstream in(full_path.c_str());
-	if (in.good()) {
+	if (in.good())
+	{
 		std::string line;
-		while(std::getline(in,line))
+		while (std::getline(in, line))
 			res += line;
 	}
 	return res;
 }
 
-void initExternalConstants(){
-		// Reset all maps
-		Call::units_id_map.clear();
-		Call::orders_map.clear();
-		Call::resources_map.clear();
+void initExternalConstants()
+{
+	// Reset all maps
+	Call::units_id_map.clear();
+	Call::orders_map.clear();
+	Call::resources_map.clear();
 
-		//Initialise units_id_map
-		Call::units_id_map.insert(std::make_pair<int,std::string>(ASSEMBLER,"ASSEMBLER"));
-		Call::units_id_map.insert(std::make_pair<int,std::string>(BADBLOCK,"BADBLOCK"));
-		Call::units_id_map.insert(std::make_pair<int,std::string>(BIT,"BIT"));
-		Call::units_id_map.insert(std::make_pair<int,std::string>(BYTE,"BYTE"));
-		Call::units_id_map.insert(std::make_pair<int,std::string>(KERNEL,"KERNEL"));
-		Call::units_id_map.insert(std::make_pair<int,std::string>(LOGIC_BOMB,"LOGIC BOMB"));
-		Call::units_id_map.insert(std::make_pair<int,std::string>(POINTER,"POINTER"));
-		Call::units_id_map.insert(std::make_pair<int,std::string>(SIGNAL,"SIGNAL"));
-		Call::units_id_map.insert(std::make_pair<int,std::string>(SOCKET,"SOCKET"));
-		Call::units_id_map.insert(std::make_pair<int,std::string>(TERMINAL,"TERMINAL"));
+	//Initialise units_id_map
+	Call::units_id_map.insert(std::make_pair<int, std::string>(ASSEMBLER, "ASSEMBLER"));
+	Call::units_id_map.insert(std::make_pair<int, std::string>(BADBLOCK, "BADBLOCK"));
+	Call::units_id_map.insert(std::make_pair<int, std::string>(BIT, "BIT"));
+	Call::units_id_map.insert(std::make_pair<int, std::string>(BYTE, "BYTE"));
+	Call::units_id_map.insert(std::make_pair<int, std::string>(KERNEL, "KERNEL"));
+	Call::units_id_map.insert(std::make_pair<int, std::string>(LOGIC_BOMB, "LOGIC BOMB"));
+	Call::units_id_map.insert(std::make_pair<int, std::string>(POINTER, "POINTER"));
+	Call::units_id_map.insert(std::make_pair<int, std::string>(SIGNAL, "SIGNAL"));
+	Call::units_id_map.insert(std::make_pair<int, std::string>(SOCKET, "SOCKET"));
+	Call::units_id_map.insert(std::make_pair<int, std::string>(TERMINAL, "TERMINAL"));
 
-		//Initialise orders_map
-		Call::orders_map.insert(std::make_pair<int,std::string>(STOP,"STOP"));
-		Call::orders_map.insert(std::make_pair<int,std::string>(WAIT,"WAIT"));
-		Call::orders_map.insert(std::make_pair<int,std::string>(FIRE_STATE,"FIRE STATE"));
-		Call::orders_map.insert(std::make_pair<int,std::string>(SELF_DESTRUCTION,"SELF DESTRUCTION"));
-		Call::orders_map.insert(std::make_pair<int,std::string>(REPEAT,"REPEAT"));
-		Call::orders_map.insert(std::make_pair<int,std::string>(MOVE,"MOVE"));
-		Call::orders_map.insert(std::make_pair<int,std::string>(PATROL,"PATROL"));
-		Call::orders_map.insert(std::make_pair<int,std::string>(FIGHT,"FIGHT"));
-		Call::orders_map.insert(std::make_pair<int,std::string>(GUARD,"GUARD"));
-		Call::orders_map.insert(std::make_pair<int,std::string>(MOVE_STATE,"MOVE_STATE"));
-		Call::orders_map.insert(std::make_pair<int,std::string>(ATTACK,"ATTACK"));
-		Call::orders_map.insert(std::make_pair<int,std::string>(REPAIR,"REPAIR"));
-		Call::orders_map.insert(std::make_pair<int,std::string>(RECLAIM,"RECLAIM"));
-		Call::orders_map.insert(std::make_pair<int,std::string>(RESTORE,"RESTORE"));
-		Call::orders_map.insert(std::make_pair<int,std::string>(BUILD_BADBLOCK,"BUILD BADBLOCK"));
-		Call::orders_map.insert(std::make_pair<int,std::string>(BUILD_LOGIC_BOMB,"BUILD LOGIC BOMB"));
-		Call::orders_map.insert(std::make_pair<int,std::string>(BUILD_SOCKET,"BUILD SOCKET"));
-		Call::orders_map.insert(std::make_pair<int,std::string>(BUILD_TERMINAL,"BUILD TERMINAL"));
-		Call::orders_map.insert(std::make_pair<int,std::string>(DEBUG,"DEBUG"));
-		Call::orders_map.insert(std::make_pair<int,std::string>(BUILD_ASSEMBLER,"BUILD ASSEMBLER"));
-		Call::orders_map.insert(std::make_pair<int,std::string>(BUILD_BYTE,"BUILD BYTE"));
-		Call::orders_map.insert(std::make_pair<int,std::string>(BUILD_POINTER,"BUILD POINTER"));
-		Call::orders_map.insert(std::make_pair<int,std::string>(BUILD_BIT,"BUILD BIT"));
-		Call::orders_map.insert(std::make_pair<int,std::string>(STOP_BUILDING,"STOP BUILD"));
-		Call::orders_map.insert(std::make_pair<int,std::string>(LAUNCH_MINE,"LAUNCH MINE"));
-		Call::orders_map.insert(std::make_pair<int,std::string>(NX_FLAG,"NX_FLAG"));
-		Call::orders_map.insert(std::make_pair<int,std::string>(SIGTERM,"SIGTERM"));
+	//Initialise orders_map
+	Call::orders_map.insert(std::make_pair<int, std::string>(STOP, "STOP"));
+	Call::orders_map.insert(std::make_pair<int, std::string>(WAIT, "WAIT"));
+	Call::orders_map.insert(std::make_pair<int, std::string>(FIRE_STATE, "FIRE STATE"));
+	Call::orders_map.insert(std::make_pair<int, std::string>(SELF_DESTRUCTION, "SELF DESTRUCTION"));
+	Call::orders_map.insert(std::make_pair<int, std::string>(REPEAT, "REPEAT"));
+	Call::orders_map.insert(std::make_pair<int, std::string>(MOVE, "MOVE"));
+	Call::orders_map.insert(std::make_pair<int, std::string>(PATROL, "PATROL"));
+	Call::orders_map.insert(std::make_pair<int, std::string>(FIGHT, "FIGHT"));
+	Call::orders_map.insert(std::make_pair<int, std::string>(GUARD, "GUARD"));
+	Call::orders_map.insert(std::make_pair<int, std::string>(MOVE_STATE, "MOVE_STATE"));
+	Call::orders_map.insert(std::make_pair<int, std::string>(ATTACK, "ATTACK"));
+	Call::orders_map.insert(std::make_pair<int, std::string>(REPAIR, "REPAIR"));
+	Call::orders_map.insert(std::make_pair<int, std::string>(RECLAIM, "RECLAIM"));
+	Call::orders_map.insert(std::make_pair<int, std::string>(RESTORE, "RESTORE"));
+	Call::orders_map.insert(std::make_pair<int, std::string>(BUILD_BADBLOCK, "BUILD BADBLOCK"));
+	Call::orders_map.insert(std::make_pair<int, std::string>(BUILD_LOGIC_BOMB, "BUILD LOGIC BOMB"));
+	Call::orders_map.insert(std::make_pair<int, std::string>(BUILD_SOCKET, "BUILD SOCKET"));
+	Call::orders_map.insert(std::make_pair<int, std::string>(BUILD_TERMINAL, "BUILD TERMINAL"));
+	Call::orders_map.insert(std::make_pair<int, std::string>(DEBUG, "DEBUG"));
+	Call::orders_map.insert(std::make_pair<int, std::string>(BUILD_ASSEMBLER, "BUILD ASSEMBLER"));
+	Call::orders_map.insert(std::make_pair<int, std::string>(BUILD_BYTE, "BUILD BYTE"));
+	Call::orders_map.insert(std::make_pair<int, std::string>(BUILD_POINTER, "BUILD POINTER"));
+	Call::orders_map.insert(std::make_pair<int, std::string>(BUILD_BIT, "BUILD BIT"));
+	Call::orders_map.insert(std::make_pair<int, std::string>(STOP_BUILDING, "STOP BUILD"));
+	Call::orders_map.insert(std::make_pair<int, std::string>(LAUNCH_MINE, "LAUNCH MINE"));
+	Call::orders_map.insert(std::make_pair<int, std::string>(NX_FLAG, "NX_FLAG"));
+	Call::orders_map.insert(std::make_pair<int, std::string>(SIGTERM, "SIGTERM"));
 
-		//Initialise resources_map
-		Call::resources_map.insert(std::make_pair<int,std::string>(METAL,"METAL"));
-		Call::resources_map.insert(std::make_pair<int,std::string>(ENERGY,"ENERGY"));
+	//Initialise resources_map
+	Call::resources_map.insert(std::make_pair<int, std::string>(METAL, "METAL"));
+	Call::resources_map.insert(std::make_pair<int, std::string>(ENERGY, "ENERGY"));
 }
 
-std::vector<std::string> loadExpertsXml() {
+std::vector<std::string> loadExpertsXml()
+{
 	std::vector<std::string> experts_xml;
 	std::string path = dir_path + "/expert/" + TracesParser::mission_name;
 	DIR *pdir;
 	struct dirent *pent;
 	pdir = opendir(path.c_str());
-	if (pdir) {
-		while ((pent = readdir(pdir))) {
+	if (pdir)
+	{
+		while ((pent = readdir(pdir)))
+		{
 			std::string name = pent->d_name;
 			if (name.find(".xml") != std::string::npos && name.compare("feedbacks.xml") != 0)
 				experts_xml.push_back(loadFile(path + "\\" + name));
@@ -142,8 +157,10 @@ std::vector<std::string> loadExpertsXml() {
 	return experts_xml;
 }
 
-int main(int argc, char *argv[]) {
-	if (argc < 2 || argc > 4 || strcmp(argv[1],"-h") == 0 || strcmp(argv[1],"--help") == 0) {
+int main(int argc, char *argv[])
+{
+	if (argc < 2 || argc > 4 || strcmp(argv[1], "-h") == 0 || strcmp(argv[1], "--help") == 0)
+	{
 		std::cout << "Usage : parser all [dir_path]\n";
 		std::cout << "\tall : all complete traces files present in dir_path directory and its subdirectories (recursively) will be compressed\n";
 		std::cout << "\tdir_path : path to the directory containing complete traces files (default ./example/)\n\n";
@@ -157,45 +174,50 @@ int main(int argc, char *argv[]) {
 		std::cout << "\t\t- there must be at least one solution (an XML file) for the mission in the directory \"[dir_path]/expert/[mission_name]\"\n\n";
 		return -1;
 	}
-	bool analysis = (argc == 3 && strcmp(argv[2],"-la") == 0) || (argc == 4 && strcmp(argv[3],"-la") == 0);
-	if (argc >= 3 && strcmp(argv[2],"-la") != 0)
+	bool analysis = (argc == 3 && strcmp(argv[2], "-la") == 0) || (argc == 4 && strcmp(argv[3], "-la") == 0);
+	if (argc >= 3 && strcmp(argv[2], "-la") != 0)
 		dir_path = argv[2];
 	// load compression params
-	std::cout << "Try to open params.json file from example directory ("+dir_path+"/)" << std::endl;
-	TracesParser::params_json = loadFile(dir_path+"/params.json");
+	std::cout << "Try to open params.json file from example directory (" + dir_path + "/)" << std::endl;
+	TracesParser::params_json = loadFile(dir_path + "/params.json");
 	if (TracesParser::params_json.compare("") != 0)
 		std::cout << "\tFile found and used for compression and analysis." << std::endl;
 	else
 		std::cout << "\tFile not found." << std::endl;
 	if (strcmp(argv[1], "all") == 0)
 		return compressAllTraces(dir_path);
-	else {
+	else
+	{
 		// Compression
 		std::string filename = argv[1];
-		if (filename.find(".log") == std::string::npos) {
+		if (filename.find(".log") == std::string::npos)
+		{
 			std::cout << "not a log file" << std::endl;
 			return -1;
 		}
 		std::string s = dir_path + "\\" + filename;
 		std::ifstream ifs(s.c_str(), std::ios::in | std::ios::binary);
-		if (!ifs.good()) {
+		if (!ifs.good())
+		{
 			std::cout << "error opening file: " << strerror(errno) << std::endl;
 			return -1;
 		}
 		tp.parseLogs(ifs, false);
 		std::cout << "traces compressed" << std::endl;
 		saveCompressedTraces(dir_path, filename);
-		
-		if (analysis) {
+
+		if (analysis)
+		{
 			std::cout << "launch analysis" << std::endl;
-			initExternalConstants ();
+			initExternalConstants();
 			// Analysis
 			TracesAnalyser ta;
 			const std::string feedbacks_xml = loadFile(dir_path + "/feedbacks.xml");
 			const std::string mission_feedbacks_xml = loadFile(dir_path + "/expert/" + TracesParser::mission_name + "/feedbacks.xml");
-			ta.loadXmlInfos(feedbacks_xml,mission_feedbacks_xml);
+			ta.loadXmlInfos(feedbacks_xml, mission_feedbacks_xml);
 			std::vector<std::string> experts_xml = loadExpertsXml();
-			if (experts_xml.empty()){
+			if (experts_xml.empty())
+			{
 				std::cout << "no expert solutions for mission " + TracesParser::mission_name << std::endl;
 				return -1;
 			}
@@ -207,7 +229,8 @@ int main(int argc, char *argv[]) {
 			std::cout << json << std::endl;
 			std::ofstream jsonFile;
 			jsonFile.open("feedback_result.json");
-			if (jsonFile.good()) {
+			if (jsonFile.good())
+			{
 				jsonFile << json;
 				jsonFile.close();
 			}

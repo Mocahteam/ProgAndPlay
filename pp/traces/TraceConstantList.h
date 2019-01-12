@@ -12,17 +12,17 @@
 //#define LOG_IN_FILE
 
 // Events
-#define GAME_START "start" // set by game engine (ProgAndPlay.cpp)
-#define MISSION_START_TIME "mission_start_time" // set by game engine (ProgAndPlay.cpp)
-#define EXECUTION_START_TIME "execution_start_time" // set by client interfaces
+#define GAME_START "start"                                    // set by game engine (ProgAndPlay.cpp)
+#define MISSION_START_TIME "mission_start_time"               // set by game engine (ProgAndPlay.cpp)
+#define EXECUTION_START_TIME "execution_start_time"           // set by client interfaces
 #define PROGRAMMING_LANGUAGE_USED "programming_language_used" // set by client interfaces
-#define EXECUTION_END_TIME "execution_end_time" // set by client interfaces
-#define MISSION_END_TIME "mission_end_time" // set by game engine (ProgAndPlay.cpp)
-#define GAME_END "end" // set by game engine (ProgAndPlay.cpp)
+#define EXECUTION_END_TIME "execution_end_time"               // set by client interfaces
+#define MISSION_END_TIME "mission_end_time"                   // set by game engine (ProgAndPlay.cpp)
+#define GAME_END "end"                                        // set by game engine (ProgAndPlay.cpp)
 
-#define GAME_PAUSED "game_paused" // set by game engine (ProgAndPlay.cpp)
+#define GAME_PAUSED "game_paused"     // set by game engine (ProgAndPlay.cpp)
 #define GAME_UNPAUSED "game_unpaused" // set by game engine (ProgAndPlay.cpp)
-#define DELAYED "delayed" // set by game engine (ProgAndPlay.cpp)
+#define DELAYED "delayed"             // set by game engine (ProgAndPlay.cpp)
 
 // Call types
 #define CALL_WITH_NO_PARAMS "CallWithNoParam"

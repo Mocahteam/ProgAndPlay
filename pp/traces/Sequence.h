@@ -25,10 +25,10 @@
  * \class Sequence
  * \brief La classe Sequence hérite de la classe @see Trace. Une séquence possède un vecteur d'objets Trace.
  */
-class Sequence : public Trace, public boost::enable_shared_from_this<Sequence> {
+class Sequence : public Trace, public boost::enable_shared_from_this<Sequence>
+{
 
 public:
-
 	/**
 	  * Définition du type pointeur intelligent vers un objet Sequence.
 	  */
@@ -53,7 +53,7 @@ public:
 	  * \param root booléen mis à vrai si la séquence créée est une racine.
 	  * \param opt booléen mis à vrai si la séquence créée est optionnelle.
 	  */
-	Sequence(unsigned int num, bool root = false, bool opt=false);
+	Sequence(unsigned int num, bool root = false, bool opt = false);
 
 	/**
 	  * \brief Constructeur se basant sur une séquence.
@@ -81,7 +81,7 @@ public:
 	  *  - Transformer : ABCBCABCBCD en [A[BC]]D 
 	  */
 	void findAndAggregateSuccessiveSequences(int startingPoint);
-	
+
 	/**
 	  * \brief Fonction d'amélioration de l'algorithme de compression hors-ligne.
 	  *
@@ -175,11 +175,13 @@ public:
 	  *
 	  * \return la chaîne de caractères construite.
 	  */
-	template<typename T>
-	static std::string getIterartionDescriptionString(const std::map<unsigned int,T>& iterDesc) {
+	template <typename T>
+	static std::string getIterartionDescriptionString(const std::map<unsigned int, T> &iterDesc)
+	{
 		std::stringstream ss;
-		typename std::map<unsigned int,T>::const_iterator it = iterDesc.begin();
-		while (it != iterDesc.end()) {
+		typename std::map<unsigned int, T>::const_iterator it = iterDesc.begin();
+		while (it != iterDesc.end())
+		{
 			if (it != iterDesc.begin())
 				ss << " ";
 			ss << it->first << ":" << it->second;
@@ -193,7 +195,7 @@ public:
 	  *
 	  * \return le vecteur de traces de la séquence.
 	  */
-	std::vector<Trace::sp_trace>& getTraces();
+	std::vector<Trace::sp_trace> &getTraces();
 
 	/**
 	  * \brief Getter pour récupérer une sous partie du vecteur de traces de la séquence Sequence::traces à partir de l'indice "start".
@@ -201,7 +203,7 @@ public:
 	  * \return la sous partie du vecteur de traces de la séquence.
 	  */
 	std::vector<Trace::sp_trace> getSubTraces(int start);
-	
+
 	/**
 	  * \brief Getter pour récupérer une sous partie de la séquence comprise entre l'indice "start" (inclus) et l'indice "end" (exclus).
 	  *
@@ -228,7 +230,7 @@ public:
 	  *
 	  * \see Sequence::iterDesc
 	  */
-	const std::map<unsigned int,unsigned int>& getIterationDescription() const;
+	const std::map<unsigned int, unsigned int> &getIterationDescription() const;
 
 	/**
 	  * \brief Getter pour la variable Sequence::num_fixed.
@@ -259,20 +261,6 @@ public:
 	bool isRoot() const;
 
 	/**
-	  * \brief Getter pour la variable Sequence::opt.
-	  *
-	  * \see Sequence::opt
-	  */
-	bool isOptional() const;
-
-	/**
-	 * \brief Setter pour la variable Sequence::opt.
-	 *
-	 * \see Sequence::opt
-	 */
-	void setOptional(bool state);
-
-	/**
 	  * \brief Test si la séquence est une séquence implicite.
 	  *
 	  * Une séquence est implicite si la seule entrée contenue dans Sequence::iterDesc est <1:1>.
@@ -291,24 +279,16 @@ public:
 	unsigned int size() const;
 
 	/**
-	  * \brief Récupération de la longueur (l'espace occupé dans un vecteur de traces) d'une séquence.
-	  *
-	  * La longueur d'une séquence est calculée de façon récursive en parcourant ses séquences et sous-séquences et en appelant Trace::length sur les traces parcourues.
-	  *
-	  * \return la longueur de la séquence
-	  */
-	virtual unsigned int length() const;
-
-	/**
 	  * \brief Calcul partiel de la longueur (l'espace occupé dans un vecteur de traces) d'une séquence.
 	  *
 	  * La longueur d'une séquence est calculée de façon récursive en parcourant ses séquences et sous-séquences et en appelant Trace::length sur les traces parcourues.
 	  *
 	  * \param start position dans la sequence à partir de laquelle le calcul de la longueur est calculé
+	  * \param processOptions si false la longueur des séquences optionnelles n'est pas pris en compte (true par défaut)
 	  *
 	  * \return la longueur de la séquence
 	  */
-	unsigned int length(int start) const;
+	unsigned int length(int start = 0, bool processOptions = true) const;
 
 	/**
 	  * \brief Accès à une trace du vecteur de traces de la séquence.
@@ -317,7 +297,7 @@ public:
 	  *
 	  * \return Une référence constante vers la trace qui se trouve à l'indice \p i dans le vecteur de traces de la séquence.
 	  */
-	const Trace::sp_trace& at(unsigned int i) const;
+	const Trace::sp_trace &at(unsigned int i) const;
 
 	/**
 	  * \brief Récupération de l'indice de la position d'une trace dans le vecteur de traces de la séquence.
@@ -326,7 +306,7 @@ public:
 	  *
 	  * \return l'indice de la position de la trace dans le vecteur si elle s'y trouve, ou -1 sinon.
 	  */
-	int getIndex(const Trace::sp_trace& spt) const;
+	int getIndex(const Trace::sp_trace &spt) const;
 
 	/**
 	 * \brief Linéarisation de l'ensemble des traces. Le vecteur retourné peut contenir des objets de type Sequence qui marquent le début ou la fin d'une séquence. Toutes les traces comprise entre un début et un fin de séquence font parties de la séquence.
@@ -345,7 +325,7 @@ public:
 	 *
 	 * \return un vecteur de trace représentant une version linéarisée des traces
 	 */
-	std::vector<Trace::sp_trace>& getLinearSequence(int start = 0, int end = -1);
+	std::vector<Trace::sp_trace> &getLinearSequence(int start = 0, int end = -1);
 
 	/**
 	  * \brief Récupération de l'ensemble des appels contenus dans la séquence et dans ses sous-séquences.
@@ -393,7 +373,7 @@ public:
 	  *
 	  * \return la prochaine trace du vecteur Sequence::traces.
 	  */
-	const Trace::sp_trace& next();
+	const Trace::sp_trace &next();
 
 	/**
 	  * \brief Réinitialisation du parcours de la séquence
@@ -430,7 +410,7 @@ public:
 	  *
 	  * \param newIterationsDesc l'objet décrivant la description des itérations à intégrer.
 	  */
-	void mergeIterationDescription(const std::map<unsigned int,unsigned int>& newIterationsDesc);
+	void mergeIterationDescription(const std::map<unsigned int, unsigned int> &newIterationsDesc);
 
 	/**
 	  * \brief Complétion de Sequence::iterDesc.
@@ -448,7 +428,7 @@ public:
 	  *
 	  * \see Sequence::iterDesc
 	  */
-	std::map<unsigned int,double> getPercentageIterationDescription() const;
+	std::map<unsigned int, double> getPercentageIterationDescription() const;
 
 	/**
 	  * \brief Calcul de la distance entre deux objets Sequence::iterDesc.
@@ -457,7 +437,7 @@ public:
 	  *
 	  * \return la distance calculée.
 	  */
-	double getIterationDescriptionMeanDistance(const sp_sequence& sps) const;
+	double getIterationDescriptionMeanDistance(const sp_sequence &sps) const;
 
 	/**
 	 * \brief Calcule et retourne le meilleur score d'alignement entre deux traces linéarisées. Le meilleur score est celui qui compte le plus d'alignements pour le moins d'options
@@ -466,10 +446,9 @@ public:
 	 *
 	 * \see Sequence::getLinearSequence
 	 */
-	static std::pair<int, int> getMaxAlignAndMinOpt (std::vector<Trace::sp_trace>& linearTraces1, std::vector<Trace::sp_trace>& linearTraces2);
+	static std::pair<int, int> getMaxAlignAndMinOpt(std::vector<Trace::sp_trace> &linearTraces1, std::vector<Trace::sp_trace> &linearTraces2);
 
 protected:
-
 	/**
 	 * Un booléen permettant d'indiquer si le nombre d'occurrences de la sequence doit être utilisé lors de l'analyse pour le calcul du score du joueur et pour la détermination des feedbacks. Cette variable est mise à vraie uniquement si l'expert a fixé la valeur de l'attribut 'nb_iteration_fixed' à 'true' pour la séquence dans le fichier XML utilisé pour l'import.
 	 */
@@ -497,7 +476,7 @@ protected:
 	 *
 	 * Par exemple, si Sequence::iterDesc = <1:4> <3:5> <10:1>, cela signifique que la séquence se répète en tout 1*4 + 3*5 + 10*1 = 29 fois : la sequence c'est exécuté 1 fois à 4 reprises, 3 fois à 5 reprise et 10 fois une seule fois.
 	 */
-	std::map<unsigned int,unsigned int> iterDesc;
+	std::map<unsigned int, unsigned int> iterDesc;
 
 	/**
 	 * Un indice sur le vecteur des traces de la séquence. A chaque appel à Sequence::next, cette valeur est incrémentée et le prochain élément du vecteur est renvoyé.
@@ -524,11 +503,6 @@ protected:
 	bool root;
 
 	/**
-	 * Un booléen indiquant si la séquence est optionnelle. Une séquence optionnelle est une séquence qui peut ne pas être présente dans la trace.
-	 */
-	bool opt;
-
-	/**
 	 * \brief Initialise la position de la variable Sequence::pt et du booléen Sequence::endReached
 	 */
 	void setPtAndEndState(unsigned int pos, bool endState);
@@ -538,7 +512,7 @@ protected:
 	 *
 	 * \see Sequence::getLinearSequence
 	 */
-	static void removeFirstCall (std::vector<Trace::sp_trace>& linearTraces);
+	static void removeFirstCall(std::vector<Trace::sp_trace> &linearTraces);
 
 	/**
 	 * \brief Compte le nombre de Call alignés et optionnels entre deux séquences linéarisées
@@ -547,12 +521,12 @@ protected:
 	 *
 	 * \see Sequence::getLinearSequence
 	 */
-	static std::pair<int, int> getNbAlignAndOpt(std::vector<Trace::sp_trace>& linearTraces1, std::vector<Trace::sp_trace>& linearTraces2);
+	static std::pair<int, int> getNbAlignAndOpt(std::vector<Trace::sp_trace> &linearTraces1, std::vector<Trace::sp_trace> &linearTraces2);
 
 	/**
-	  * \brief Fusion de deux séquences équivalentes (longueurs identiques et même succession de symboles en "applatissant" les sequences internes)
+	  * \brief Fusionne deux séquences
 	  *
-	  * Cette fonction permet de construire une nouvelle séquence la plus générale possible à partir de deux séquences \p sps_up et \p sps_down qui doivent être égales pour que la fusion ait lieue.
+	  * Cette fonction permet de construire une nouvelle séquence la plus générale possible à partir de deux séquences \p sps_up et \p sps_down.
 	  *
 	  * Exemple de cas singuliers :
 	  *  1 - [AB[C]] et [[A]BC] => [[A]B[C]]
@@ -561,14 +535,15 @@ protected:
 	  * \param sps_up la première séquence passée en entrée de la fusion.
 	  * \param sps_down la seconde séquence passée en entrée de la fusion.
 	  * \param avoidOptionalSequence si true ne réalise la fusion que si aucune séquence optionnelle n'est requise. Si false, la fusion pourra contenir des séquences optionnelles (true par défaut).
+		* \param nbAlign si non NULL ce paramètre contiendra le nombre de trace aligné à la fin de la fusion (paramètre de sortie)
+		* \param nbOpt si non NULL ce paramètre contiendra le nombre de trace optionnelle définie à la fin de la fusion (paramètre de sortie)
 	  *
 	  * \return la nouvelle séquence créée résultante de la fusion de \p sps_up et \p sps_down.
 	  *
-	  * \see Sequence::compare
 	  * \see Sequence::findAndAggregateSuccessiveSequences
 	  */
-	static Sequence::sp_sequence mergeEquivalentSequences(Sequence::sp_sequence sps_up, Sequence::sp_sequence sps_down, bool avoidOptionalSequence = true);
-	
+	static Sequence::sp_sequence mergeEquivalentSequences(Sequence::sp_sequence sps_up, Sequence::sp_sequence sps_down, bool avoidOptionalSequence = true, int* nbAlign = NULL, int* nbOpt = NULL);
+
 	/**
 	 * \brief Fusion de deux séquences alignées
 	 *
@@ -589,33 +564,40 @@ protected:
 	/**
 	  * \brief Test de la possibilité de répétitions d'un groupe de traces.
 	  *
-	  * Cette fonction est utilisée par la fonction Sequence::findAndAggregateSuccessiveSequences lors de la recherche de répétitions d'un groupe de traces. Le test consiste à vérifier la trace contient assez de traces à partir d'un certain indice. Cette fonction est une optimisation permettant d'éviter le lancement d'opérations de comparaison qui retourneront forcément des résultats négatifs.
+	  * Cette fonction est utilisée par la fonction Sequence::findAndAggregateSuccessiveSequences lors de la recherche de répétitions d'un groupe de traces. Le test consiste à vérifier si la trace contient assez de traces à partir d'un certain indice. Cette fonction est une optimisation permettant d'éviter le lancement d'opérations de comparaison qui retourneront forcément des résultats négatifs.
 	  */
-	bool checkFeasibility(unsigned int min_length, unsigned int ind_start);
-	
+	bool checkFeasibility(int min_length, int ind_start);
+
 	/**
 	  * \brief Teste si une séquence donnée contient au moins un evènement non concaténable
 	  *
 	  * \return true si la séquence donnée contient au moins un évènement non concaténable (voir Event::noConcatEventsArr) et false sinon
 	  */
 	bool includeNoConcatEvent();
-	
+
+	/**
+	 * \brief Construit itérativement des fenêtres à partir de workingId d'une taille allant de 1 à maxLength et tente de les fusionner avec sps_up. Si un de ces alignements fournit un meilleur score que celui passé en paramètre alors bestScore et endDown sont mis à jour (bestMerge contient le résultat de la fusion uniquement si un bestScore est obtenu pour une taille de fenêtre up originale ; endDown contient la position dans this->trace de la fin de cette fusion).
+	 * Si bestScore >= 0 => la meilleure fusion a pu être faite pour la taille de fenêtre up originale 
+	 * Si bestScore < 0 => la meilleure fusion a pu être faite avec une taille de fenêtre up plus grande. Dans ce cas le paramètre bestScore contient l'opposé de la valeur du score calculé et bestMerge n'est pas modifié. Ce dernier cas ne peut avoir lieu que si originalUpSize == false.
+	 */
+	void evaluateMerging(int workingId, int maxLength, Sequence::sp_sequence sps_up, bool originalUpSize, float & bestScore, Sequence::sp_sequence & bestMerge, int & endDown);
+
 	/**
 	 * \brief Supprime dans "traces" toute trace comprise entre "upStart" (inclus) et "endDown" (exclus), insère ensuite "merge" à la position "upStart" dans "traces"
 	 */
-	static void cleanTracesAndAddMerge(std::vector<Trace::sp_trace>& traces, Sequence::sp_sequence merge, unsigned int upStart, unsigned int endDown);
-	
+	static void cleanTracesAndAddMerge(std::vector<Trace::sp_trace> &traces, Sequence::sp_sequence merge, int upStart, int endDown);
+
 	/**
 	 * \brief Calcule le meilleur alignement entre deux séquences de traces et retourne le score corrigé sans prise en compte des traces optionnelles initiales
 	 */
-	static std::pair<double,double> computeBestCorrectedScore(std::vector<Trace::sp_trace>& traces1, std::vector<Trace::sp_trace>& traces2);
-	
+	static std::pair<double, double> computeBestCorrectedScore(std::vector<Trace::sp_trace> &traces1, std::vector<Trace::sp_trace> &traces2);
+
 	/**
 	 * \brief Extrait de la trace l'élément référencé à l'indice currentPos ainsi que son contexte (c'est à dire l'ensemble des traces en amont et en aval pouvant intervenir dans le fenêtre de recherche pour le calcul des partie optionnelles). Renseigne startPos et endPos comme étant les indices de départ et de fin du contexte dans la trace.
 	 *
 	 * \return une paire dont first indique dans second la position de la trace qui se trouvait à currentPos dans this. Null est retrouné si la trace à l'indice currentPos n'est pas une séquence.
 	 */
-	std::pair<int, Sequence::sp_sequence> extractContext(int currentPos, int* startPos, int* endPos);
+	std::pair<int, Sequence::sp_sequence> extractContext(int currentPos, int *startPos, int *endPos);
 
 	/**
 	  * \brief Tente d'opérer une rotation de la séquence située à l'indice seqPos dans this->traces à l'aide des traces en amont.
@@ -638,7 +620,7 @@ protected:
 	  *  - Correction visée : A[BCDA]
 	  */
 	int tryToProcessDownRotation(int seqPos);
-	
+
 	/**
 	  * \brief Appele respectivement Sequence::processUnaggregateTracesDueToInsertedTokens et Sequence::processInclusiveSequences
 	  */
@@ -654,7 +636,7 @@ protected:
 	 *  - [AB]CAB   => [(C)AB]
 	 */
 	int processUnaggregateTracesDueToInsertedTokens(int seqPos);
-	
+
 	/**
 	  * \brief Tente de trouver des séquences successives de longueurs différentes (éventuellement séparées par une suite de tokens) qui peuvent être fusionnées.
 	 *
@@ -665,7 +647,6 @@ protected:
 	  *  2 - [ABC]DE[ABC] => [ABC(DE)]
 	  */
 	int processInclusiveSequences(int seqPos);
-
 };
 
 #endif

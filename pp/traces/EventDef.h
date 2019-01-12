@@ -11,135 +11,146 @@
 #include <boost/lexical_cast.hpp>
 #include "TraceConstantList.h"
 
-class StartMissionEvent : public Event {
+class StartMissionEvent : public Event
+{
 
-public:
+  public:
+	StartMissionEvent(std::string mission_name, int start_time) : Event(MISSION_START_TIME), mission_name(mission_name), start_time(start_time) {}
 
-	StartMissionEvent(std::string mission_name, int start_time): Event(MISSION_START_TIME), mission_name(mission_name), start_time(start_time) {}
-
-	StartMissionEvent(const StartMissionEvent *sme): Event(sme) {
+	StartMissionEvent(const StartMissionEvent *sme) : Event(sme)
+	{
 		mission_name = sme->mission_name;
 		start_time = sme->start_time;
 	}
 
-	virtual Trace::sp_trace clone() const {
+	virtual Trace::sp_trace clone() const
+	{
 		return boost::make_shared<StartMissionEvent>(this);
 	}
 
-	virtual std::string getParams() const {
+	virtual std::string getParams() const
+	{
 		return mission_name + " " + boost::lexical_cast<std::string>(start_time);
 	}
 
-	std::string getMissionName() const {
+	std::string getMissionName() const
+	{
 		return mission_name;
 	}
 
-	int getStartTime() const {
+	int getStartTime() const
+	{
 		return start_time;
 	}
 
-private:
-
+  private:
 	std::string mission_name;
 	int start_time;
-
 };
 
-class EndMissionEvent : public Event {
+class EndMissionEvent : public Event
+{
 
-public:
+  public:
+	EndMissionEvent(std::string status, int end_time) : Event(MISSION_END_TIME), status(status), end_time(end_time) {}
 
-	EndMissionEvent(std::string status, int end_time): Event(MISSION_END_TIME), status(status), end_time(end_time) {}
-
-	EndMissionEvent(const EndMissionEvent *eme): Event(eme) {
+	EndMissionEvent(const EndMissionEvent *eme) : Event(eme)
+	{
 		status = eme->status;
 		end_time = eme->end_time;
 	}
 
-	virtual Trace::sp_trace clone() const {
+	virtual Trace::sp_trace clone() const
+	{
 		return boost::make_shared<EndMissionEvent>(this);
 	}
 
-	virtual std::string getParams() const {
+	virtual std::string getParams() const
+	{
 		return status + " " + boost::lexical_cast<std::string>(end_time);
 	}
 
-	std::string getStatus() const {
+	std::string getStatus() const
+	{
 		return status;
 	}
 
-	int getEndTime() const {
+	int getEndTime() const
+	{
 		return end_time;
 	}
 
-private:
-
+  private:
 	std::string status;
 	int end_time;
-
 };
 
-class NewExecutionEvent : public Event {
+class NewExecutionEvent : public Event
+{
 
-public:
+  public:
+	NewExecutionEvent(int start_time, std::string prog_lang_used) : Event(EXECUTION_START_TIME), start_time(start_time), prog_lang_used(prog_lang_used) {}
 
-	NewExecutionEvent(int start_time, std::string prog_lang_used): Event(EXECUTION_START_TIME), start_time(start_time), prog_lang_used(prog_lang_used) {}
-
-	NewExecutionEvent(const NewExecutionEvent *nee): Event(nee) {
+	NewExecutionEvent(const NewExecutionEvent *nee) : Event(nee)
+	{
 		start_time = nee->start_time;
 		prog_lang_used = nee->prog_lang_used;
 	}
 
-	virtual Trace::sp_trace clone() const {
+	virtual Trace::sp_trace clone() const
+	{
 		return boost::make_shared<NewExecutionEvent>(this);
 	}
 
-	virtual std::string getParams() const {
+	virtual std::string getParams() const
+	{
 		return boost::lexical_cast<std::string>(start_time) + " " + prog_lang_used;
 	}
 
-	int getStartTime() const {
+	int getStartTime() const
+	{
 		return start_time;
 	}
 
-	std::string getProgrammingLangageUsed() const {
+	std::string getProgrammingLangageUsed() const
+	{
 		return prog_lang_used;
 	}
 
-private:
-
+  private:
 	int start_time;
 
 	std::string prog_lang_used;
-
 };
 
-class EndExecutionEvent : public Event {
+class EndExecutionEvent : public Event
+{
 
-public:
+  public:
+	EndExecutionEvent(int end_time) : Event(EXECUTION_END_TIME), end_time(end_time) {}
 
-	EndExecutionEvent(int end_time): Event(EXECUTION_END_TIME), end_time(end_time) {}
-
-	EndExecutionEvent(const EndExecutionEvent *eee): Event(eee) {
+	EndExecutionEvent(const EndExecutionEvent *eee) : Event(eee)
+	{
 		end_time = eee->end_time;
 	}
 
-	virtual Trace::sp_trace clone() const {
+	virtual Trace::sp_trace clone() const
+	{
 		return boost::make_shared<EndExecutionEvent>(this);
 	}
 
-	virtual std::string getParams() const {
+	virtual std::string getParams() const
+	{
 		return boost::lexical_cast<std::string>(end_time);
 	}
 
-	int getEndTime() const {
+	int getEndTime() const
+	{
 		return end_time;
 	}
 
-private:
-
+  private:
 	int end_time;
-
 };
 
 #endif

@@ -28,10 +28,10 @@
  * \class CallMaps
  * \brief Classe utilisée pour le chargement des paramètres de compression à partir du fichier JSON 'params.json'.
  */
-class CallMaps {
+class CallMaps
+{
 
 public:
-
 	/**
 	  * \brief Constructeur de la classe CallMaps.
 	  */
@@ -46,52 +46,67 @@ public:
 		* \param p_lang : une chaîne de caractères décrivant le langage de programmation utilisé.
 		* \param h_lang : une chaîne de caractères décrivant la langue utilisée.
 	  */
-	void initMaps(const std::string& json, const std::string& p_lang, const std::string& h_lang) {
+	void initMaps(const std::string &json, const std::string &p_lang, const std::string &h_lang)
+	{
 		loaded = false;
 		keyToUsefullParams_map.clear();
 		keyToCallType_map.clear();
 		keyToPublicLabel_map.clear();
-		try {
+		try
+		{
 			rapidjson::Document doc;
 			if (doc.Parse<0>(json.c_str()).HasParseError())
 				throw std::runtime_error("parse error");
-			if (doc.IsObject()) {
-				for (rapidjson::Value::ConstMemberIterator it = doc.MemberBegin(); it != doc.MemberEnd(); it++) {
+			if (doc.IsObject())
+			{
+				for (rapidjson::Value::ConstMemberIterator it = doc.MemberBegin(); it != doc.MemberEnd(); it++)
+				{
 					string_vector v;
 					std::string label = it->name.GetString();
-					if (label.compare("_comment") != 0){ // exlude json comments
-						for (rapidjson::Value::ConstMemberIterator _it = it->value.MemberBegin(); _it != it->value.MemberEnd(); _it++) {
+					if (label.compare("_comment") != 0)
+					{ // exlude json comments
+						for (rapidjson::Value::ConstMemberIterator _it = it->value.MemberBegin(); _it != it->value.MemberEnd(); _it++)
+						{
 							std::string key = _it->name.GetString();
 							if (_it->value.IsBool() && _it->value.GetBool())
 								v.push_back(key);
-							else if (key.compare("call_type") == 0){
+							else if (key.compare("call_type") == 0)
+							{
 								std::string call_type = _it->value.GetString();
 								keyToCallType_map.insert(std::pair<std::string, std::string>(label, call_type));
-							} else if (key.compare(p_lang+"_public_label") == 0){
+							}
+							else if (key.compare(p_lang + "_public_label") == 0)
+							{
 								std::string public_label = _it->value.GetString();
-								if (public_label.find("["+h_lang+"]")!=std::string::npos){ // try to find human language use in game
-									std::string locale_label = public_label.substr (public_label.find("["+h_lang+"]")+4);
+								if (public_label.find("[" + h_lang + "]") != std::string::npos)
+								{ // try to find human language use in game
+									std::string locale_label = public_label.substr(public_label.find("[" + h_lang + "]") + 4);
 									// try to find second end token
-									if (locale_label.find("["+h_lang+"]")!=std::string::npos){
-										public_label = locale_label.substr (0, locale_label.find("["+h_lang+"]"));
+									if (locale_label.find("[" + h_lang + "]") != std::string::npos)
+									{
+										public_label = locale_label.substr(0, locale_label.find("[" + h_lang + "]"));
 									}
-								} else if (public_label.find("[en]")!=std::string::npos){ // try to find default one "english"
-									std::string locale_label = public_label.substr (public_label.find("[en]")+4);
+								}
+								else if (public_label.find("[en]") != std::string::npos)
+								{ // try to find default one "english"
+									std::string locale_label = public_label.substr(public_label.find("[en]") + 4);
 									// try to find second end token
-									if (locale_label.find("[en]")!=std::string::npos){
-										public_label = locale_label.substr (0, locale_label.find("[en]"));
+									if (locale_label.find("[en]") != std::string::npos)
+									{
+										public_label = locale_label.substr(0, locale_label.find("[en]"));
 									}
 								}
 								keyToPublicLabel_map.insert(std::pair<std::string, std::string>(label, public_label));
 							}
 						}
-						keyToUsefullParams_map.insert(std::pair<std::string,string_vector>(label,v));
+						keyToUsefullParams_map.insert(std::pair<std::string, string_vector>(label, v));
 					}
 				}
 				loaded = true;
 			}
 		}
-		catch (const std::runtime_error& e) {
+		catch (const std::runtime_error &e)
+		{
 			std::cout << e.what() << std::endl;
 		}
 	}
@@ -107,7 +122,8 @@ public:
 	  *
 	  * \return vrai si la valeur du paramètre \p param de la clé \p key doit être pris en considération lors de la compression et faux sinon.
 	  */
-	bool contains(std::string key, std::string param) const {
+	bool contains(std::string key, std::string param) const
+	{
 		if (!loaded)
 			return false;
 		// retourne vrai si on trouve une clé dans la map correspondante à "key" et dont sa valeur contient "param"
@@ -123,7 +139,8 @@ public:
 	  *
 	  * \return le type d'appel associé à la clé \p key.
 	  */
-	std::string getCallType(std::string key) const {
+	std::string getCallType(std::string key) const
+	{
 		if (!loaded || keyToCallType_map.find(key) == keyToCallType_map.end())
 			return CALL_WITH_NO_PARAMS;
 		else
@@ -139,7 +156,8 @@ public:
 	  *
 	  * \return le label (dépendant du langage de programmation utilisé) associé à la clé \p key.
 	  */
-	std::string getLabel(std::string key) const {
+	std::string getLabel(std::string key) const
+	{
 		if (!loaded || keyToPublicLabel_map.find(key) == keyToPublicLabel_map.end())
 			return "Unknown";
 		else
@@ -147,40 +165,37 @@ public:
 	}
 
 private:
-
 	typedef std::vector<std::string> string_vector;
 
 	/**
 	  * Une entrée key:param signifie que le paramètre param de la fonction key doit être pris en considération pour la compression, i.e. que les valeurs de ce paramètre pour deux appels doivent être égaux pour que ces deux appels puissent être considérés comme égaux.
 	  */
-	std::map<std::string,string_vector> keyToUsefullParams_map;
+	std::map<std::string, string_vector> keyToUsefullParams_map;
 
 	/**
 	  * Donne l'association entre une clé et un type d'appel (voir fichiers "params.json").
 	  */
-	std::map<std::string,std::string> keyToCallType_map;
+	std::map<std::string, std::string> keyToCallType_map;
 
 	/**
 	  * Donne l'association entre une clé et un label dépendant du langage de programmation utilisé (voir fichiers "params.json").
 	  */
-	std::map<std::string,std::string> keyToPublicLabel_map;
+	std::map<std::string, std::string> keyToPublicLabel_map;
 
 	/**
 	  * Un booléen mis à vrai lorsque la fonction CallMaps::initMaps a été appelée et que les paramètres de compression ont bien été chargés.
 	  */
 	bool loaded;
-
 };
-
 
 /**
  * \class Call
  * \brief Classe abstraite héritant de Trace. Cette classe sert de classe mère pour toutes les classes définies dans le fichier CallDef.h.
  */
-class Call : public Trace {
+class Call : public Trace
+{
 
 public:
-
 	/**
 	  * Définition du type pointeur intelligent vers un objet Call.
 	  */
@@ -191,7 +206,8 @@ public:
 	/**
 	  * \brief Enumération utilisée pour connaître le type d'erreur associé à l'objet Call.
 	  */
-	enum ErrorType {
+	enum ErrorType
+	{
 		NONE = -1,
 		UNIT_NOT_FOUND,
 		NOT_UNIT_OWNER,
@@ -219,27 +235,27 @@ public:
 	/**
 	  * Objet permettant de récupérer la chaîne de caractères associée au code du type d'unité. Ces codes sont propres à chaque jeu, cette map est donc normalement initialisée par le moteur en fonction du mod chargé.
 	  */
-	static std::map<int,std::string> units_id_map;
+	static std::map<int, std::string> units_id_map;
 
 	/**
 	  * Objet permettant de récupérer la chaîne de caractères associée au code du type d'ordre. Ces codes sont propres à chaque jeu, cette map est donc normalement initialisée par le moteur en fonction du mod chargé.
 	  */
-	static std::map<int,std::string> orders_map;
+	static std::map<int, std::string> orders_map;
 
 	/**
 	  * Objet permettant de récupérer la chaîne de caractères associée au code du type de ressource. Ces codes sont propres à chaque jeu, cette map est donc normalement initialisée par le moteur en fonction du mod chargé.
 	  */
-	static std::map<int,std::string> resources_map;
+	static std::map<int, std::string> resources_map;
 
 	/**
 	  * Tableau contenant les chaînes de caractères associées aux différentes valeurs définies dans l'enumération Call::ErrorType.
 	  */
-	static const char* errorsArr[];
+	static const char *errorsArr[];
 
 	/**
 	  * Tableau contenant les chaînes de caractères associées aux différentes valeurs définies dans l'enumération CallMisc::Coalition.
 	  */
-	static const char* coalitionsArr[];
+	static const char *coalitionsArr[];
 
 	/**
 	  * Variable utilisée pour le chargement et le stockage des paramètres de compression.
@@ -260,9 +276,10 @@ public:
 	  *
 	  * \see Call::getEnumLabel
 	  */
-	template<typename E>
-	static E getEnumType(const char *ch, const char **arr) {
-		return static_cast<E>(Trace::inArray(ch,arr));
+	template <typename E>
+	static E getEnumType(const char *ch, const char **arr)
+	{
+		return static_cast<E>(Trace::inArray(ch, arr));
 	}
 
 	/**
@@ -277,8 +294,9 @@ public:
 	  *
 	  * \see Call::getEnumType
 	  */
-	template<typename E>
-	static const char* getEnumLabel(E e, const char **arr) {
+	template <typename E>
+	static const char *getEnumLabel(E e, const char **arr)
+	{
 		int ind = static_cast<int>(e);
 		if (ind > -1)
 			return arr[ind];
@@ -290,7 +308,7 @@ public:
 	  *
 	  * \return 1
 	  */
-	virtual unsigned int length() const;
+	virtual unsigned int length(int start = 0, bool processOptions = true) const;
 
 	/**
 	  * \brief Comparaison de l'objet Call avec une trace \p t.
@@ -418,7 +436,6 @@ public:
 	void setReturn();
 
 protected:
-
 	/**
 		* \brief Indique si l'appel a un retour.
 		*
@@ -455,7 +472,7 @@ protected:
 	  *
 	  * \see Call::getEditDistance
 	  */
-	virtual std::pair<int,int> distance(const Call *c) const = 0;
+	virtual std::pair<int, int> distance(const Call *c) const = 0;
 
 	/**
 	  * \see Call::getListIdWrongParams
@@ -481,7 +498,6 @@ protected:
 	  * Tableau contenant les valeurs de retour de l'appel à la fonction Call::key.
 	  */
 	float ret[MAX_SIZE_PARAMS];
-
 };
 
 #endif

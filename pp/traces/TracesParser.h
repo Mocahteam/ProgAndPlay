@@ -34,10 +34,10 @@
  *
  * \brief La classe TracesParser définit les méthodes de parsing de fichiers de traces brutes (que ce soit dans le contexte d'une partie de jeu ou en ligne de commandes), les différentes fonctions de l'algorithme hors-ligne, et les fonctions d'export et d'import de traces à partir d'un document XML.
  */
-class TracesParser {
+class TracesParser
+{
 
 public:
-
 	/**
 	  * \brief Constructeur de TracesParser.
 	  */
@@ -53,7 +53,7 @@ public:
 	/**
 	 * Outputstream for debug
 	 **/
-	static std::ostream& osParser;
+	static std::ostream &osParser;
 
 	/**
 	  * \brief Lancement de la compression de traces brutes avec l'algorithme de compression hors-ligne.
@@ -61,7 +61,7 @@ public:
 	  * \param logs contenu des traces brutes
 	  * \param waitEndFlag si true (défaut) l'appel est bloquant jusqu'à ce que le flag "end" soit activé (voir TraceParser::setEnd) - utile si le flux d'entrée (logs) est alimenté en même temps qu'il est lu (cas de Prog&Play). Si false le flux d'entrée est lu et analysé en une seule fois.
 	  */
-	void parseLogs(std::istream& logs, bool waitEndFlag = true);
+	void parseLogs(std::istream &logs, bool waitEndFlag = true);
 
 	/**
 	  * \brief Setter pour la variable TracesParser::end.
@@ -93,17 +93,17 @@ public:
 	  * \see TracesParser::proceed
 	  */
 	void setProceed(bool proceed);
-	
+
 	/*
 	 * Contient le résultat de la dernière compression en texte brut
 	 */
 	std::string lastCompression;
-	
+
 	/*
 	 * Contient le résultat de la dernière compression sous une forme XML
 	 */
 	rapidxml::xml_document<> lastCompressionXML;
-	
+
 	/**
 		* \brief Set human langage
 		*/
@@ -119,7 +119,7 @@ public:
 	  *
 	  * \return le vecteur de traces construit à la fin de l'import.
 	  */
-	static std::vector<Trace::sp_trace> importTraceFromXml(const std::string& xml, std::ostream& os);
+	static std::vector<Trace::sp_trace> importTraceFromXml(const std::string &xml, std::ostream &os);
 
 	/**
 	  * \brief Importation de traces à partir d'un noeud de document XML.
@@ -129,7 +129,7 @@ public:
 	  * \param node le noeud à partir duquel le document XML est parsé.
 	  * \param traces le vecteur de traces dans lequel les nouvelles traces créées sont ajoutées.
 	  */
-	static void importTraceFromNode(rapidxml::xml_node<> *node, std::vector<Trace::sp_trace>& traces);
+	static void importTraceFromNode(rapidxml::xml_node<> *node, std::vector<Trace::sp_trace> &traces);
 
 	/**
 	  * \brief Détermination du nombre de noeuds fils d'un noeud dans un document XML.
@@ -147,7 +147,7 @@ public:
 	  *
 	  * \return un pointeur intelligent de type Trace::sp_trace pointant vers l'objet Trace créé, ou NULL si aucun objet n'a pu être créé à partir de la chaine de caractère (dans ce cas d'autres variable statiques ont pu être initialisées).
 	  */
-	static Trace::sp_trace parseLine(const std::string& s);
+	static Trace::sp_trace parseLine(const std::string &s);
 
 	/**
 	  * \brief Fonction permettant de découper une chaîne de caractères en se basant sur un délimiteur.
@@ -159,7 +159,7 @@ public:
 	  *
 	  * \return le vecteur construit lors du découpage de la chaîne.
 	  */
-	static std::vector<std::string> splitLine(const std::string& s, char delim = ' ');
+	static std::vector<std::string> splitLine(const std::string &s, char delim = ' ');
 
 	/**
 	  * Le nom de la mission correspondante aux traces.
@@ -172,7 +172,6 @@ public:
 	static std::string params_json;
 
 private:
-
 	/**
 	  * La valeur du timestamp de fin de mission.
 	  */
@@ -241,7 +240,7 @@ private:
 	  *
 	  * \param spt une nouvelle trace à ajouter dans le vecteur TracesParser::traces.
 	  */
-	void inlineCompression(Trace::sp_trace& spt);
+	void inlineCompression(Trace::sp_trace &spt);
 
 	/**
 	  * \brief Fonction de compression
@@ -266,7 +265,7 @@ private:
 	  *
 	  * \return la valeur résultante de la conversion.
 	  */
-	static int stoi(const std::string& s);
+	static int stoi(const std::string &s);
 
 	/**
 	  * \brief Conversion d'une chaîne de caractères en flottant.
@@ -276,7 +275,7 @@ private:
 	  *
 	  * \return la valeur résultante de la conversion.
 	  */
-	static float stof(const std::string& s);
+	static float stof(const std::string &s);
 };
 
 #endif

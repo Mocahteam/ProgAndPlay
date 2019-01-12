@@ -16,10 +16,10 @@
  * \class Event
  * \brief Classe héritant de Trace. Cette classe sert de classe mère pour toutes les classes définies dans le fichier EventDef.h.
  */
-class Event : public Trace {
+class Event : public Trace
+{
 
 public:
-
 	/**
 	  * Définition du type pointeur intelligent vers un objet Event.
 	  */
@@ -43,19 +43,19 @@ public:
 	  *
 	  * \see TracesParser::parseLine
 	  */
-	static const char* concatEventsArr[];
+	static const char *concatEventsArr[];
 
 	/**
 	  * Tableau contenant les labels des événements définissant les débuts/fins de mission/d'éxécution.
 	  */
-	static const char* noConcatEventsArr[];
+	static const char *noConcatEventsArr[];
 
 	/**
 	  * \brief Récupération de la longueur (l'espace occupé dans un vecteur de traces) d'un événement.
 	  *
 	  * \return 0
 	  */
-	virtual unsigned int length() const;
+	virtual unsigned int length(int start = 0, bool processOptions = true) const;
 
 	/**
 	  * \brief Comparaison de l'objet Event avec une trace \p t.
@@ -104,12 +104,10 @@ public:
 	std::string getLabel() const;
 
 protected:
-
 	/**
 	  * Le label associé permettant d'identifier l'événement modélisé par l'objet Event.
 	  */
 	std::string label;
-
 };
 
 #endif

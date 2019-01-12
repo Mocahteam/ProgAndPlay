@@ -96,16 +96,17 @@
   *
   * \brief La classe TracesAnalyser définit l'ensemble des traitements relatifs à l'analyse des traces.
   */
-class TracesAnalyser {
+class TracesAnalyser
+{
 
 public:
-
-	typedef std::vector< std::pair<int,int> > path;
+	typedef std::vector< std::pair<int, int> > path;
 
 	/**
 	  * Enumération utilisée pour connaître le type de feedback.
 	  */
-	enum FeedbackType {
+	enum FeedbackType
+	{
 		NONE = -1,
 		/**
 		  * La plupart des experts ont utilisé cet appel mais pas le joueur. Paramétrable avec TracesAnalyser::USEFUL_FREQ.
@@ -148,17 +149,18 @@ public:
 	/**
 	  * Tableau contenant les chaînes de caractères associées aux différents types de feedback.
 	  */
-	static const char* feedbackTypesArr[];
+	static const char *feedbackTypesArr[];
 
 	/**
 	  * Objet permettant d'associer un message (qui pourra être utilisé pour le retour donné au joueur) à un identifiant.
 	  */
-	static std::map<std::string,std::string> messages_map;
+	static std::map<std::string, std::string> messages_map;
 
 	/**
 	  * Structure utilisée pour contenir un ensemble d'informations sur un retour qui pourrait être donné au joueur.
 	  */
-	struct Feedback {
+	struct Feedback
+	{
 
 		/**
 		 * Définition du type du feedback. Ce champ est obligatoire dans le fichier XML de définition de feedbacks.
@@ -204,7 +206,8 @@ public:
 		  * \param f l'objet Feedback utilisé pour la comparaison.
 		  *
 		  */
-		bool operator<(const Feedback& f) const {
+		bool operator<(const Feedback &f) const
+		{
 			return priority < f.priority || (learner_spt && f.learner_spt && learner_spt->getLevel() < f.learner_spt->getLevel()) || (expert_spt && f.expert_spt && expert_spt->getLevel() < f.expert_spt->getLevel()) || (defined && !f.defined);
 		}
 
@@ -214,26 +217,29 @@ public:
 	      * \param os le flux de sortie utilisé pour l'export.
 	      *
 	      */
-		void exportAsString(std::ostream &os = std::cout) {
+		void exportAsString(std::ostream &os = std::cout)
+		{
 			os << "feedback : " << info << std::endl;
-			os << "type : " << std::string(Call::getEnumLabel<FeedbackType>(type,feedbackTypesArr)) << std::endl;
-			if (learner_spt) {
+			os << "type : " << std::string(Call::getEnumLabel<FeedbackType>(type, feedbackTypesArr)) << std::endl;
+			if (learner_spt)
+			{
 				os << "learner : " << std::endl;
 				learner_spt->exportAsString(os);
 			}
-			if (expert_spt) {
+			if (expert_spt)
+			{
 				os << "expert : " << std::endl;
 				expert_spt->exportAsString(os);
 			}
 			os << "priority : " << priority << std::endl;
 		}
-
 	};
 
 	/**
 	  * Structure utilisée pour contenir un ensemble d'informations sur une trace compressée.
 	  */
-	struct GameInfos {
+	struct GameInfos
+	{
 
 		/**
 		  * Pointeur vers l'objet Event modélisant le lancement de la mission.
@@ -274,7 +280,8 @@ public:
 		/**
 		  * \brief Réinitialise toutes les informations de l'objet GameInfos.
 		  */
-		void clearMission() {
+		void clearMission()
+		{
 			sme = NULL;
 			eme = NULL;
 			mission_traces.clear();
@@ -284,7 +291,8 @@ public:
 		/**
 		  * \brief Réinitialise toutes les informations relatives à une exécution.
 		  */
-		void clearExecution() {
+		void clearExecution()
+		{
 			nee = NULL;
 			eee = NULL;
 			root_sps.reset();
@@ -297,7 +305,8 @@ public:
 		  *
 		  * \return le temps de résolution de la mission (en secondes) si celui-ci peut être calculé, ou -1 sinon.
 		  */
-		int getResolutionTime() {
+		int getResolutionTime()
+		{
 			int time = -1;
 			if (sme != NULL && eme != NULL)
 				time = eme->getEndTime() - sme->getStartTime();
@@ -311,7 +320,8 @@ public:
 		  *
 		  * \return le temps d'exécution du programme (en secondes) si celui-ci peut être calculé, ou -1 sinon.
 		  */
-		int getExecutionTime() {
+		int getExecutionTime()
+		{
 			int time = -1;
 			if (nee != NULL && eee != NULL)
 				time = eee->getEndTime() - nee->getStartTime();
@@ -323,10 +333,12 @@ public:
 		  *
 		  * \return le nombre d'exécutions lancées pour résoudre la mission.
 		  */
-		int getNumExecutions() {
+		int getNumExecutions()
+		{
 			int num = 0;
-			for (unsigned int i = 0; i < mission_traces.size(); i++) {
-				if (mission_traces.at(i)->isEvent() && dynamic_cast<Event*>(mission_traces.at(i).get())->getLabel().compare(EXECUTION_START_TIME) == 0)
+			for (unsigned int i = 0; i < mission_traces.size(); i++)
+			{
+				if (mission_traces.at(i)->isEvent() && dynamic_cast<Event *>(mission_traces.at(i).get())->getLabel().compare(EXECUTION_START_TIME) == 0)
 					num++;
 			}
 			return num;
@@ -339,29 +351,36 @@ public:
 		  *
 		  * \return le temps moyen d'attente (en secondes) entre deux lancements d'exécutions par le joueur si celui-ci peut être calculé, ou -1 sinon.
 		  */
-		double getAverageWaitTime() {
+		double getAverageWaitTime()
+		{
 			EndExecutionEvent *eee = NULL;
 			double avg = 0;
 			int cpt = 0;
 			bool in = false;
-			for (unsigned int i = 0; i < mission_traces.size(); i++) {
-				if (mission_traces.at(i)->isEvent()) {
-					Event *e = dynamic_cast<Event*>(mission_traces.at(i).get());
-					if (e->getLabel().compare(EXECUTION_START_TIME) == 0) {
-						if (!in) {
+			for (unsigned int i = 0; i < mission_traces.size(); i++)
+			{
+				if (mission_traces.at(i)->isEvent())
+				{
+					Event *e = dynamic_cast<Event *>(mission_traces.at(i).get());
+					if (e->getLabel().compare(EXECUTION_START_TIME) == 0)
+					{
+						if (!in)
+						{
 							in = true;
 							cpt++;
-							if (eee != NULL) {
-								avg += dynamic_cast<NewExecutionEvent*>(e)->getStartTime() - eee->getEndTime();
+							if (eee != NULL)
+							{
+								avg += dynamic_cast<NewExecutionEvent *>(e)->getStartTime() - eee->getEndTime();
 								eee = NULL;
 							}
 						}
 						else
 							return -1;
 					}
-					else if (e->getLabel().compare(EXECUTION_END_TIME) == 0) {
+					else if (e->getLabel().compare(EXECUTION_END_TIME) == 0)
+					{
 						in = false;
-						eee = dynamic_cast<EndExecutionEvent*>(e);
+						eee = dynamic_cast<EndExecutionEvent *>(e);
 					}
 				}
 			}
@@ -369,7 +388,6 @@ public:
 				return -1;
 			return avg / cpt;
 		}
-
 	};
 
 	/**
@@ -391,7 +409,7 @@ public:
 	  *
 	  * \return une chaîne de caractères contenant le feedback pour le joueur au format JSON.
 	  */
-	std::string constructFeedback(const std::string& learner_xml, const std::vector<std::string>& experts_xml, int ind_mission = -1, int ind_execution = -1);
+	std::string constructFeedback(const std::string &learner_xml, const std::vector<std::string> &experts_xml, int ind_mission = -1, int ind_execution = -1);
 
 	/**
 	  * \brief Chargement des feedbacks et des messages contenus dans les fichiers XML 'feedbacks.xml'.
@@ -399,7 +417,7 @@ public:
 	  * \param feedbacks_xml la chaîne de caractères correspondant au contenu du fichier 'feedbacks.xml' de base. Cette chaîne doit permettre de charger les feedbacks par défaut, mais aussi les messages. Elle doit obligatoirement être non vide.
 	  * \param mission_feedbacks_xml la chaîne de caractères correspondant au contenu du fichier 'feedbacks.xml' spécifique pour la mission considérée. Cette chaîne doit permettre de charger les feedbacks définis pour la mission. Cette chaîne peut être vide car ces feedbacks ne sont pas obligatoires.
 	  */
-	void loadXmlInfos(const std::string& feedbacks_xml, const std::string& mission_feedbacks_xml);
+	void loadXmlInfos(const std::string &feedbacks_xml, const std::string &mission_feedbacks_xml);
 
 	/**
 	  * \brief Setter pour la variable \p endless_loop.
@@ -458,7 +476,7 @@ public:
 		*
 		* \return un couple (gs,nv) où gs est le score de similarité brut (non normalisé) obtenu à partir du meilleur alignement trouvé et nv est la valeur de normalisation qui doit être utilisée pour ramener ce score dans l'intervalle [0,1].
 		*/
-	static std::pair<double,double> findBestAlignment(const std::vector<Trace::sp_trace>& l, const std::vector<Trace::sp_trace>& e, bool align = true);
+	static std::pair<double, double> findBestAlignment(const std::vector<Trace::sp_trace> &l, const std::vector<Trace::sp_trace> &e, bool align = true);
 
 	/**
 	  * \brief Affichage de l'alignement trouvé entre deux vecteurs de traces.
@@ -466,7 +484,7 @@ public:
 	  * \param l un vecteur de traces correspondant à l'apprenant.
 	  * \param e un vecteur de traces correspondant à l'expert.
 	  */
-	static void displayAlignment(const std::vector<Trace::sp_trace>& l, const std::vector<Trace::sp_trace>& e, std::ostream &os = std::cout);
+	static void displayAlignment(const std::vector<Trace::sp_trace> &l, const std::vector<Trace::sp_trace> &e, std::ostream &os = std::cout);
 
 	/**
 		* \brief Construction d'un vecteur permettant de faciliter le parcours de l'alignement courant entre deux vecteurs de traces.
@@ -496,10 +514,9 @@ public:
 		*
 		* Remarque : Ce qui est appelé "chemin" ici n'est pas de la même nature que le "chemin" utilisé par la fonction TracesAnalyser::findBestAlignment pour trouver le meilleur alignement possible entre deux vecteurs de traces.
 		*/
-	path constructAlignmentPath(const std::vector<Trace::sp_trace>& l, const std::vector<Trace::sp_trace>& e) const;
+	path constructAlignmentPath(const std::vector<Trace::sp_trace> &l, const std::vector<Trace::sp_trace> &e) const;
 
 private:
-
 	/**
 	  * Booléen mis à vrai si une boucle infinie est détectée dans le programme du joueur.
 	  */
@@ -543,7 +560,7 @@ private:
 	  *
 	  * \see TracesAnalyser::listGlobalFeedbacks
 	  */
-	std::map<std::string,double> experts_calls_freq;
+	std::map<std::string, double> experts_calls_freq;
 
 	/**
 	  * \brief Importation des feedbacks de référence.
@@ -574,7 +591,7 @@ private:
 	  *
 	  * \return vrai si des informations sur l'occurrence de la mission indiquée ont été passées à \p gi, et faux sinon.
 	  */
-	bool getInfosOnMission(const std::vector<Trace::sp_trace>& traces, GameInfos& gi, int ind_mission = -1);
+	bool getInfosOnMission(const std::vector<Trace::sp_trace> &traces, GameInfos &gi, int ind_mission = -1);
 
 	/**
 	  * \brief Récupération des traces spécifiques à une occurrence d'exécution à partir des traces correspondantes à un ensemble d'exécutions.
@@ -586,7 +603,7 @@ private:
 	  *
 	  * \return vrai si des informations sur l'occurrence de l'exécution indiquée ont été passées à \p gi, et faux sinon.
 	  */
-	bool getInfosOnExecution(GameInfos& gi, int ind_execution = -1);
+	bool getInfosOnExecution(GameInfos &gi, int ind_execution = -1);
 
 	/**
 	  * \brief Insertion de séquences implicites dans une séquence.
@@ -624,7 +641,7 @@ private:
 	  * \param mod_sps la séquence dans laquelle on ajoute les séquences implicites.
 	  * \param ref_sps la séquence sur laquelle on se base pour ajouter les séquences implicites dans \p mod_sps.
 	  */
-	bool addImplicitSequences(Sequence::sp_sequence& mod_sps, Sequence::sp_sequence& ref_sps) const;
+	bool addImplicitSequences(Sequence::sp_sequence &mod_sps, Sequence::sp_sequence &ref_sps) const;
 
 	/**
 	  * \brief Récupération d'un ensemble de patterns d'appels dans une séquence.
@@ -638,7 +655,7 @@ private:
 	  *
 	  * \return le vecteur contenant les patterns d'appels trouvés dans \p mod_sps.
 	  */
-	std::vector<Call::call_vector> getPatterns(const Sequence::sp_sequence& mod_sps, const Call::call_vector& pattern) const;
+	std::vector<Call::call_vector> getPatterns(const Sequence::sp_sequence &mod_sps, const Call::call_vector &pattern) const;
 
 	/**
 	  * \brief Récupération du premier parent commun.
@@ -649,7 +666,7 @@ private:
 	  *
 	  * \return la séquence contenant l'ensemble des appels contenus dans \p pattern et de plus haut niveau dans la hiérarchie de traces.
 	  */
-	const Sequence::sp_sequence getClosestCommonParent(const Call::call_vector& pattern) const;
+	const Sequence::sp_sequence getClosestCommonParent(const Call::call_vector &pattern) const;
 
 	/**
 	  * \brief Détermination de l'ensemble des feedbacks d'alignement.
@@ -659,7 +676,7 @@ private:
 	  * \param l le vecteur de traces correspondant à l'apprenant.
 	  * \param e le vecteur de traces correspondant à l'expert.
 	  */
-	void listAlignmentFeedbacks(const std::vector<Trace::sp_trace>& l, const std::vector<Trace::sp_trace>& e);
+	void listAlignmentFeedbacks(const std::vector<Trace::sp_trace> &l, const std::vector<Trace::sp_trace> &e);
 
 	/**
 	  * \brief Détermination de l'ensemble des feedbacks globaux.
@@ -684,7 +701,7 @@ private:
 	  * \param sps la première séquence utilisée pour le test de correspondance.
       * \param ref_sps la deuxième séquence du test de correspondance.
 	  */
-	bool feedbackSequencesMatch(const Sequence::sp_sequence& sps, const Sequence::sp_sequence& ref_sps) const;
+	bool feedbackSequencesMatch(const Sequence::sp_sequence &sps, const Sequence::sp_sequence &ref_sps) const;
 
 	/**
 	  * \brief Calcul d'un score de similarité entre les patterns d'un feedback listé et d'un feedback de référence.
@@ -696,7 +713,7 @@ private:
 	  *
 	  * \return le score calculé.
 	  */
-	double getFeedbackScore(const Feedback& f, int j);
+	double getFeedbackScore(const Feedback &f, int j);
 
 	/**
 	  * \brief Filtrage des feedbacks listés
@@ -723,8 +740,7 @@ private:
 	  *
 	  * \return l'indice du feedback trouvé dans le vecteur TracesAnalyser::feedbacks, ou -1 si aucun feedback n'est trouvé.
 	  */
-	int getFeedbackIndex(const Trace::sp_trace& t, FeedbackType type = NONE) const;
-
+	int getFeedbackIndex(const Trace::sp_trace &t, FeedbackType type = NONE) const;
 };
 
 #endif
