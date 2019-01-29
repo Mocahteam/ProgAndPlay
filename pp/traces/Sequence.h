@@ -93,6 +93,14 @@ public:
 	bool findAndProcessOptionalTokens(int startingPoint);
 
 	/**
+	 * \brief Réduit les sous-séquence et exploite les options pour obtenir un résultat toujours englobant mais sans sous-séquences. Ce traitement est possible s'il n'y a qu'une seule séquence non optionnelle dans this->traces.
+	 * 
+	 * Exemple :
+	 *  - Transformer : [[AB]C] en [AB(C)] => dans les deux cas on peut bien construire la séquence ABABCABC par exemple
+	 */
+	void reduceSubsequences();
+
+	/**
 	  * \brief Comparaison de la séquence avec une trace.
 	  *
 	  * Cette fonction permet de tester l'égalité entre l'objet Sequence et une trace \p t. On considère dans ce cas qu'il y a égalité si \p t est une séquence, si les tailles des vecteurs de traces des séquences sont égales à une certaine valeur 'size' et si pour tout i dans [0,size[, on a égalité entre la trace qui se trouve à la position i dans le vecteur de traces de la séquence et la trace qui se trouve à la position i dans le vecteur de traces de la séquence \p t (égalité testée en utilisant la fonction Trace::operator==).
@@ -160,6 +168,11 @@ public:
 	  * \param os : le flux de sortie utilisé pour l'export.
 	  */
 	virtual void exportAsCompressedString(std::ostream &os = std::cout) const;
+
+	/**
+	 * \brief Retourne le premier call de cette séquence, si la première trace de la séquence est une séquence, appelle récursivement getFirstCall sur cette séquence
+	 */
+	Call::sp_call getFirstCall();
 
 	/**
 	  * \brief Réinitialisation récursive de l'alignement de la séquence.
@@ -318,7 +331,7 @@ public:
 	 * C C S C
 	 *
 	 * Est linéarisée de la manière suivante où Sd est une séquence vide dont le champ info maqrue un début de séquence et Sf est une séquence vide dont le champ info maqrue une fin de séquence :
-	 * C C Sd C C Sd C Sf Sf C
+	 * Sd C C Sd C C Sd C Sf Sf C Sf
 	 *
 	 * \param start point de départ de linéarisation de la séquence (valeur par défaut : 0)
      * \param end indice de fin de linéarisation de la séquence (valeur par défaut : -1 => fin de la trace)
@@ -326,6 +339,59 @@ public:
 	 * \return un vecteur de trace représentant une version linéarisée des traces
 	 */
 	std::vector<Trace::sp_trace> &getLinearSequence(int start = 0, int end = -1);
+
+	/**
+	 * \brief exporte une séquence linéarisée sous la forme d'une chaine de caractère et écrit le résultat dans le flux "os"
+	 */
+	static void exportLinearSequenceAsString(std::vector<Trace::sp_trace> & linearSequence, std::ostream &os = std::cout);
+
+	/**
+	 * \brief clone une trace linéarisée
+	 * 
+	 * \param linearSequence trace linéarisée servant de modèle
+	 * 
+	 * \return le clone de linearSequence
+	 */
+	static std::vector<Trace::sp_trace> cloneLinearSequence(std::vector<Trace::sp_trace> & linearSequence);
+
+	/**
+	 * \brief recherche le point de départ d'une séquence dans une trace linéarisée à partir d'une position de départ. Si la position de départ est un début de séquence alors le point de départ est immédiatement retrouné. Si le point de départ n'est pas un début de séquence alors l'algorithme cherchera en amont le début de séquence dans laquelle la position courrante est incluse.
+	 * Exemple:
+	 *         +---+---------+
+	 *         |   |         |
+ 	 *         |   |  +---+  |
+	 *       \ | / |\ | / |  | 
+	 *        \_/  | \_/  |  | 
+	 * Sd C C Sd C C Sd C Sf Sf C Sf
+	 * 
+	 * \param linearSquence une trace linéarisée
+	 * \param indice de départ dans la trace linéarisée passée en paramètre
+	 * 
+	 * \return l'indice de départ dans "linearSequence" de la séquence dans laquelle l'indice "from" est inclus. -1 est retourné si l'algorithme est remonté jusqu'au bout de la trace sans identifié le début de séquence associé à l'indice "from".
+	 */
+	static int getBeginPosOfLinearSequence(std::vector<Trace::sp_trace> & linearSequence, int from);
+
+  /**
+	 * \brief recherche le point terminal d'une séquence dans une trace linéarisée à partir d'une position de départ. Si la position de départ est une fin de séquence alors le point de départ est immédiatement retrouné. Si le point de départ n'est pas une fin de séquence alors l'algorithme cherchera en aval la fin de la séquence dans laquelle la position courrante est incluse.
+	 * Exemple:
+	 *  +---+---------------------+
+	 *  |   |                     |
+ 	 *  |   |         +---+       |
+	 *  |   |         | \ | /   \ | / 
+	 *  |   |         |  \_/     \_/ 
+	 * Sd C C Sd C C Sd C Sf Sf C Sf
+	 * 
+	 * \param linearSquence une trace linéarisée
+	 * \param indice de départ dans la trace linéarisée passée en paramètre
+	 * 
+	 * \return l'indice de départ dans "linearSequence" de la séquence dans laquelle l'indice "from" est inclus. -1 est retourné si l'algorithme est remonté jusqu'au bout de la trace sans identifié le début de séquence associé à l'indice "from".
+	 */
+	static int getEndPosOfLinearSequence(std::vector<Trace::sp_trace> & linearSequence, int from);
+
+	/**
+	 * \brief retourne l'indice dans la trace linéarisée contenant le nième Call. Si num <= 0 retourne l'indice du premier Call de la trace linéarisée. Si num >= au nombre de call dans la trace linéarisée -1 alors l'indice du dernier Call dans la trace linéarisée est retourné. Peut retourner -1 si la strace linéarisée ne contient aucun Call.
+	 */
+	static int getCallPosInLinearSequence (std::vector<Trace::sp_trace> & linearSequence, int num);
 
 	/**
 	  * \brief Récupération de l'ensemble des appels contenus dans la séquence et dans ses sous-séquences.
@@ -374,6 +440,15 @@ public:
 	  * \return la prochaine trace du vecteur Sequence::traces.
 	  */
 	const Trace::sp_trace &next();
+
+	/**
+	  * \brief Récupération de la prochaine trace dans le vecteur de la séquence.
+	  *
+	  * Cette fonction sert à parcourir les traces contenues dans Sequence::traces de façon récursive (contrairement à Sequence::next()), i.e. on rentre dans les séquences (s'il y en a). A chaque appel à Sequence::nextRec, la trace se trouvant à l'indice Sequence::pt dans le vecteur Sequence::traces est retournée, la variable Sequence::pt est incrémentée (pour pointer vers la trace suivante qui sera retournée lors du prochain appel à Sequence::next). Le booléen Sequence::endReached est mis à vrai lorsque la dernière trace du vecteur est retournée.
+	  *
+	  * \return la prochaine trace de la séquence.
+	  */
+	const Trace::sp_trace &nextRec();
 
 	/**
 	  * \brief Réinitialisation du parcours de la séquence
@@ -448,6 +523,15 @@ public:
 	 */
 	static std::pair<int, int> getMaxAlignAndMinOpt(std::vector<Trace::sp_trace> &linearTraces1, std::vector<Trace::sp_trace> &linearTraces2);
 
+	/**
+	 * \brief Compte le nombre de Call alignés et optionnels entre deux séquences linéarisées
+	 *
+	 * \return un couple (nbAlign, nbOpt) où nbAlign indique le nombre de traces alignées et nbOpt indique le nombre de traces optionnelles
+	 *
+	 * \see Sequence::getLinearSequence
+	 */
+	static std::pair<int, int> getNbAlignAndOpt(std::vector<Trace::sp_trace> &linearTraces1, std::vector<Trace::sp_trace> &linearTraces2);
+
 protected:
 	/**
 	 * Un booléen permettant d'indiquer si le nombre d'occurrences de la sequence doit être utilisé lors de l'analyse pour le calcul du score du joueur et pour la détermination des feedbacks. Cette variable est mise à vraie uniquement si l'expert a fixé la valeur de l'attribut 'nb_iteration_fixed' à 'true' pour la séquence dans le fichier XML utilisé pour l'import.
@@ -515,15 +599,6 @@ protected:
 	static void removeFirstCall(std::vector<Trace::sp_trace> &linearTraces);
 
 	/**
-	 * \brief Compte le nombre de Call alignés et optionnels entre deux séquences linéarisées
-	 *
-	 * \return un couple (nbAlign, nbOpt) où nbAlign indique le nombre de traces alignées et nbOpt indique le nombre de traces optionnelles
-	 *
-	 * \see Sequence::getLinearSequence
-	 */
-	static std::pair<int, int> getNbAlignAndOpt(std::vector<Trace::sp_trace> &linearTraces1, std::vector<Trace::sp_trace> &linearTraces2);
-
-	/**
 	  * \brief Fusionne deux séquences
 	  *
 	  * Cette fonction permet de construire une nouvelle séquence la plus générale possible à partir de deux séquences \p sps_up et \p sps_down.
@@ -531,7 +606,7 @@ protected:
 	  * Exemple de cas singuliers :
 	  *  1 - [AB[C]] et [[A]BC] => [[A]B[C]]
 	  *  2 - [[A[B]]C] et [ABC] => [[A[B]]C]
-	  *
+	  *  
 	  * \param sps_up la première séquence passée en entrée de la fusion.
 	  * \param sps_down la seconde séquence passée en entrée de la fusion.
 	  * \param avoidOptionalSequence si true ne réalise la fusion que si aucune séquence optionnelle n'est requise. Si false, la fusion pourra contenir des séquences optionnelles (true par défaut).
@@ -634,6 +709,7 @@ protected:
 	 * Exemple :
 	 *  - ABC[AB]   => [AB(C)]
 	 *  - [AB]CAB   => [(C)AB]
+	 *  - [ABC]AB   => [AB(C)]
 	 */
 	int processUnaggregateTracesDueToInsertedTokens(int seqPos);
 

@@ -9,13 +9,18 @@
 #include "../test/constantList_KP4.1.h"
 
 static std::string dir_path = "./example";
+static std::string output = "";
 static TracesParser tp;
 
-void saveCompressedTraces(const std::string &dir_path, const std::string &filename)
+void saveCompressedTraces(const std::string &filename)
 {
 	// Save compression results as txt file
-	std::string s = "\\" + filename;
-	s.replace(s.find(".log"), 4, "_compressed.txt");
+	std::string s = "\\" + output + ".txt";
+	if (!output.compare(""))
+	{
+		s = "\\" + filename;
+		s.replace(s.find(".log"), 4, "_compressed.txt");
+	}
 	s.insert(0, dir_path);
 	std::cout << "Write compressed traces into " << s << std::endl;
 	std::ofstream ofs(s.c_str(), std::ofstream::out | std::ofstream::trunc);
@@ -25,8 +30,12 @@ void saveCompressedTraces(const std::string &dir_path, const std::string &filena
 		ofs.close();
 	}
 	// Save compression results as xml file
-	s = "\\" + filename;
-	s.replace(s.find(".log"), 4, "_compressed.xml");
+	s = "\\" + output + ".xml";
+	if (!output.compare(""))
+	{
+		s = "\\" + filename;
+		s.replace(s.find(".log"), 4, "_compressed.xml");
+	}
 	s.insert(0, dir_path);
 	std::cout << "Write compressed traces into " << s << std::endl;
 	std::ofstream ofsXml(s.c_str(), std::ofstream::out | std::ofstream::trunc);
@@ -63,7 +72,7 @@ int compressAllTraces(std::string dir_path)
 				std::string s = dir_path + "\\" + filename;
 				std::ifstream ifs(s.c_str(), std::ios::in | std::ios::binary);
 				tp.parseLogs(ifs, false);
-				saveCompressedTraces(dir_path, filename);
+				saveCompressedTraces(filename);
 			}
 		}
 	}
@@ -159,24 +168,32 @@ std::vector<std::string> loadExpertsXml()
 
 int main(int argc, char *argv[])
 {
-	if (argc < 2 || argc > 4 || strcmp(argv[1], "-h") == 0 || strcmp(argv[1], "--help") == 0)
+	if (argc < 2 || argc > 6 || strcmp(argv[1], "-h") == 0 || strcmp(argv[1], "--help") == 0)
 	{
-		std::cout << "Usage : parser all [dir_path]\n";
-		std::cout << "\tall : all complete traces files present in dir_path directory and its subdirectories (recursively) will be compressed\n";
-		std::cout << "\tdir_path : path to the directory containing complete traces files (default ./example/)\n\n";
-		std::cout << "Usage : parser filename [dir_path] [-la]\n";
-		std::cout << "\filename : the complete traces file named filename will be compressed. This file must have the extension .log\n";
-		std::cout << "\tdir_path : path to the directory containing complete traces files (default ./example/)\n";
-		std::cout << "\t-la : launch analysis after compression. If this option is used :\n";
+		std::cout << "Usage: parser all [dir_path]\n";
+		std::cout << "\tall: all complete traces files present in dir_path directory and its subdirectories (recursively) will be compressed\n";
+		std::cout << "\tdir_path: path to the directory containing complete traces files (default ./example/)\n\n";
+		std::cout << "Usage: parser filename [dir_path] [-la] [-o output]\n";
+		std::cout << "\tfilename: the complete traces file named filename will be compressed. This file must have the extension .log\n";
+		std::cout << "\tdir_path: path to the directory containing complete traces files (default ./example/)\n";
+		std::cout << "\t-la: launch analysis after compression. If this option is used :\n";
 		std::cout << "\t\t- \"params.json\" has to be present in the dir_path directory. If no params file exist, the default compression mod will be used.\n";
 		std::cout << "\t\t- \"feedbacks.xml\" has to be present in the dir_path directory\n";
 		std::cout << "\t\t- \"feedbacks.xml\" in the directory \"[dir_path]/expert/[mission_name]\" can be present to add extra feedbacks for the mission\n";
-		std::cout << "\t\t- there must be at least one solution (an XML file) for the mission in the directory \"[dir_path]/expert/[mission_name]\"\n\n";
+		std::cout << "\t\t- there must be at least one solution (an XML file) for the mission in the directory \"[dir_path]/expert/[mission_name]\"\n";
+		std::cout << "\t-o output: the output file name (without extension) to write results (default ./exemple/[filename]_compressed.txt)\n\n";
 		return -1;
 	}
 	bool analysis = (argc == 3 && strcmp(argv[2], "-la") == 0) || (argc == 4 && strcmp(argv[3], "-la") == 0);
-	if (argc >= 3 && strcmp(argv[2], "-la") != 0)
+	if (argc >= 3 && strcmp(argv[2], "-la") != 0 && argc >= 3 && strcmp(argv[2], "-o") != 0)
 		dir_path = argv[2];
+	output = "";
+	if (argc >= 4 && strcmp(argv[2], "-o") == 0)
+		output = argv[3];
+	if (argc >= 5 && strcmp(argv[3], "-o") == 0)
+		output = argv[4];
+	if (argc >= 6 && strcmp(argv[4], "-o") == 0)
+		output = argv[5];
 	// load compression params
 	std::cout << "Try to open params.json file from example directory (" + dir_path + "/)" << std::endl;
 	TracesParser::params_json = loadFile(dir_path + "/params.json");
@@ -204,7 +221,7 @@ int main(int argc, char *argv[])
 		}
 		tp.parseLogs(ifs, false);
 		std::cout << "traces compressed" << std::endl;
-		saveCompressedTraces(dir_path, filename);
+		saveCompressedTraces(filename);
 
 		if (analysis)
 		{

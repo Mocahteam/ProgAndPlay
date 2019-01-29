@@ -828,7 +828,7 @@ std::pair<double, double> TracesAnalyser::findBestAlignment(const std::vector<Tr
 	delete[] val;
 	delete[] ind;
 	delete[] help;
-	osAnalyser << "end findBestAlignment" << std::endl;
+	osAnalyser << "end findBestAlignment " << score << "/" << norm << std::endl;
 	return std::pair<double, double>(score, norm);
 }
 

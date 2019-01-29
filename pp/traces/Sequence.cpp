@@ -10,7 +10,7 @@
 
 bool debug = false;
 
-Sequence::Sequence(std::string info, bool num_fixed) : Trace(SEQUENCE, info), num_fixed(num_fixed), num(0), pt(0), endReached(false), shared(false), root(false) {}
+Sequence::Sequence(std::string info, bool num_fixed) : Trace(SEQUENCE, info), num_fixed(num_fixed), num(1), pt(0), endReached(false), shared(false), root(false) {}
 
 Sequence::Sequence(unsigned int num, bool root, bool opt) : Trace(SEQUENCE), num_fixed(false), num(num), pt(0), endReached(false), shared(false), root(root)
 {
@@ -138,6 +138,27 @@ void Sequence::exportAsCompressedString(std::ostream &os) const
 		os << std::endl;
 }
 
+void Sequence::exportLinearSequenceAsString(std::vector<Trace::sp_trace> & linearSequence, std::ostream &os)
+{
+	for (int i = 0 ; i < (signed)linearSequence.size() ; i++)
+	{
+		if (linearSequence[i]->isOptional())
+			os << "*";
+		if (linearSequence[i]->isSequence())
+			os << "Seq(" << linearSequence[i]->getInfo() << ")\t";
+		else
+			linearSequence[i]->exportAsCompressedString(os);
+	}
+	os << std::endl;
+}
+
+Call::sp_call Sequence::getFirstCall(){
+	Trace::sp_trace tr = at(0);
+	if (tr->isSequence())
+		return boost::dynamic_pointer_cast<Sequence>(tr)->getFirstCall();
+	return boost::dynamic_pointer_cast<Call>(tr);
+}
+
 unsigned int Sequence::length(int start, bool processOptions) const
 {
 	start = start < 0 ? 0 : start;
@@ -254,6 +275,34 @@ const Trace::sp_trace &Sequence::next()
 	return spt;
 }
 
+const Trace::sp_trace &Sequence::nextRec()
+{
+	if (pt >= traces.size())
+		throw std::runtime_error("cannot access to the trace at position 'pt' in 'traces' vector");
+		
+	const Trace::sp_trace &spt = traces.at(pt);
+	if (spt->isSequence())
+	{
+		Sequence::sp_sequence seq = boost::dynamic_pointer_cast<Sequence>(spt);
+		if (seq->isEndReached())
+		{
+			pt++;
+			return nextRec();
+		}
+		else
+			return seq->nextRec();
+	}
+
+	if (pt == traces.size())
+	{
+		pt = 0;
+		endReached = true;
+	}
+	else if (pt == 1 && endReached)
+		endReached = false;
+	return spt;
+}
+
 unsigned int Sequence::getPt() const
 {
 	return pt;
@@ -348,9 +397,7 @@ void Sequence::addIteration(unsigned int nbIter, int appearance)
 {
 	// If no key value exists, we create it and set value to "appearance"
 	if (iterDesc.find(nbIter) == iterDesc.end() && appearance > 0)
-	{
 		iterDesc.insert(std::pair<unsigned int, unsigned int>(nbIter, appearance));
-	}
 	// Else we add appearance to the current value
 	else
 	{
@@ -753,7 +800,9 @@ std::vector<Trace::sp_trace> &Sequence::getLinearSequence(int start, int end)
 			sps->next();
 		std::stack<Sequence::sp_sequence> stack;
 		stack.push(sps);
-		linearizedTraces.push_back(boost::make_shared<Sequence>("Begin", -1));
+		Sequence::sp_sequence tmpSeq = boost::make_shared<Sequence>("Begin", -1);
+		tmpSeq->mergeIterationDescription(sps->getIterationDescription());
+		linearizedTraces.push_back(tmpSeq);
 		while (!stack.empty())
 		{
 			while (!stack.empty() && (sps->isEndReached() || sps->length() == 0))
@@ -774,7 +823,9 @@ std::vector<Trace::sp_trace> &Sequence::getLinearSequence(int start, int end)
 					sps = boost::dynamic_pointer_cast<Sequence>(spt);
 					sps->reset();
 					stack.push(sps);
-					linearizedTraces.push_back(boost::make_shared<Sequence>("Begin", -1));
+					tmpSeq = boost::make_shared<Sequence>("Begin", -1);
+					tmpSeq->mergeIterationDescription(sps->getIterationDescription());
+					linearizedTraces.push_back(tmpSeq);
 				}
 				else
 				{
@@ -785,6 +836,83 @@ std::vector<Trace::sp_trace> &Sequence::getLinearSequence(int start, int end)
 		sps->setPtAndEndState(back_pt, back_endReached);
 	}
 	return linearizedTraces;
+}
+
+std::vector<Trace::sp_trace> Sequence::cloneLinearSequence(std::vector<Trace::sp_trace> & linearSequence)
+{
+	std::vector<Trace::sp_trace> clone;
+	for (int i = 0 ; i < (signed)linearSequence.size() ; i++)
+		clone.push_back(linearSequence.at(i)->clone());
+	return clone;
+}
+
+int Sequence::getBeginPosOfLinearSequence(std::vector<Trace::sp_trace> & linearSequence, int from)
+{
+	int seqCounter = 0;
+	int i = from >= (signed)linearSequence.size() ? linearSequence.size()-1 : from;
+	
+	// Au cas où le point de départ est une fin de séquence, on va toujours commencer à chercher à partir de la trace précédente (évite d'incrémenter seqCounter dans la boucle ci-dessous pour le point de départ s'il s'agit d'une fin de séquence) sauf si le point de départ est un début de séquence au quel cas il faut retourner immediatement
+	if (linearSequence[i]->isSequence() && linearSequence[i]->getInfo().compare("Begin") == 0)
+		return i;
+	else
+		i--;
+	// On remonte la trace jusqu'à trouver le début de la séquence
+	while (i >= 0)
+	{
+		if (linearSequence[i]->isSequence() && linearSequence[i]->getInfo().compare("Begin") == 0)
+			if (seqCounter <= 0)
+				return i;
+			else
+				seqCounter--;
+		else if (linearSequence[i]->isSequence() && linearSequence[i]->getInfo().compare("End") == 0)
+			seqCounter++;
+		i--;
+	}
+	return -1;
+}
+
+int Sequence::getEndPosOfLinearSequence(std::vector<Trace::sp_trace> & linearSequence, int from)
+{
+	int seqCounter = 0;
+	int i = from < 0 ? 0 : from;
+	
+	// Au cas où le point de départ est un début de séquence, on va toujours commencer à chercher à partir de la trace suivante (évite d'incrémenter seqCounter dans la boucle ci-dessous pour le point de départ s'il s'agit d'un début de séquence) sauf si le point de départ est une fin de séquence au quel cas il faut retourner immediatement
+	if (linearSequence[i]->isSequence() && linearSequence[i]->getInfo().compare("End") == 0)
+		return i;
+	else
+		i++;
+	// On remonte la trace jusqu'à trouver le début de la séquence
+	while (i < (signed)linearSequence.size())
+	{
+		if (linearSequence[i]->isSequence() && linearSequence[i]->getInfo().compare("End") == 0)
+			if (seqCounter <= 0)
+				return i;
+			else
+				seqCounter--;
+		else if (linearSequence[i]->isSequence() && linearSequence[i]->getInfo().compare("Begin") == 0)
+			seqCounter++;
+		i++;
+	}
+	return -1;
+}
+
+int Sequence::getCallPosInLinearSequence (std::vector<Trace::sp_trace> & linearSequence, int num)
+{
+	num = num < 0 ? 0 : num;
+	int lastCallFound = -1;
+	for (int i = 0 ; i < (signed)linearSequence.size() ; i++){
+		if (linearSequence[i]->isCall())
+		{
+			if (num <= 0)
+				return i;
+			else
+			{
+				lastCallFound = i;
+				num--;
+			}
+		}
+	}
+	return lastCallFound;
 }
 
 /**
@@ -884,6 +1012,165 @@ Call::call_vector Sequence::getCalls(bool setMod)
 void Sequence::findAndAggregateSuccessiveSequences(int startingPoint)
 {
 	// Taille courrante des fenêtres utilisées pour les fusions. Cette taille augmente progressivement au cours de l'algorithme pour commencer par fusionner des petites séquences puis de plus en plus grandes.
+	unsigned int windowSize = 1;
+	
+	unsigned int workingId;
+	unsigned int upStart;
+	unsigned int endDown;
+	unsigned int lastEndFusion;
+	
+	bool mergeOccurs;
+	
+	// Point de départ dans la trace en fonction de la taille de la fenêtre
+	unsigned int currentStartingPoint = startingPoint;
+	
+	Sequence::sp_sequence sps_up;
+
+	#ifdef DEBUG_PARSER
+		TracesParser::osParser << "WorkingSequence (start at " << startingPoint << "):" << std::endl;
+		Trace::exportAsString(TracesParser::osParser, traces, startingPoint);
+	#endif
+
+	// Lorsque la taille des fenêtres * 2 dépassent la longueur des traces l'algorithme peut s'arrêter. En effet les deux fenêtres couvrent la totalité de la trace et n'ont pas pu être fusionnées, il ne sert donc plus à rien de tenter de continuer à augmenter la taille des fenêtres
+	while(checkFeasibility(windowSize*2, startingPoint)) {
+		// On augmente la taille de la fenêtre
+		windowSize++;
+		#ifdef DEBUG_PARSER
+			TracesParser::osParser << "New window size: " << windowSize << std::endl;
+		#endif
+		std::cout << "New window size: " << windowSize << "; current size: " << size() << "; current length: " << length(startingPoint) << std::endl;
+		// On recherche le point de départ permettant de construire une fenêtre "up" d'une taille supérieure ou égale à celle de la fenêtre
+		while (Trace::getLength(traces, startingPoint, currentStartingPoint) < windowSize)
+			currentStartingPoint++;
+		// On positionne l'indice de travail à ce nouveau point de départ
+		workingId = currentStartingPoint;
+		mergeOccurs = false;
+		
+		// On parcours toutes les traces restantes jusqu'à ce qu'il n'y en ait plus assez pour construire une séquence "down" d'une taille correspondante à celle de la fenêtre
+		while (checkFeasibility(windowSize, workingId)) {
+			if ((size() - workingId) % 100 == 0)
+				std::cout << "Window size: " << windowSize << "; remaining traces: " << size() - workingId << " " << workingId << std::endl;
+			#ifdef DEBUG_PARSER
+				TracesParser::osParser << "WorkingId " << workingId << std::endl;
+				Trace::exportAsString(TracesParser::osParser, traces, startingPoint);
+			#endif
+			// Si la trace courante est un évènement, on passe au suivant
+			if (at(workingId)->isEvent()) {
+				workingId++;
+				#ifdef DEBUG_PARSER
+					TracesParser::osParser << "Move to next trace due to event detection" << std::endl;
+				#endif
+				continue;
+			}
+			// Tentative de création d'une séquence "up" de la taille de la fenêtre (mergeOccurs peut être à true si une fusion vient d'être faite à l'itération précédente, dans ce cas pas besoin de reconstruire la séquence "up" => Autrement dit, il faut construire une séquence "up" s'il n'y a pas eu de fusion à l'itération précédente)
+			if (!mergeOccurs){
+				//  1 - Création d'une séquence "up" pour acceuillir les traces de la fenêtre 
+				sps_up = boost::make_shared<Sequence>(1);
+				//  2 - Intégration des traces précédentes jusqu'à ce que la taille de la fenêtre soit atteinte
+				if (at(workingId-1)->length() == windowSize){
+					// 2.1 - Cas particulier où la trace précédente correspond à la taille de la fenêtre. Dans ce cas là on peut l'utiliser directement sans l'encapsuler dans une sequence artificielle
+					sps_up = boost::dynamic_pointer_cast<Sequence>(at(workingId-1));
+					upStart = workingId-1;
+				} else {
+					// 2.2 - Cas général, on remonte la trace pour construire la séquence "up"
+					// Initialisation du compteur sur la trace précédant la position de travail (rappel la trace correspondant à la position de travail fait partie de la séquence "down")
+					unsigned int _cpt = workingId-1;
+					// On construit la séquence "up" en remontant la trace
+					while (sps_up->length() < windowSize){
+						sps_up->addTrace(at(_cpt));
+						_cpt--;
+					}
+					// We reverse "up" vector because we built it from end to start
+					std::reverse(sps_up->getTraces().begin(),sps_up->getTraces().end()); 
+					upStart = _cpt+1;
+				}
+				//  3 - Si la fenêtre "up" n'a pas la taille souhaitée, on avance donc dans l'analyse des traces
+				if (sps_up->length() != windowSize){
+					workingId++;
+					#ifdef DEBUG_PARSER
+						TracesParser::osParser << "Move to next trace due to wrong up sequence size" << std::endl;
+					#endif
+					continue;
+				}
+			}
+			
+			// Ici nous avons donc une séquence "up" d'une taille correspondant à la fenêtre de recherche
+			// Nous allons maintenant recherche une séquence "down" de la même taille et tenter une fusion
+			
+			// Même algo que pour la construction de la séquence "up"
+			// Tentative de création d'une séquence "down" de la taille de la fenêtre
+			//  1 - Création d'une séquence "down"
+			Sequence::sp_sequence sps_down = boost::make_shared<Sequence>(1);
+			//  2 - Intégration des traces faisant partie de la séquence "down" jusqu'à ce que la taille de la fenêtre soit atteinte
+			if (at(workingId)->length() == windowSize){
+				// 2.1 - Cas particulier où la trace courante correspond à la taille de la fenêtre. Dans ce cas là on peut l'utiliser directement sans l'encapsuler dans une sequence artificielle
+				sps_down = boost::dynamic_pointer_cast<Sequence>(at(workingId));
+				endDown = workingId;
+			} else {
+				// 2.2 - Cas général, on progresse dans la trace pour construire la séquence "down"
+				// Initialisation du compteur pour parcourir la trace en aval (ici pas de -1 car la trace courrante doit être intégrée à la séquence "down")
+				unsigned int _cpt = workingId;
+				// On construit la séquence "down" en avancant dans la trace
+				while (sps_down->length() < windowSize){
+					sps_down->addTrace(at(_cpt));
+					_cpt++;
+				}
+				endDown = _cpt;
+			}
+			//  3 - Si la fenêtre "down" n'a pas la taille souhaitée, on avance donc dans l'analyse des traces
+			if (sps_down->length() != windowSize){
+				workingId++;
+				#ifdef DEBUG_PARSER
+					TracesParser::osParser << "Move to next trace due to wrong down sequence size" << std::endl;
+				#endif
+				continue;
+			}
+			
+			// Ici nous avons donc une séquence "down" d'une taille correspondant à la fenêtre de recherche
+			// Nous allons maintenant tenter de fusionner les séquences "up" et "down"
+			Sequence::sp_sequence sps_res = mergeEquivalentSequences(sps_up, sps_down);
+			// Vérifier si la fusion a réussie
+			if (sps_res) {
+				// dans ce cas la séquence "up" devient la fusion
+				sps_up = sps_res;
+				// Optimisation: dans le cas où d'autres séquences "down" serait fusionnable, on continue à descendre dans la trace jusqu'à ce qu'on ne puisse plus fusionner. On ne nettoiera la trace qu'à ce moment là (suppression des séquences et ajout de la fusion).
+				mergeOccurs = true;
+				lastEndFusion = endDown;
+				// on repositionne l'indice de travail juste après la séquence "down"
+				workingId = endDown;
+			}
+			else{
+				// La fusion a échoué, si des fusions précédentes ont été détectées dans les itérations présédentes => on nettoie la trace
+				if (mergeOccurs){
+					cleanTracesAndAddMerge(traces, sps_up, upStart, lastEndFusion);
+					// On repositionne l'indice de travail sur l'élément fusionné
+					workingId = upStart;
+					// Repositionner le dernier point de départ si la fusion a créé un décallage
+					// Exemple : soit la trace [AB*ABC] avec une fenêtre de 2 où * indique le dernier point de départ. Dans ce cas là "up" <=> [AB] et "down" <=> [AB]. la fusion va donc donner [[AB]C]. Si le dernier point de départ n'est pas recallé on sera dans la situation [[AB]C*] et la trace C sera "sautée". Il faut que le dernier point de départ soit repositionné au départ de la dernière fusion si celle-ci se trouve en amont : [*[AB]C]
+					if (upStart < currentStartingPoint)
+						currentStartingPoint = upStart;
+					
+				}
+
+				// on avance maintenant dans l'analyse des traces
+				workingId++;
+				#ifdef DEBUG_PARSER
+					TracesParser::osParser << "Move to next trace due to fusion failed" << std::endl;
+				#endif
+				mergeOccurs = false;
+			}
+		}
+		// Gérer une éventuelle fusion en attente
+		if (mergeOccurs){
+			cleanTracesAndAddMerge(traces, sps_up, upStart, lastEndFusion);
+			// Voir commentaire du même "if" précédant 
+			if (upStart < currentStartingPoint)
+				currentStartingPoint = upStart;
+		}
+	}
+
+
+/*	// Taille courrante des fenêtres utilisées pour les fusions. Cette taille augmente progressivement au cours de l'algorithme pour commencer par fusionner des petites séquences puis de plus en plus grandes.
 	int minWindowSize = 1;
 
 	int workingId;
@@ -1049,7 +1336,7 @@ void Sequence::findAndAggregateSuccessiveSequences(int startingPoint)
 			if (upStart < currentStartingPoint)
 				currentStartingPoint = upStart;
 		}
-	}
+	}*/
 }
 
 // Construit itérativement des fenêtres à partir de workingId d'une taille allant de 1 à maxLength et tente de les fusionner avec sps_up. Si un de ces alignements fournit un meilleur score que celui passé en paramètre alors bestScore et endDown sont mis à jour (bestMerge contient le résultat de la fusion uniquement si un bestScore est obtenu pour une taille de fenêtre up originale ; endDown contient la position dans this->trace de la fin de cette fusion).
@@ -1170,38 +1457,14 @@ Sequence::sp_sequence Sequence::mergeAlignedSequences(Sequence::sp_sequence seq1
 		// Check if the first trace is aligned with a hole => move it as optional
 		else if (i < seq1->size() && seq1->at(i)->getAligned().expired())
 		{
-			if (!seq1->at(i)->isSequence())
-			{
-				// construction de la sequence optionnelle
-				Sequence::sp_sequence sps_opt = boost::make_shared<Sequence>(1, false, true);
-				// Ajout du call
-				sps_opt->addTrace(seq1->at(i));
-				sps_merging->addTrace(sps_opt);
-			}
-			else
-			{
-				Sequence::sp_sequence seqTmp = boost::dynamic_pointer_cast<Sequence>(seq1->at(i));
-				seqTmp->setOptional(true);
-				sps_merging->addTrace(seqTmp);
-			}
+			seq1->at(i)->setOptional(true);
+			sps_merging->addTrace(seq1->at(i));
 			i++;
 		}
 		else if (j < seq2->size() && seq2->at(j)->getAligned().expired())
 		{
-			if (!seq2->at(j)->isSequence())
-			{
-				// construction de la sequence optionnelle
-				Sequence::sp_sequence sps_opt = boost::make_shared<Sequence>(1, false, true);
-				// Ajout du call
-				sps_opt->addTrace(seq2->at(j));
-				sps_merging->addTrace(sps_opt);
-			}
-			else
-			{
-				Sequence::sp_sequence seqTmp = boost::dynamic_pointer_cast<Sequence>(seq2->at(j));
-				seqTmp->setOptional(true);
-				sps_merging->addTrace(seqTmp);
-			}
+			seq2->at(j)->setOptional(true);
+			sps_merging->addTrace(seq2->at(j));
 			j++;
 		}
 	}
@@ -1779,8 +2042,11 @@ bool Sequence::findAndProcessOptionalTokens(int startingPoint)
 		// Si la trace courante est une séquence
 		if (at(currentPos)->isSequence())
 		{
+			Sequence::sp_sequence subseq = boost::dynamic_pointer_cast<Sequence>(at(currentPos));
 			// On traite les parties optionnelles dans cette sous-sequence (appel récursif)
-			boost::dynamic_pointer_cast<Sequence>(at(currentPos))->findAndProcessOptionalTokens(0);
+			subseq->findAndProcessOptionalTokens(0);
+			// On réduit au maximum le nombre de sous-séquences
+			subseq->reduceSubsequences();
 
 			// On récupère le contexte autour de cette séquence
 			int ctxStartPos;
@@ -1824,6 +2090,66 @@ bool Sequence::findAndProcessOptionalTokens(int startingPoint)
 		}
 	}
 	return improvement;
+}
+
+void Sequence::reduceSubsequences()
+{
+	// Récupération de la première séquence et vérification qu'il n'y en a pas plus d'une
+	Sequence::sp_sequence firstSeq;
+	int seqPos = -1;
+	for (int i = 0 ; i < (signed)size() ; i++)
+	{
+		if (at(i)->isSequence() && !at(i)->isOptional())
+		{
+			if (!firstSeq)
+			{
+				firstSeq = boost::dynamic_pointer_cast<Sequence>(at(i));
+				seqPos = i;
+			}
+			else
+				return;
+		}
+	}
+	// S'il n'y a pas de sous-séquence, on a rien à faire
+	if (seqPos == -1)
+		return;
+	// Si on est là c'est que la séquence contient exactement une seule sous-séquence qui n'est pas optionnelle. Donc on va passer toutes les autres traces de la séquence mère en optionel
+	// La sous-séquence non optionnelle peut donc être encadrée par un ensemble de trace en amont et un ensemble de trace en aval
+	Sequence::sp_sequence prevSeq = boost::make_shared<Sequence>(1, false, true);
+	Sequence::sp_sequence nextSeq = boost::make_shared<Sequence>(1, false, true);
+	for (int j = 0 ; j < (signed)size() ; j++)
+		if (j < seqPos)
+			prevSeq->addTrace(at(j));
+		else if (j > seqPos)
+			nextSeq->addTrace(at(j));
+	// Intégration des sous séquences optionnelles en amont
+	if ((signed)prevSeq->size() > 0)
+	{
+		traces.erase(traces.begin(), traces.begin()+seqPos);
+		// gestion des cas où la partie en amont ne contient qu'une seule trace. Dans ce cas là pas utile de l'encapsuler dans une séquence
+		if ((signed)prevSeq->size() == 1)
+			addTrace (prevSeq->at(0), 0);
+		else
+			addTrace (prevSeq, 0);
+		// Décallage de la position de la séquence référence, elle se trouve maintenant à l'indice 1 (juste après la trace optionnelle en amont qui elle se trouve en 0)
+		seqPos = 1;
+	}
+	// Intégration des sous séquences optionnelles en amont
+	if ((signed)nextSeq->size() > 0)
+	{
+		traces.erase(traces.begin() + seqPos + 1, traces.end());
+		// gestion des cas où la partie en aval ne contient qu'une seule trace. Dans ce cas là pas utile de l'encapsuler dans une séquence
+		if ((signed)nextSeq->size() == 1)
+			addTrace (nextSeq->at(0), seqPos + 1);
+		else
+			addTrace (nextSeq, seqPos + 1);
+	}
+
+	// Maintenant on peut transférer tout le contenu de la sous-séquence dans la séquence mère
+	for (int j = firstSeq->size()-1 ; j >= 0 ; j--)
+		this->addTrace(firstSeq->at(j), seqPos+1);
+	// On termine en supprimant la sous-séquence
+	traces.erase(traces.begin() + seqPos);
 }
 
 std::pair<int, Sequence::sp_sequence> Sequence::extractContext(int currentPos, int *startPos, int *endPos)
@@ -2011,8 +2337,8 @@ int Sequence::processUnaggregateTracesDueToInsertedTokens(int seqPos)
 		// =================================================
 		// Calcul du meilleur score d'alignement entre la séquence référence et les traces précédant la séquence référence. On cherche le meilleur alignement à savoir celui qui permet d'aligner le plus de traces de la séquence avec le moins de trous possibles (maximiser le nombre d'alignement et minimiser la lonqueur des traces)
 		// On va donc chercher le meilleur alignement en augmentant progressivement la fenêtre d'alignement en amont de la séquence courrante
-		// On commence en positionnant le curseur d'analyse en amont à une taille de la séquence courrante
-		int reverseCounterPos = seqPos - seq->size();
+		// On commence en positionnant le curseur d'analyse en amont de la séquence courrante
+		int reverseCounterPos = seqPos - 1;
 		// et on ne compte pas les traces optionnelles
 		for (std::vector<Trace::sp_trace>::iterator it = seq->getTraces().begin(); it != seq->getTraces().end(); it++)
 			if ((*it)->isOptional())
@@ -2060,12 +2386,8 @@ int Sequence::processUnaggregateTracesDueToInsertedTokens(int seqPos)
 		// =================================================
 		// Calcul du meilleur score d'alignement entre la séquence référence et les traces suivant la séquence référence. On cherche le meilleur alignement à savoir celui qui permet d'aligner le plus de traces de la séquence avec le moins de trous possibles (maximiser le nombre d'alignement et minimiser la lonqueur des traces)
 		// On va donc chercher le meilleur alignement en augmentant progressivement la fenêtre d'alignement en aval de la séquence courrante
-		// On commence en positionnant le curseur d'analyse en aval à une taille de la séquence courrante
-		int counterPos = seqPos + seq->size() + 1;
-		// et on ne compte pas les traces optionnelles
-		for (std::vector<Trace::sp_trace>::iterator it = seq->getTraces().begin(); it != seq->getTraces().end(); it++)
-			if ((*it)->isOptional())
-				counterPos--;
+		// On commence en positionnant le curseur juste après la séquence courrante
+		int counterPos = seqPos + 1;
 		bestScore = 0;
 		bestPos = counterPos;
 		// On va augmenter la fenêtre jusqu'à atteindre la position max
@@ -2083,7 +2405,6 @@ int Sequence::processUnaggregateTracesDueToInsertedTokens(int seqPos)
 			}
 			counterPos++;
 		}
-
 		// Si le meilleur score calculé est supérieur au seuil => procéder à la fusion et ajouter les traces optionnelles
 		if (bestScore >= MIN_SCORE)
 		{
@@ -2152,8 +2473,13 @@ int Sequence::processInclusiveSequences(int seqPos)
 				// Ajout des traces intercallées s'il y en avait
 				if (bestPos - seqPos > 1)
 				{
-					seq_inserted->setOptional(true);
-					sps_merged->addTrace(seq_inserted);
+					Trace::sp_trace tr_inserted = seq_inserted;
+					// gestion du cas où il n'y a qu'une seule trace intercallée
+					if (seq_inserted->isSequence() && seq_inserted->length() == 1)
+						tr_inserted = seq_inserted->at(0);
+					// Définir ces traces intercallées comme des options et les ajouter à la fusion
+					tr_inserted->setOptional(true);
+					sps_merged->addTrace(tr_inserted);
 				}
 				// Supprimer les éléments fusionnés
 				traces.erase(traces.begin() + seqPos + 1, traces.begin() + bestPos + 1);
@@ -2180,7 +2506,7 @@ std::pair<double, double> Sequence::computeBestCorrectedScore(std::vector<Trace:
 			// Si aucun alignement a été possible pour cette séquence MAIS que c'est une séquence optionnelle => on remonte le score
 			if ((*it)->getAligned().expired() && seqTmp->isOptional())
 				res.second--;
-			// Si aucun alignement a été possible pour cette séquence ET que ce n'est pas une séquenc eoptionnelle => on baisse le score
+			// Si aucun alignement a été possible pour cette séquence ET que ce n'est pas une séquence optionnelle => on baisse le score
 			if ((*it)->getAligned().expired() && !seqTmp->isOptional())
 				res.second += seqTmp->length() - 1;
 		}
