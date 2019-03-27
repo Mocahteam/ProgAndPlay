@@ -465,18 +465,8 @@ int PP_Unit_UntargetedAction(PP_Unit unit, int action, float param, int synchron
 			PP_PushMessage_prim(oss.str().c_str(), &ret);
 		exitCriticalSection();
 		if (synchronized != 0){
-			// waiting that the order is adding into pending commands. We wait approximately
-			// 1000ms. We know that for each 8 entrance in critical section Prog&Play makes a
-			// a pause (1ms) to avoid cpu consuming. In orderWithOneParamFound function only 1 call
-			// of Prog&Play was done and so 8000 calls of this function will consume 1000ms in the
-			// better case. 
-			int cpt = 0;
-			while (!orderWithOneParamFound(unit, action, param) && cpt < 8000)
-				cpt++;
-			if (cpt < 8000){
-				// waiting that the order is over pending commands
-				while (orderWithOneParamFound(unit, action, param));
-			}
+			// We can't use here the same solution than actionOnPosition/Unit because untargetd actions don't take time and will not be queued to Spring unit pending commands. Synchronized mode consists in simply check if actions have been processed by game engine 
+			while (isRemainingCommand(unit));
 		}
 	}
 	if (ret < 0)

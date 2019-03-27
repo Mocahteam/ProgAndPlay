@@ -258,6 +258,13 @@ int orderOnPositionFound(PP_Unit unitId, int actionId, PP_Pos target){
 	return orderFound;
 }
 
+/*
+ * Check if unit with id "unitId" has a command to be process by engine
+ */
+int isRemainingCommand(PP_Unit unitId){
+	return shd.pendingCommand->find(unitId) != shd.pendingCommand->end();
+}
+
 /******************************************************************************/
 /* Functions to communicate with the game                                     */
 /******************************************************************************/

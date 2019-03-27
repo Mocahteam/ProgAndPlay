@@ -323,6 +323,11 @@ int orderWithOneParamFound(PP_Unit unitId, int actionId, float param);
  */
 int orderOnPositionFound(PP_Unit unitId, int actionId, PP_Pos target);
 
+/*
+ * Check if unit with id "unitId" has a command to be process by engine
+ */
+int isRemainingCommand(PP_Unit unitId); 
+
 /******************************************************************************/
 /* WARNING !!! Following function has to be used after a first call of        */
 /* "enterCriticalSection()". Don't forget to call "exitCriticalSection()" when*/
