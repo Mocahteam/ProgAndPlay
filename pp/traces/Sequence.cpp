@@ -10,9 +10,11 @@
 
 bool debug = false;
 
-Sequence::Sequence(std::string info, bool num_fixed) : Trace(SEQUENCE, info), num_fixed(num_fixed), num(1), pt(0), endReached(false), shared(false), root(false) {}
+Sequence::Sequence(std::string info, bool num_fixed) : Trace(SEQUENCE, info), num_fixed(num_fixed), num(1), pt(0), endReached(false), shared(false), root(false), newIter(false) {
+	addIteration(1);
+}
 
-Sequence::Sequence(unsigned int num, bool root, bool opt) : Trace(SEQUENCE), num_fixed(false), num(num), pt(0), endReached(false), shared(false), root(root)
+Sequence::Sequence(unsigned int num, bool root, bool opt) : Trace(SEQUENCE), num_fixed(false), num(num), pt(0), endReached(false), shared(false), root(root), newIter(false)
 {
 	addIteration(num);
 	setOptional(opt);
@@ -23,6 +25,7 @@ Sequence::Sequence(const_sp_sequence sps) : Trace(sps.get()), pt(0), endReached(
 	num = sps->getNum();
 	num_fixed = sps->hasNumberIterationFixed();
 	root = sps->isRoot();
+	newIter = sps->newIter;
 	mergeIterationDescription(sps->getIterationDescription());
 }
 
@@ -32,6 +35,7 @@ Sequence::Sequence(const_sp_sequence sps_up, const_sp_sequence sps_down) : Trace
 	num_fixed = sps_up->hasNumberIterationFixed() && sps_down->hasNumberIterationFixed();
 	root = false;
 	opt = sps_up->isOptional() || sps_down->isOptional();
+	newIter = sps_up->newIter || sps_down->newIter;
 	mergeIterationDescription(sps_up->getIterationDescription());
 	mergeIterationDescription(sps_down->getIterationDescription());
 }
@@ -120,6 +124,8 @@ void Sequence::exportAsCompressedString(std::ostream &os) const
 	if (numTab == 0)
 		os << " ";
 	numTab++;
+	if (opt)
+		os << "*";
 	if (!root)
 		os << "Sequence"
 		   << " ";
@@ -145,7 +151,7 @@ void Sequence::exportLinearSequenceAsString(std::vector<Trace::sp_trace> & linea
 		if (linearSequence[i]->isOptional())
 			os << "*";
 		if (linearSequence[i]->isSequence())
-			os << "Seq(" << linearSequence[i]->getInfo() << ")\t";
+			os << "Seq(" << linearSequence[i]->getInfo() << "*" << boost::dynamic_pointer_cast<Sequence>(linearSequence[i])->getNum() << ")\t";
 		else
 			linearSequence[i]->exportAsCompressedString(os);
 	}
@@ -802,6 +808,7 @@ std::vector<Trace::sp_trace> &Sequence::getLinearSequence(int start, int end)
 		stack.push(sps);
 		Sequence::sp_sequence tmpSeq = boost::make_shared<Sequence>("Begin", -1);
 		tmpSeq->mergeIterationDescription(sps->getIterationDescription());
+		tmpSeq->num = tmpSeq->getIterationDescription().rbegin()->first;
 		linearizedTraces.push_back(tmpSeq);
 		while (!stack.empty())
 		{
@@ -825,6 +832,7 @@ std::vector<Trace::sp_trace> &Sequence::getLinearSequence(int start, int end)
 					stack.push(sps);
 					tmpSeq = boost::make_shared<Sequence>("Begin", -1);
 					tmpSeq->mergeIterationDescription(sps->getIterationDescription());
+					tmpSeq->num = tmpSeq->getIterationDescription().rbegin()->first;
 					linearizedTraces.push_back(tmpSeq);
 				}
 				else
@@ -838,6 +846,31 @@ std::vector<Trace::sp_trace> &Sequence::getLinearSequence(int start, int end)
 	return linearizedTraces;
 }
 
+void Sequence::insertLinearSequence (std::vector<Trace::sp_trace> & linearSequence, int pos){
+	int i = 0;
+	// on parcours toute la séquence linéarisée
+	while (i < (signed)linearSequence.size()){
+		// on ajoute la trace courante
+		this->addTrace(linearSequence[i]->clone(), pos);
+		// Si la trace que l'on vient d'ajouter est un début de séquence, il faut la remplir avec son contenu
+		if (this->traces.at(pos)->isSequence() && this->traces.at(pos)->getInfo().compare("Begin") == 0){
+			// On supprime la propriété "info" de la version linéarisée
+			this->traces.at(pos)->setInfo("");
+			// On récupère les bornes de la sous-séquence
+			int start = i;
+			int end = Sequence::getEndPosOfLinearSequence(linearSequence, i);
+			// On récupère le contenue de la sous-séquence linéarisée
+			std::vector<Trace::sp_trace> subLinearSequence(linearSequence.begin()+start+1, linearSequence.begin()+end);
+			// appel récursif sur la sous-séquence pour y intégrer la sous-partie linéarisée
+			boost::dynamic_pointer_cast<Sequence>(this->traces.at(pos))->insertLinearSequence(subLinearSequence, 0);
+			// On saute à la fin de la sous-séquence linéarisée puisqu'elle vient d'être traité dans l'appel récursif
+			i = end;
+		}
+		i++;
+		pos++;
+	}
+}
+
 std::vector<Trace::sp_trace> Sequence::cloneLinearSequence(std::vector<Trace::sp_trace> & linearSequence)
 {
 	std::vector<Trace::sp_trace> clone;
@@ -849,6 +882,10 @@ std::vector<Trace::sp_trace> Sequence::cloneLinearSequence(std::vector<Trace::sp
 int Sequence::getBeginPosOfLinearSequence(std::vector<Trace::sp_trace> & linearSequence, int from)
 {
 	int seqCounter = 0;
+
+	if (from < 0)
+		return -1;
+
 	int i = from >= (signed)linearSequence.size() ? linearSequence.size()-1 : from;
 	
 	// Au cas où le point de départ est une fin de séquence, on va toujours commencer à chercher à partir de la trace précédente (évite d'incrémenter seqCounter dans la boucle ci-dessous pour le point de départ s'il s'agit d'une fin de séquence) sauf si le point de départ est un début de séquence au quel cas il faut retourner immediatement
@@ -913,6 +950,18 @@ int Sequence::getCallPosInLinearSequence (std::vector<Trace::sp_trace> & linearS
 		}
 	}
 	return lastCallFound;
+}
+
+
+int Sequence::getNonOptCallInLinearSequence (std::vector<Trace::sp_trace> & linearSequence, int start, int end){
+	start = start < 0 ? 0 : start;
+	end = (end < 0 || end > (signed)linearSequence.size()) ? linearSequence.size() : end;
+	int cpt = 0;
+	for (int i = start ; i < end ; i++){
+		if (linearSequence[i]->isCall() && !linearSequence[i]->isOptional())
+			cpt++;
+	}
+	return cpt;
 }
 
 /**

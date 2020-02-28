@@ -36,6 +36,12 @@ public:
 	typedef boost::shared_ptr<const Sequence> const_sp_sequence;
 	typedef std::vector<sp_sequence> sequence_vector;
 
+	
+	/**
+	 * Utilisé dans les séquences linéarisées ("Begin") pour stocker le contecte de l'analyse : true => arrivé à la fin de séquence et reprise au début ; false => avancé dans le pattern et arrivé au début d'une séquence
+	 */
+	bool newIter;
+
 	/**
 	  * \brief Constructeur utilisé dans la fonction TracesParser::importTraceFromNode.
 	  *
@@ -334,11 +340,19 @@ public:
 	 * Sd C C Sd C C Sd C Sf Sf C Sf
 	 *
 	 * \param start point de départ de linéarisation de la séquence (valeur par défaut : 0)
-     * \param end indice de fin de linéarisation de la séquence (valeur par défaut : -1 => fin de la trace)
+   * \param end indice de fin de linéarisation de la séquence (valeur par défaut : -1 => fin de la trace)
 	 *
 	 * \return un vecteur de trace représentant une version linéarisée des traces
 	 */
 	std::vector<Trace::sp_trace> &getLinearSequence(int start = 0, int end = -1);
+
+	/**
+	 * \brief Insérer à la position indiquée le contenu d'une séquence linéarisée
+	 * 
+	 * \param linearSequence séquence linéarisée à insérer dans la séquence
+	 * \param pos position à laquelle insérer la séquence linéarisée
+	 */
+	void insertLinearSequence (std::vector<Trace::sp_trace> & linearSequence, int pos);
 
 	/**
 	 * \brief exporte une séquence linéarisée sous la forme d'une chaine de caractère et écrit le résultat dans le flux "os"
@@ -372,7 +386,7 @@ public:
 	static int getBeginPosOfLinearSequence(std::vector<Trace::sp_trace> & linearSequence, int from);
 
   /**
-	 * \brief recherche le point terminal d'une séquence dans une trace linéarisée à partir d'une position de départ. Si la position de départ est une fin de séquence alors le point de départ est immédiatement retrouné. Si le point de départ n'est pas une fin de séquence alors l'algorithme cherchera en aval la fin de la séquence dans laquelle la position courrante est incluse.
+	 * \brief recherche le point terminal d'une séquence dans une trace linéarisée à partir d'une position de départ. Si la position de départ est une fin de séquence alors le point de départ est immédiatement retourné. Si le point de départ n'est pas une fin de séquence alors l'algorithme cherchera en aval la fin de la séquence dans laquelle la position courrante est incluse.
 	 * Exemple:
 	 *  +---+---------------------+
 	 *  |   |                     |
@@ -384,7 +398,7 @@ public:
 	 * \param linearSquence une trace linéarisée
 	 * \param indice de départ dans la trace linéarisée passée en paramètre
 	 * 
-	 * \return l'indice de départ dans "linearSequence" de la séquence dans laquelle l'indice "from" est inclus. -1 est retourné si l'algorithme est remonté jusqu'au bout de la trace sans identifié le début de séquence associé à l'indice "from".
+	 * \return l'indice de fin dans "linearSequence" de la séquence dans laquelle l'indice "from" est inclus. -1 est retourné si l'algorithme a atteind le bout de la trace sans identifié la fin de la séquence associé à l'indice "from".
 	 */
 	static int getEndPosOfLinearSequence(std::vector<Trace::sp_trace> & linearSequence, int from);
 
@@ -392,6 +406,15 @@ public:
 	 * \brief retourne l'indice dans la trace linéarisée contenant le nième Call. Si num <= 0 retourne l'indice du premier Call de la trace linéarisée. Si num >= au nombre de call dans la trace linéarisée -1 alors l'indice du dernier Call dans la trace linéarisée est retourné. Peut retourner -1 si la strace linéarisée ne contient aucun Call.
 	 */
 	static int getCallPosInLinearSequence (std::vector<Trace::sp_trace> & linearSequence, int num);
+
+	/**
+	 * \brief retourne le nombre de Call non optionnel dans la séquence linéarisée linearSequence dans l'intervale [start, end[
+	 * 
+   * \param linearSequence séquence linéarisée dans laquelle faire la recherche
+	 * \param start point de départ dans la trace linéarisée (valeur par défaut : 0)
+   * \param end indice de fin dans la trace linéarisée (valeur par défaut : -1 => fin de la trace)
+	 */
+	static int getNonOptCallInLinearSequence (std::vector<Trace::sp_trace> & linearSequence, int start = 0, int end = -1);
 
 	/**
 	  * \brief Récupération de l'ensemble des appels contenus dans la séquence et dans ses sous-séquences.

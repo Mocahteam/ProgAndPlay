@@ -37,6 +37,8 @@ void Event::exportAsString(std::ostream &os) const
 
 void Event::exportAsCompressedString(std::ostream &os) const
 {
+	if (opt)
+		os << "*";
 	os << label << " " << std::flush;
 }
 

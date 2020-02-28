@@ -12,6 +12,11 @@
   */
 #define MAX_END_SEARCH 5
 
+/**
+ * Seuil utilisé pour déterminer quels patterns concervés. Un Pattern dont le score est inférieur de SCORE_TOLERENCE par rapport au meilleur score calculé sera supprimé
+ */
+#define SCORE_TOLERENCE 0.1
+
 int TracesParser::mission_end_time = 0;
 int TracesParser::execution_start_time = 0;
 std::string TracesParser::lang = "";
@@ -29,7 +34,7 @@ std::ostream &TracesParser::osParser = std::cout;
 
 TracesParser::TracesParser() : used(false), compressed(false), end(false), proceed(false), start(0)
 {
-	root = boost::make_shared<Sequence>(1, true);
+	root = boost::make_shared<Sequence>(1, true); 
 }
 
 TracesParser::~TracesParser()
@@ -652,282 +657,438 @@ void TracesParser::inlineCompression(Trace::sp_trace &spt)
 		root->addTrace(spt);
 }
 
+typedef std::pair<float, Sequence::sp_sequence> ScoredRoot;
+
+bool sortFunction (ScoredRoot a, ScoredRoot b) { return (a.first>b.first); }
+
+float computeScore(std::vector<Trace::sp_trace> & pattern, int nbAlign, int nbOpt){
+	//return ((float)(nbAlign*nbAlign) / (nbAlign+nbOpt));
+	return ((float)(nbAlign) / (nbAlign+nbOpt));
+	//return ((float)(nbAlign) / (rootMainPos+nbAlign+nbOpt+pattern.size()-Sequence::getEndPosOfLinearSequence(pattern, 0)));
+}
+
+typedef struct {
+	// pattern stocké sous une forme linéarisée
+	std::vector<Trace::sp_trace> pattern;
+	// position nous permettant de connaître la position d'avancement dans le pattern
+	int position;
+	// compteur d'alignement nous permettant de connaître dans le pattern combien de traces ont pu être alignées
+	int alignCount;
+	// compteur d'option nous permettant de connaître dans le pattern combien de traces optionnelles ont été définies
+	int optCount;
+	// score du pattern
+	float score;
+} Scenario;
+
+// clone patterns[source] et l'insère à la positione patterns[target]
+// source doit être inclus dans [0, patterns.size()[
+// si target < 0 || target > patterns.size() => ajout du clone en fin de vecteur
+void duplicatePattern (std::vector<Scenario> & patterns, int source, int target){
+	// s'assurer que les indice source et target sont bien dans les limites du vecteur
+	assert (source >= 0 && source < (signed)patterns.size());
+	target = (target < 0 || target > (signed)patterns.size()) ? patterns.size() : target;
+	Scenario model = patterns[source];
+	Scenario clone;
+	clone.pattern = Sequence::cloneLinearSequence(model.pattern);
+	clone.position = model.position;
+	clone.alignCount = model.alignCount;
+	clone.optCount = model.optCount;
+	clone.score = -1;
+	patterns.insert(patterns.begin()+target, clone);
+}
+
+void addNewPattern (std::vector<Scenario> & patterns, std::vector<Trace::sp_trace> & pattern){
+	Scenario s;
+	s.pattern = pattern;
+	s.position = 0;
+	s.alignCount = 0;
+	s.optCount = 0;
+	s.score = -1;
+	patterns.push_back(s);
+}
+
+void moveToNextCall(std::vector<Scenario> & patterns){
+	// Note :
+	//  - lorsque'on atteint une fin de séquence il faut proposer deux scénarios (=> duplication du pattern en question) à savoir recommencer la séquence ou continuer sur la prochaine trace du pattern
+	//  - lorsqu'on atteint un début de séquence optionnelle il faut aussi proposer deux scénarios à savoir accéder à la première trace de la séquence ou sauter la séquence pour se positionner directement sur la prochaine trace suivant la séquence
+	// Parcourir tous les patterns pour se positionner sur le prochain Call
+	for (int i = 0 ; i < (signed)patterns.size() ; i++)
+	{
+		// Incrémenter de 1 l'indice de parcours du pattern courrant
+		patterns[i].position++;
+		// Si on a dépassé la fin du pattern courrant
+		if ((signed)patterns[i].pattern.size() <= patterns[i].position)
+		{
+			// rien à faire, on est à la fin du pattern, on reste à la fin du pattern
+			// On recalle quand mmême la position à la taille du pattern
+			patterns[i].position = patterns[i].pattern.size();
+		}
+		else
+		{
+			// Si on est sur une fin de séquence il faut dupliquer le pattern pour dans un cas se repositionner au début de la séquence et dans l'autre cas passer à la trace suivante
+			if (patterns[i].pattern[patterns[i].position]->isSequence() && patterns[i].pattern[patterns[i].position]->getInfo().compare("End") == 0)
+			{
+				// Dans tous les cas on note qu'on a fait une itération supplémentaire. Comme ici on est en fin de seéquence il faut retrouver la position du début de la séquence
+				int startSeq = Sequence::getBeginPosOfLinearSequence(patterns[i].pattern, patterns[i].position);
+				boost::dynamic_pointer_cast<Sequence>(patterns[i].pattern[startSeq])->addOne();
+
+				// Cas 1 : Cloner le pattern en fin de vecteur et positionner l'indice de ce clone sur la position de la fin de la séquence, ainsi l'indice sera augmenté de 1 lorsque ce pattern sera évalué et sera donc positionné sur la trace suivant immédiatement cette séquence
+				duplicatePattern(patterns, i, -1);
+
+				// Cas 2 : repositionner le pattern courant au début de la séquence
+				// Récupérer l'indice du début de la séquence
+				int beginSeqPos = Sequence::getBeginPosOfLinearSequence(patterns[i].pattern, patterns[i].position);
+				if (beginSeqPos != -1)
+				{
+					// Se repositionner au début de la séquence (le cas où la première trace est une séquence est géré dans la boucle juste après)
+					patterns[i].position = beginSeqPos;
+					boost::dynamic_pointer_cast<Sequence>(patterns[i].pattern[beginSeqPos])->newIter = true; // noter que cette séquence est en reprise d'itération
+				}
+			}
+			// Tantqu'on est sur un début de séquence, on progresse dans cette séquence jusqu'à tomber sur un Call
+			while (patterns[i].pattern[patterns[i].position]->isSequence() && patterns[i].pattern[patterns[i].position]->getInfo().compare("Begin") == 0)
+			{
+				// Si on tombe sur une séquence optionnelle il faut dupliquer le pattern pour gérer le cas où on la saute
+				if (patterns[i].pattern[patterns[i].position]->isOptional())
+				{
+					// Récupération de l'indice de fin de la séquence
+					int endSeqPos = Sequence::getEndPosOfLinearSequence(patterns[i].pattern, patterns[i].position);
+					if (endSeqPos > -1)
+					{
+						// Cloner le pattern en fin de vecteur
+						duplicatePattern(patterns, i, -1);
+						// On corrige l'avancement de ce clone sur la position de la fin de cette séquence clonée, ainsi l'indice sera augmenté de 1 lorsque ce pattern sera évalué et sera donc positionné sur la trace suivant immédiatement cette séquence clonée (elle sera donc bien ignorée)
+						patterns[patterns.size()-1].position = endSeqPos;
+					}
+				}
+				// Pour la trace non clonnée, se positionner sur la première trace de cette séquence (si cette trace est elle même une séquence, elle sera traitée par le prochain tour de boucle)
+				patterns[i].position++;
+			}
+		}
+	}
+}
+
+void addNewCall(const Trace::sp_trace & rootCall, float maxRatio, std::vector<Scenario> & patterns, int startPatternsId = 0){
+	// Parcourir tous les patterns à partir de l'indice startPatternsId.
+	for (int i = startPatternsId ; i < (signed)patterns.size() ; i++)
+	{
+		// Vérifier si on n'a pas dépassé la fin du pattern
+		if (patterns[i].position >= (signed)patterns[i].pattern.size())
+		{
+			// Si on a dépassé la fin du pattern courrant il faut vérifier plusieurs choses :
+			//  1 - si le Call courrant est identique au premier Call du pattern et que des traces ont commencé à être accumulées à la fin du pattern on va se repositionner au début du pattern et insérer les traces accumulées comme optionnelles (on prend soin de simuler le nouveau score pour le pas faire ça pour rien)
+			//      Exemple on veut passer de [Sd C_i C_d Sf C_a C_e C_i] à [Sd C_i C_d opt(C_A) opt(C_e) Sf]
+			//		Cas particulier, on ne gère pas ici le cas [Sd C_i C_d Sf C_i] où il n'y a pas encore de traces qui ont été accumulées à la fin du pattern car ce cas est déjà géré lorsqu'on atteind la fin de la séquence (Sf)
+			//  2 - ajouter ce Call à la fin du pattern
+
+			// Cas 1 : Si le premier Call du pattern == au Call en cours d'analyse du root et traces accumulées en fin de pattern et score simulé toujours intéressant
+			int firstCallPos = Sequence::getCallPosInLinearSequence(patterns[i].pattern, 0);
+			int endSeqPos = Sequence::getEndPosOfLinearSequence(patterns[i].pattern, 0);
+			if (firstCallPos != -1 &&
+				patterns[i].pattern[firstCallPos]->operator==(rootCall.get()) && // premier call du pattern == call du root
+				endSeqPos < (signed)patterns[i].pattern.size()-1 && computeScore(patterns[i].pattern, patterns[i].alignCount+1, patterns[i].optCount+patterns[i].pattern.size()-1-endSeqPos) > maxRatio - SCORE_TOLERENCE // simulation du score en comptant un alignement supplémentaire et autant d'options que de traces accumulées à la fin du pattern qui seront intégrées dans ce dernier en option
+			)
+			{
+				// Intégrer toutes les traces accumulées après la séquence mère du pattern à l'intérieur de la séquence mère et les mettre en optionnelle
+				// Passer de [Sd C C Sf C C] à [Sd C C opt(C) opt(C) Sf]
+				int endSeqPos = Sequence::getEndPosOfLinearSequence(patterns[i].pattern, 0);
+				if (endSeqPos > -1)
+				{
+					// Insérer un clone dans le vecteur de patterns AVANT le modèle
+					duplicatePattern(patterns, i, i);
+
+					// IMPORTANT : Maintenant en i se trouve le clone et en i+1 le modèle
+
+					// enregistrer la trace de fin de séquence
+					Trace::sp_trace lastEndSeq = patterns[i].pattern[endSeqPos];
+					// décaller d'une position vers la gauche toutes les traces et les passer en optionnelle (si elles ne le sont pas déjà)
+					for (int j = endSeqPos ; j < (signed)patterns[i].pattern.size()-1 ; j++)
+					{
+						patterns[i].pattern[j] = patterns[i].pattern[j+1];
+						if (!patterns[i].pattern[j]->isOptional())
+						{
+							patterns[i].pattern[j]->setOptional(true);
+							patterns[i].optCount++;
+						}
+					}
+					// remplacer la dernière trace (qui a été décallé juste avant) par la fin de séquence
+					patterns[i].pattern[patterns[i].pattern.size()-1] = lastEndSeq;
+					// Se repositionner sur le premier Call du pattern
+					patterns[i].position = firstCallPos;
+					// Augmenter de 1 le nombre de trace alignée dans le vecteur de compteur des alignements
+					patterns[i].alignCount++;
+					
+					// incrémenter i pour se repositionner sur le modèle
+					i++;
+				}
+			}
+
+			// Cas 2 : ajouter le Call courant (root) à la fin du pattern
+			// Ici on stoque la trace à l'extérieur du pattern, pas la peine de noter ces traces là comme optionnelles. Si elles seront réintégrées dans le pattern, c'est à ce moment là qu'elles passeront optionnelles
+			patterns[i].pattern.push_back(rootCall->clone());
+			patterns[i].position++;
+		}
+		else
+		{
+			// Ici on est toujours à l'intérieur du pattern, il faut maintenant voir si le Call du pattern est alignable avec celui du root
+			// Si le Call courrant du pattern == au Call du root
+			if (patterns[i].pattern[patterns[i].position]->operator==(rootCall.get()))
+			{
+				// Cas idéal => augmenter de 1 le nombre d'alignement de ce pattern dans le vecteur de compteur d'alignement
+				patterns[i].alignCount++;
+				// Si on est sur un début de séquence, réinitialiser le flag qui permet de savoir si on est en train de tourner dans une boucle
+				if (patterns[i].pattern[patterns[i].position-1]->isSequence() && patterns[i].pattern[patterns[i].position-1]->getInfo().compare("Begin") == 0){
+					boost::dynamic_pointer_cast<Sequence>(patterns[i].pattern[patterns[i].position-1])->newIter = false;
+					// Propager ça sur toutes les séquences dans lesquelles on est imbriqué
+					int parentSequenceId = Sequence::getBeginPosOfLinearSequence(patterns[i].pattern, patterns[i].position-1);
+					while (parentSequenceId != -1){
+						boost::dynamic_pointer_cast<Sequence>(patterns[i].pattern[parentSequenceId])->newIter = false;
+						parentSequenceId = Sequence::getBeginPosOfLinearSequence(patterns[i].pattern, parentSequenceId-1);
+					}
+				}
+				// Fusionner les deux appels
+				dynamic_cast<Call *>(patterns[i].pattern[patterns[i].position].get())->filterCall(dynamic_cast<const Call *>(rootCall.get()));
+			}
+			else
+			{
+				// Ici les deux call ne sont pas alignable, l'un des deux doit être mis en option
+
+				// Vérifier que le score resterait intéressant malgrès l'ajout d'une nouvelle option
+				if (computeScore(patterns[i].pattern, patterns[i].alignCount, patterns[i].optCount+1) > maxRatio - SCORE_TOLERENCE){
+
+					// CAS 1 : Possibilité de mettre le Call du root en option
+					
+					// On commence par vérifier si la trace précédente est un début de séquence
+					if (patterns[i].pattern[patterns[i].position-1]->isSequence() && patterns[i].pattern[patterns[i].position-1]->getInfo().compare("Begin") == 0){
+						// Ici on est sur un début de séquence et les deux calls sont différents. On doit donc générer plusieurs scénarios qui dépendent du contexte.
+						//  (a) Si on avait atteint une fin de séquence dans le pattern et qu'on est revenu au début de la séquence (cf ETAPE 1 lors de la progression dans chaque pattern). Dans ce cas il faut générer deux scénarios : un pour insérer l'option en début de séquence et un autre pour l'insérer en fin de séquence.
+						//  (b) Si on était en train de progresser dans le pattern et qu'on était arrivé sur un début de séquence, alors on a plongé dans cette séquence (et éventuelement ses sous-séquences) jusqu'à tomber sur un Call. Danc ce cas là, il faut générer plusieurs scénarios : un pour insérer l'option en début de séquence avant le Call mais aussi autant que necessaire pour insérer l'option avant chaque début de séquence imbriquées. Attention, l'un de ces scénarios pourrait remonter sur une séquence correspondant au cas (a), dans ce cas, c'est un cas d'arrêt. 
+
+						// => Dans ces deux possibilités un scénario consiste à insérer l'option en début de séquence (juste avant le call du pattern) ce qui correspond aussi au cas où on n'aurait pas été en début de séquence. Ce cas est traité juste à la sortie de ce "if"
+
+						int savePos = patterns[i].position; // on sauvegarde notre position dans le pattern pour pouvoir le rétablir après le traitement de la boucle
+						bool newLoop = false;
+						do{
+							// Insérer un clone dans le vecteur de patterns AVANT le modèle
+							duplicatePattern(patterns, i, i);
+							
+							// IMPORTANT : Maintenant en i se trouve le clone et en i+1 le modèle
+
+							// On teste pour vérifier dans quel contexte on est
+							if (boost::dynamic_pointer_cast<Sequence>(patterns[i].pattern[patterns[i].position-1])->newIter){
+								// cas (a)
+								
+								// Se positionner à la fin de la séquence du clone
+								patterns[i].position = Sequence::getEndPosOfLinearSequence(patterns[i].pattern, patterns[i].position);
+								// Insérer dans le clone un clone du Call du root (donc à la fin de la séquence)
+								patterns[i].pattern.insert (patterns[i].pattern.begin()+patterns[i].position, rootCall->clone());
+								// Indiquer ce clone du Call du root comme optionnel
+								patterns[i].pattern[patterns[i].position]->setOptional(true);
+								// Se repositionner sur la fin de la séquence
+								patterns[i].position++;
+								// Augmenter de 1 le nombre d'option de ce pattern dans le vecteur de compteur des options
+								patterns[i].optCount++;
+								// stopper la boucle
+								newLoop = false;
+							} else {
+								// cas (b)
+
+								// Insérer dans le clone un clone du Call du root AVANT le début de la séquence (donc à l'extérieur de la séquence)
+								patterns[i].pattern.insert (patterns[i].pattern.begin()+patterns[i].position-1, rootCall->clone());
+								// Indiquer ce clone du Call du root comme optionnel
+								patterns[i].pattern[patterns[i].position-1]->setOptional(true);
+								// Augmenter de 1 le nombre d'option de ce pattern dans le vecteur de compteur des options
+								patterns[i].optCount++;
+
+								// Dans le modèle (donc en i+1) ou souhaite vérifier si la trace en amont est un début de séquence (sauf si la première car on ne souhaite pas insérer de Call en amont du scénario). Si oui, autoriser une nouvelle itération pour insérer le clone de Call du root en amont de ce début de séquence.
+								// Donc il faut se positionner sur la trace en amont dans le modèle
+								// Rq : on est en train de remonter le pattern et tant qu'on tombe sur des début de séquence on refait le processus (cloner et insérer la trace du root en option)
+								patterns[i+1].position--;
+
+								// Vérifer s'il faut refaire un tour de boucle
+								if (patterns[i+1].position-1 > 0 &&	patterns[i+1].pattern[patterns[i+1].position-1]->isSequence() && patterns[i+1].pattern[patterns[i+1].position-1]->getInfo().compare("Begin") == 0)
+									newLoop = true;
+							}
+
+							// incrémenter i pour se repositionner sur le modèle
+							i++;
+						} while (newLoop);
+						
+						// En sortant de cette boucle cela signifie que la trace actuelle du modèle n'est pas un début de séquence. Il faut donc revenir sur la position courrante
+						patterns[i].position = savePos;
+					}
+					
+					// Dans tous les cas on ajoute le call du root en option juste avant le call du pattern
+					// on céée un nouveau clone pour pouvoir gérer le Cas 2 (call du pattern en option)
+					duplicatePattern(patterns, i, i);
+							
+					// IMPORTANT : Maintenant en i se trouve le clone et en i+1 le modèle
+
+					// Ajout du call du root en option juste avant le call du pattern
+					patterns[i].pattern.insert (patterns[i].pattern.begin()+patterns[i].position, rootCall->clone());
+					// Indiquer ce clone du Call du root comme optionnel
+					patterns[i].pattern[patterns[i].position]->setOptional(true);
+					// Augmenter de 1 le nombre d'option de ce pattern dans le vecteur de compteur des options
+					patterns[i].optCount++;
+
+					// On se repostionne sur le modèle
+					i++;
+					
+					// CAS 2 : mettre le Call du pattern en option.
+					// Si la trace courrante du pattern n'est pas une option
+					if (!patterns[i].pattern[patterns[i].position]->isOptional())
+					{
+						// Indiquer la trace courante du pattern comme optionnel
+						patterns[i].pattern[patterns[i].position]->setOptional(true);
+						// Augmenter de 1 le nombre d'option de ce pattern dans le vecteur de compteur des options
+						patterns[i].optCount++;
+					}
+					// Avancer dans ce pattern pour prendre en compte la mise en option du Call du pattern
+					patterns[i].position++;
+					// Problème ici, il ne faut pas avancer dans les traces tant qu'on n'a pas réussi à positionner la trace courante. On fait donc un appel récursif pour tenter de positionner la trace courrante
+					addNewCall(rootCall, maxRatio, patterns, i);
+					// Au retour de cet appel, tous les patterns ont été traités. on peut donc sortir direct de la boucle
+					break;
+				} else {
+					// Supprimer ce modèle qui ne mènera à rien
+					patterns.erase(patterns.begin()+i);
+					// comme on vient de supprimer un pattern alors qu'on parcours en même temps les vecteurs il faut revenir en arrière d'une position
+					i--;
+				}
+			}
+		}
+	}
+}
+
+float buildPatterns(Sequence::sp_sequence & root, int rootMainPos, float maxRatio, std::vector<Scenario> & patterns){
+	// Parcourir toute la fin du root
+	for (int rootDownPos = rootMainPos ; rootDownPos < (int)root->size() ; rootDownPos++)
+	{
+std::cout << rootDownPos << "/" << root->size() << std::endl;
+		///////////////////////////////////////////////////////////
+		// ETAPE 1 : Faire avancer chaque pattern d'une position //
+		///////////////////////////////////////////////////////////
+
+		moveToNextCall(patterns);
+
+		// Ici pour chaque pattern on a soit atteint la fin, soit on est positionné sur un Call
+
+		//////////////////////////////////////////////////////////////
+		// ETAPE 2 : Intégrer la trace courante dans chaque pattern //
+		//////////////////////////////////////////////////////////////
+
+		addNewCall(root->at(rootDownPos), maxRatio, patterns);
+		
+		// Calcul du score de chaque pattern
+		for (int i = 0 ; i < (signed)patterns.size() ; i++){
+//std::cout << "B " << computeScore (rootMainPos, patterns[i].pattern, patterns[i].alignCount, patterns[i].optCount) << " " << patterns[i].alignCount << " " << patterns[i].optCount << std::endl;
+			patterns[i].score = computeScore (patterns[i].pattern, patterns[i].alignCount, patterns[i].optCount); // mise à jour du score
+			if (patterns[i].score > maxRatio){
+				maxRatio = patterns[i].score;
+			}
+		}
+		// Suppression de tous les patterns qui ne pourront pas rattraper le meilleur score
+		for (int i = (signed)patterns.size()-1 ; i >= 0 ; i--){
+			if (patterns[i].score < maxRatio - SCORE_TOLERENCE){ // TODO : pouvoir paramétrer ce seuil
+				patterns.erase(patterns.begin()+i);
+			}
+		}
+	}
+	return maxRatio;
+}
+
 void TracesParser::offlineCompression()
 {
-	// Recherche du point de départ effectif => le premier Call du root
-	while (start < (int)root->size())
-		if (root->at(start)->isEvent())
-			start++;
-		else
-			break;
-	
+	std::vector<ScoredRoot> roots;
+	roots.push_back(ScoredRoot(0, boost::dynamic_pointer_cast<Sequence>(root->clone())));
+
 	std::vector <Trace::sp_trace> bestPattern;
-	float maxRatio = 0;
-	int maxAlign = 0;
 
-	// On parcours toute la trace
-	for (int currentPos = start; currentPos < (int)root->size(); currentPos++)
+	for (int r = 0 ; r < (signed)roots.size() ; r++)
 	{
-		// récupération de la trace courante
-		Trace::sp_trace currentTrace = root->at(currentPos);
-		// Si la trace courante est un event, on stoppe l'annalyse (ici c'est forcement un event non alignable vue que les autres ont été filtrés lors du parsage des logs)
-		if (currentTrace->isEvent())
-			break;
-		// Rechercher des accroches en amont (une trace égale au Call courrant). Cette accorche peut être soit directement un Call du root soit le premier Call d'une séquence du root
-		// Donc on remonte la trace pour essayer de trouver cette accroche
-		for (int prevPos = currentPos-1 ; prevPos >= start ; prevPos--)
+		Sequence::sp_sequence root = roots[r].second;
+		float maxRatio = roots[r].first;
+
+//			std::cout << "--- NEW PASS ---" << std::endl;
+//			root->exportAsCompressedString(std::cout);
+//			std::cout << std::endl;
+
+		// Recherche du point de départ effectif => le premier Call du root
+		int startingPos = start;
+		while (startingPos < (int)root->size())
+			if (!root->at(startingPos)->isCall())
+				startingPos++;
+			else
+				break;
+
+		// On parcours toute la trace
+		for (int currentPos = startingPos; currentPos < (int)root->size(); currentPos++)
 		{
-			Sequence::sp_sequence up_seq;
-			// Cas où on trouve une accroche directement dans root
-			if (root->at(prevPos)->isCall() && root->at(prevPos)->operator==(currentTrace.get()))
+			// récupération de la trace courante
+			Trace::sp_trace currentTrace = root->at(currentPos);
+			// Si la trace courante est un event, on stoppe l'annalyse (ici c'est forcement un event non alignable vue que les autres ont été filtrés lors du parsage des logs)
+			if (currentTrace->isEvent())
+				break;
+			// Rechercher des accroches en amont (une trace égale au Call courrant). Cette accroche peut être soit directement un Call du root soit le premier Call d'une séquence du root
+			// Donc on remonte la trace pour essayer de trouver cette accroche
+			for (int prevPos = currentPos-1 ; prevPos >= startingPos ; prevPos--)
 			{
-				// on souhaite une distance minimale de taille 2 (pour éviter de fusionner des Calls successifs s'il n'y en pas au moins 3)
-				if (currentPos-prevPos >= 2)
+				Sequence::sp_sequence up_seq;
+				// Cas où on trouve une accroche directement dans root
+				if (root->at(prevPos)->isCall() && root->at(prevPos)->operator==(currentTrace.get()))
 				{
-					// On construit une séquence contenant les traces comprises dans [prevPos, currentPos[
-					up_seq = root->getSubSequence(prevPos, currentPos);
+					// on souhaite une distance minimale de taille 2 (pour éviter de fusionner des Calls successifs s'il n'y en pas au moins 3)
+					if (currentPos-prevPos >= 2)
+					{
+						// On construit une séquence contenant les traces comprises dans [prevPos, currentPos[
+						up_seq = root->getSubSequence(prevPos, currentPos);
+					}
 				}
-			}
-			// Cas où on trouve une accroche pour le premier Call d'une séquence
-			else if (root->at(prevPos)->isSequence() && boost::dynamic_pointer_cast<Sequence>(root->at(prevPos))->getFirstCall()->operator==(currentTrace.get()))
-			{
-				// si la séquence en question précède immediatement currentPos, on peut directement utiliser cette séquence
-				if (currentPos-prevPos == 1)
-					up_seq = boost::dynamic_pointer_cast<Sequence>(root->at(prevPos)->clone());
-				else
-					// sinon on construit une séquence contenant les traces comprises dans [prevPos, currentPos[
-					up_seq = root->getSubSequence(prevPos, currentPos);
-			}
-			if (up_seq)
-			{
-				std::cout << "Nouvelle accroche !!!!" << std::endl;
-				// Ici dans up_seq on a toutes les traces comprises entre l'accroche et la position courante
-				// Vecteur de patterns où chaque pattern est stocké sous une forme linéarisée (ces différentes versions de pattern vont nous permettre d'envisager différentes options pour intégrer chaque trace dans les différents scénario)
-				std::vector<std::vector<Trace::sp_trace> > patterns;
-				// initialisation des patterns avec le premier pattern
-				patterns.push_back(up_seq->getLinearSequence());
-				// Vecteur de position nous permettant de connaître la position d'avancement dans chaque version de pattern
-				std::vector<int> patternsPos;
-				patternsPos.push_back(0);
-				// Vecteur de compteur d'alignement nous permettant de connaître pour chaque version de Pattern combien de trace ont pu être alignées
-				std::vector<int> patternsAlignCount;
-				patternsAlignCount.push_back(0);
-				// Vecteur de compteur d'option nous permettant de connaître pour chaque version de Pattern combien de trace optionnelle ont été définies
-				std::vector<int> patternsOptCount;
-				patternsOptCount.push_back(0);
-				// Permet d'éviter de retraiter des patterns déjà analysés pour une trace donnée si elle a besoin d'être traitée en plusieurs temps (Cf cas : mettre le call du pattern en option)
-				int startPatternsId = 0;
-				// Permet de définir si on est dans un état de reprise de l'analyse d'un pattern
-				bool patternRecovery = false;
-				// On va maintenant descendre dans les traces en partant de currentPos pour essayer d'intégrer chaque traces aux différents patterns
-				int downTraceId = currentPos;
-				// Tant qu'on doit poursuivre l'analyse des trace du root pour intégration aux patterns
-				while (downTraceId < (int)root->size() && downTraceId < currentPos+100)
+				// Cas où on trouve une accroche pour le premier Call d'une séquence
+				else if (root->at(prevPos)->isSequence() && boost::dynamic_pointer_cast<Sequence>(root->at(prevPos))->getFirstCall()->operator==(currentTrace.get()))
 				{
-					///////////////////////////////////////////////////////////
-					// ETAPE 1 : Faire avancer chaque pattern d'une position //
-					///////////////////////////////////////////////////////////
-
-					// On ne va faire cette étape que si on n'est pas dans l'état de reprise d'une analyse précédente. En effet dans ce cas, il faut attendre que la trace courrante ait été traitée sur tous les patterns avant de tous les faire avancer d'une position
-					if (!patternRecovery)
-					{
-						// Note :
-						//  - lorsque'on atteint une fin de séquence il faut proposer deux scénario (=> duplication du pattern en question) à savoir recommencer la séquence ou continuer sur la prochaine trace du pattern
-						//  - lorsqu'on atteint un début de séquence optionnelle il faut aussi proposer deux scénarios à savoir accéder à la première trace de la séquence ou sauter la séquence pour se positionner directement sur la prochaine trace suivant la séquence
-						// Parcourir tous les patterns pour se positionner sur le prochain Call
-						for (int i = 0 ; i < (signed)patterns.size() ; i++)
-						{
-							// Incrémenter de 1 l'indice de parcours du pattern courrant
-							patternsPos[i]++;
-							// Si on a dépassé la fin du pattern courrant
-							if ((signed)patterns[i].size() <= patternsPos[i])
-							{
-								// Ne rien faire, passer simplement au pattern suivant
-								// On recalle quand mmême la position à la taille du pattern
-								patternsPos[i] = patterns[i].size();
-							}
-							else
-							{
-								// Si on est sur une fin de séquence il faut duppliquer le pattern pour dans un cas se repositionner au début de la séquence et dans l'autre cas passer à la trace suivante
-								if (patterns[i][patternsPos[i]]->isSequence() && patterns[i][patternsPos[i]]->getInfo().compare("End") == 0)
-								{
-									// Récupérer l'indice du début de la séquence
-									int beginSeqPos = Sequence::getBeginPosOfLinearSequence(patterns[i], patternsPos[i]);
-									if (beginSeqPos != -1)
-									{
-										// Augmenter le nombre d'itération de cette séquence de 1
-										boost::dynamic_pointer_cast<Sequence>(patterns[i][beginSeqPos])->addOne();
-										// Cloner le pattern en fin de vecteur et positionner l'indice de ce clone sur la position de la fin de la séquence, ainsi l'indice sera augmenté de 1 lorsque ce pattern sera évalué et sera donc positionné sur la trace suivant immédiatement cette séquence
-										patterns.push_back(Sequence::cloneLinearSequence(patterns[i]));
-										patternsPos.push_back(patternsPos[i]);
-										patternsOptCount.push_back(patternsOptCount[i]);
-										patternsAlignCount.push_back(patternsAlignCount[i]);
-										// Se repositionner au début de la séquence (le cas où la première trace est une séquence est géré dans la boucle juste après)
-										patternsPos[i] = beginSeqPos;
-									}
-								}
-								// Tantqu'on est sur un début de séquence, on progresse dans cette séquence jusqu'à tomber sur un Call
-								while (patterns[i][patternsPos[i]]->isSequence() && patterns[i][patternsPos[i]]->getInfo().compare("Begin") == 0)
-								{
-									// Si on tombe sur une séquence optionnelle il faut dupliquer le pattern pour dans un cas entrer dans la séquence et dans l'autre cas se positionner après la séquence
-									if (patterns[i][patternsPos[i]]->isOptional())
-									{
-										// Récupération de l'indice de fin de la séquence
-										int endSeqPos = Sequence::getEndPosOfLinearSequence(patterns[i], patternsPos[i]);
-										if (endSeqPos > -1)
-										{
-											// Cloner le pattern en fin de vecteur
-											patterns.push_back(Sequence::cloneLinearSequence(patterns[i]));
-											// Positionner l'indice de ce clone sur la position de la fin de cette séquence clonée, ainsi l'indice sera augmenté de 1 lorsque ce pattern sera évalué et sera donc positionné sur la trace suivant immédiatement cette séquence clonée
-											patternsPos.push_back(endSeqPos);
-											patternsOptCount.push_back(patternsOptCount[i]);
-											patternsAlignCount.push_back(patternsAlignCount[i]);
-										}
-									}
-									// Pour la trace non clonnée, se positionner sur la première trace de cette séquence (si cette trace est elle même une séquence, elle sera traitée par le prochain tour de boucle)
-									patternsPos[i]++;
-								}
-							}
-						}
-					}
-
-					// Ici pour chaque pattern on a soit atteint la fin, soit on est positionné sur un Call
-
-					//////////////////////////////////////////////////////////////
-					// ETAPE 2 : Intégrer la trace courante dans chaque pattern //
-					//////////////////////////////////////////////////////////////
-	
-					// réinititalisation de l'état de reprise
-					patternRecovery = false;
-					// Parcourir tous les patterns en repartant de l'indice startPatternsId. S'il n'y a pas de reprise d'analyse startPatternId est égal à 0 pour parcourir en totalité le vecteur de patterns
-					for (int i = startPatternsId ; i < (signed)patterns.size() ; i++)
-					{
-						// Si on a dépassé la fin du pattern courrant il faut vérifier si le Call courrant ne serait pas identique au premier Call du pattern. Si tel est le cas on se repostionnera sur ce Call du pattern sinon on ajoutera simplement ce Call comme option à la fin du pattern
-						if (patternsPos[i] >= (signed)patterns[i].size())
-						{
-							// Si le premier Call du pattern == au Call du root
-							int firstCallPos = Sequence::getCallPosInLinearSequence(patterns[i], 0);
-							if (firstCallPos != -1 && patterns[i][firstCallPos]->operator==(root->at(downTraceId).get()))
-							{
-								// Intégrer toutes les traces accumulées après la séquence mère du pattern à l'intérieur de la séquence mère
-								int endSeqPos = Sequence::getEndPosOfLinearSequence(patterns[i], 0);
-								if (endSeqPos > -1)
-								{
-									Trace::sp_trace lastEndSeq = patterns[i][endSeqPos];
-									for (int j = endSeqPos ; j < (signed)patterns[i].size()-1 ; j++)
-										patterns[i][j] = patterns[i][j+1];
-									patterns[i][patterns[i].size()-1] = lastEndSeq;
-								}
-								// Se repositionner sur le premier Call du pattern
-								patternsPos[i] = firstCallPos;
-								// Augmenter de 1 le nombre de trace alignée dans le vecteur de compteur des options
-								patternsAlignCount[i]++;
-							}
-							else
-							{
-								// Insérer dans le pattern la trace courante et la noter comme optionnelle
-								patterns[i].push_back(root->at(downTraceId)->clone());
-								patterns[i].back()->setOptional(true);
-								patternsPos[i]++;
-								// Augmenter de 1 le nombre d'option de ce pattern dans le vecteur de compteur des options
-								patternsOptCount[i]++;
-							}
-						}
-						else
-						{
-							// Ici on est toujours à l'intérieur du pattern, il faut maintenant voir si le Call du pattern est alignable avec celui du root
-							// Si le Call courrant du pattern == au Call du root
-							if (patterns[i][patternsPos[i]]->operator==(root->at(downTraceId).get()))
-							{
-								// Cas idéal => Simplement augmenter de 1 le nombre d'alignement de ce pattern dans le vecteur de compteur d'alignement
-								patternsAlignCount[i]++;
-							}
-							else
-							{
-								// CAS 1 : Possibilité de mettre le Call du root en option
-								// Dans ce cas si la Call courrant du pattern est le premier d'une séquence alors peut se poser la question d'insérer le Call du root en tête de la séquence (comme premier Call à l'intérieur de la séquence) ou en amont de la séquence (à l'extérieur de la séquence). Donc tantque la trace courante du clone 1 est la première d'une séquence, on génère ces deux cas.
-								do
-								{
-									// Insérer un clone dans le vecteur de patterns avant le modèle
-									patterns.insert(patterns.begin()+i, Sequence::cloneLinearSequence(patterns[i]));
-									patternsPos.insert(patternsPos.begin()+i, patternsPos[i]);
-									patternsOptCount.insert(patternsOptCount.begin()+i, patternsOptCount[i]);
-									patternsAlignCount.insert(patternsAlignCount.begin()+i, patternsAlignCount[i]);
-									
-									// IMPORTANT : Maintenant en i se trouve le clone et en i+1 le modèle
-									
-									// Insérer dans le clone un clone du Call du root (donc à l'intérieur de la séquence)
-									patterns[i].insert (patterns[i].begin()+patternsPos[i], root->at(downTraceId)->clone());
-									// Indiquer ce clone du Call du root comme optionnel
-									patterns[i][patternsPos[i]]->setOptional(true);
-									// Augmenter de 1 le nombre d'option de ce pattern dans le vecteur de compteur des options
-									patternsOptCount[i]++;
-
-									// incrémenter i pour se repositionner sur le modèle
-									i++;
-									// Dans le modèle (donc maintenant en i) ou souhaite vérifier si la trace en amont est un début de séquence (sauf si la première car on ne souhaite pas insérer de Call en amont du pattern). Si oui, autoriser une nouvelle itération pour insérer le clone de Call du root en amont de ce début de séquence.
-									// Donc il faut se positionner sur la trace en amont dans le modèle
-									patternsPos[i]--;
-									// Maintenant on peut évaluer s'il faut refaire un tour de boucle
-								} while (patternsPos[i] > 0 && patterns[i][patternsPos[i]]->isSequence() && patterns[i][patternsPos[i]]->getInfo().compare("Begin") == 0);
-								// En sortant de cette boucle cela signifie que la trace actuelle du modèle n'est pas un début de séquence. Il faut donc revenir sur la position courrante
-								patternsPos[i]++;
-								
-								// CAS 2 : Possibilité de mettre le Call du pattern en option
-								// Si la trace courrante du pattern n'est pas une option
-								if (!patterns[i][patternsPos[i]]->isOptional())
-								{
-									// Indiquer la trace courante du pattern comme optionnel
-									patterns[i][patternsPos[i]]->setOptional(true);
-									// Augmenter de 1 le nombre d'option de ce pattern dans le vecteur de compteur des options
-									patternsOptCount[i]++;
-								}
-								// Avancer dans ce pattern pour prendre en compte la mise en option du Call du pattern
-								patternsPos[i]++;
-								// Problème ici, il ne faut pas avancer dans les traces tant qu'on n'a pas réussi à positionner la trace courante. On modifie donc l'indice de parcours des traces à analyser pour traiter à nouveau cette trace et on précise également l'indice du pattern à reprendre
-								downTraceId--;
-								patternRecovery = true;
-								startPatternsId = i;
-								break;
-							}
-						}
-					}
-					// S'il ne faut pas reprendre l'analyse où on s'est arrêté
-					if (!patternRecovery)
-					{
-						startPatternsId = 0;
-						// Nettoyer les patterns qui n'ont pas un score suffisant
-						// TODO : CRITERE D'ARRET => TRES IMPORTANT
-					}
-					downTraceId++;
+					// si la séquence en question précède immediatement currentPos, on peut directement utiliser cette séquence
+					if (currentPos-prevPos == 1)
+						up_seq = boost::dynamic_pointer_cast<Sequence>(root->at(prevPos)->clone());
+					else
+						// sinon on construit une séquence contenant les traces comprises dans [prevPos, currentPos[
+						up_seq = root->getSubSequence(prevPos, currentPos);
 				}
-
-				// Maintenant qu'on a terminer de parcourir la trace pour cette acrroche, on calcule le meilleur pattern obtenu
-				for (int i = 0 ; i < (signed)patterns.size() ; i++)
+				if (up_seq)
 				{
-					// Pour calculer le meilleur score, on ignore les traces insérées au delà de la fin du pattern
-					patternsOptCount[i] = patternsOptCount[i]-((patterns[i].size()-1)-Sequence::getEndPosOfLinearSequence(patterns[i], 0));
-					float currentScore = (float)patternsAlignCount[i] / (patternsAlignCount[i]+patternsOptCount[i]);
-					if ( currentScore > maxRatio || (currentScore == maxRatio && patternsAlignCount[i] > maxAlign))
+					// Ici dans up_seq on a toutes les traces comprises entre l'accroche et la position courante
+					// Vecteur de patterns (ces différents patterns vont nous permettre d'envisager différentes options pour intégrer chaque trace dans les différents scénarios)
+					std::vector<Scenario> patterns;
+					// ajout d'un premier pattern correspondant au up
+					addNewPattern(patterns, up_seq->getLinearSequence());
+					
+					// On va maintenant descendre dans les traces du root courrant en partant de currentPos pour essayer d'intégrer chaque traces aux différents patterns (et produire de nouveaux patterns si besoin)
+					maxRatio = buildPatterns(root, currentPos, maxRatio, patterns);
+
+					// Maintenant qu'on a terminé de parcourir la trace pour cette acrroche, on créé autant de nouveaux roots que de patterns concervés pour poursuivre leur exploration
+					for (int i = 0 ; i < (signed)patterns.size() ; i++)
 					{
-						std::cout << "Pattern num " << i << std::endl;
-						std::cout << "Accroche : " << prevPos << "; Depart : " << currentPos << std::endl;
-						std::cout << "longueurs : " << Sequence::getEndPosOfLinearSequence(patterns[i], 0) << std::endl;
-						std::cout << "scores : " << patternsAlignCount[i] << "/" << (patternsAlignCount[i]+patternsOptCount[i]) << " = " << currentScore << std::endl;
-						maxRatio = currentScore;
-						maxAlign = patternsAlignCount[i];
-						bestPattern = patterns[i];
-						Sequence::exportLinearSequenceAsString(bestPattern, std::cout);
+						// On ignore tous les patterns qui contiendraient des calls non optionnelles au delà de la position du dernier ajout. En effet si le dernier call du root a été intégré en plein milieu d'un scénario et que ce scénario inclus dans la suite des calls obligatoires (non optionnels), celà signifierait que ce pattern produirait des calls au dela de la dernière trace du root... Ce qui n'est pas possible vue que le root est terminé, donc ce pattern est faux
+						if (Sequence::getNonOptCallInLinearSequence(patterns[i].pattern, patterns[i].position) > 0)
+							continue;
+						roots.push_back(ScoredRoot(patterns[i].score, boost::dynamic_pointer_cast<Sequence>(root->clone())));
+						// Incrustation du pattern dans le clone
+						roots[roots.size()-1].second->getTraces().erase(roots[roots.size()-1].second->getTraces().begin()+prevPos, roots[roots.size()-1].second->getTraces().end());
+						roots[roots.size()-1].second->insertLinearSequence(patterns[i].pattern, prevPos);
 					}
 				}
 			}
 		}
-		// TODO : Acter la fusion à partir des meilleurs paramètres enregistrés
-		// + racaller currentPos en fonction des décallages duent à la fusion
+
+osParser << r << " " << roots.size() << " " << maxRatio << std::endl;
 	}
 
-	Sequence::exportLinearSequenceAsString(bestPattern, std::cout);
-	
+	std::sort(roots.begin(), roots.end(), sortFunction);
+	osParser << "BEST SOLUTION !!!!" << std::endl;
+	for (int i = 0 ; i < (signed)roots.size() ; i++){
+		osParser << roots[i].first << " ";
+		roots[i].second->exportAsCompressedString(osParser);
+	}
 
 /*	// Recherche du point de départ effectif => le premier Call du root
 	while (start < (int)root->size())

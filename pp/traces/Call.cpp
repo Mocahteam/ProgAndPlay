@@ -113,6 +113,8 @@ void Call::exportAsString(std::ostream &os) const
 
 void Call::exportAsCompressedString(std::ostream &os) const
 {
+	if (opt)
+		os << "*";
 	os << key << " " << std::flush;
 }
 
