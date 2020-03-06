@@ -4,7 +4,7 @@ OBJ = $(SRC:.cpp=.o) # replaces the .cpp from SRC with .o
 EXE = parser.exe
 
 CC = g++
-CFLAGS = -Wall
+CFLAGS = -Wall -std=c++11
 
 REP_TRACES = ../../$(SPRING_VERSION)/rts/lib/pp/traces
 REP_CONT = ../../$(SPRING_VERSION)/cont/traces/data
@@ -24,7 +24,7 @@ all: $(EXE)      # all is dependent on $(EXE) to be complete
 $(EXE): $(OBJ)  # $(EXE) is dependent on all of the files in $(OBJ) to exist
 	$(CC) $(OBJ) -o $@
 
-install: $(REP_CONT)/params.json $(REP_CONT)/feedbacks.xml $(REP_TRACES)/TracesParser.cpp $(REP_TRACES)/TracesParser.h $(REP_TRACES)/TracesAnalyser.cpp $(REP_TRACES)/TracesAnalyser.h $(REP_TRACES)/Trace.cpp $(REP_TRACES)/Trace.h $(REP_TRACES)/TraceConstantList.h $(REP_TRACES)/Sequence.cpp $(REP_TRACES)/Sequence.h $(REP_TRACES)/Call.cpp $(REP_TRACES)/Call.h $(REP_TRACES)/CallDef.h $(REP_TRACES)/Event.cpp $(REP_TRACES)/Event.h $(REP_TRACES)/EventDef.h
+install: $(REP_CONT)/params.json $(REP_CONT)/feedbacks.xml $(REP_TRACES)/TracesParser.cpp $(REP_TRACES)/TracesParser.h $(REP_TRACES)/TracesAnalyser.cpp $(REP_TRACES)/TracesAnalyser.h $(REP_TRACES)/Trace.cpp $(REP_TRACES)/Trace.h $(REP_TRACES)/TraceConstantList.h $(REP_TRACES)/Sequence.cpp $(REP_TRACES)/Sequence.h $(REP_TRACES)/Scenario.cpp $(REP_TRACES)/Scenario.h $(REP_TRACES)/Call.cpp $(REP_TRACES)/Call.h $(REP_TRACES)/CallDef.h $(REP_TRACES)/Event.cpp $(REP_TRACES)/Event.h $(REP_TRACES)/EventDef.h
 
 $(REP_CONT)/params.json: ./example/params.json
 	cp ./example/params.json $(REP_CONT)
@@ -58,6 +58,12 @@ $(REP_TRACES)/Sequence.cpp: Sequence.cpp
 
 $(REP_TRACES)/Sequence.h: Sequence.h
 	cp Sequence.h $(REP_TRACES)
+
+$(REP_TRACES)/Scenario.cpp: Scenario.cpp
+	cp Scenario.cpp $(REP_TRACES)
+
+$(REP_TRACES)/Scenario.h: Scenario.h
+	cp Scenario.h $(REP_TRACES)
 
 $(REP_TRACES)/Call.cpp: Call.cpp
 	cp Call.cpp $(REP_TRACES)

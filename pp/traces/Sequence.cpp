@@ -148,8 +148,6 @@ void Sequence::exportLinearSequenceAsString(std::vector<Trace::sp_trace> & linea
 {
 	for (int i = 0 ; i < (signed)linearSequence.size() ; i++)
 	{
-		if (linearSequence[i]->isOptional())
-			os << "*";
 		if (linearSequence[i]->isSequence())
 			os << "Seq(" << linearSequence[i]->getInfo() << "*" << boost::dynamic_pointer_cast<Sequence>(linearSequence[i])->getNum() << ")\t";
 		else
