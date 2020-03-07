@@ -28,17 +28,17 @@ public:
 	// pattern stocké sous une forme linéarisée
 	std::vector<Trace::sp_trace> pattern;
 	// position nous permettant de connaître la position d'avancement dans le pattern
-	int position;
+	int position = 0;
 	// compteur d'alignement nous permettant de connaître dans le pattern combien de traces ont pu être alignées
-	int alignCount;
+	int alignCount = 0;
 	// compteur d'option nous permettant de connaître dans le pattern combien de traces optionnelles ont été définies
-	int optCount;
+	int optCount = 0;
 	// score du pattern
-	float score;
-    // nombre de trace dans le root au dessus du modèle qui a permis de lancer l'aggrégation
-    int upCount;
-	// position dans le root à laquelle insérer ce pattern (la position du modèle qui a permis l'aggrégation)
-	int rootStartingPos;
+	float score = 0;
+  // nombre de trace dans le root au dessus du modèle qui a permis de lancer l'aggrégation
+  int upCount = 0;
+	// position dans le root (en version non linéarisée) à laquelle insérer ce pattern (la position du modèle qui a permis l'aggrégation).
+	int rootStartingPos = 0;
 
     /**
      * \brief construction d'un nouveau scénario à partir d'un vecteur de trace

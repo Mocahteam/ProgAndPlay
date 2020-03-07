@@ -10,11 +10,11 @@
 
 bool debug = false;
 
-Sequence::Sequence(std::string info, bool num_fixed) : Trace(SEQUENCE, info), num_fixed(num_fixed), num(1), pt(0), endReached(false), shared(false), root(false), newIter(false) {
+Sequence::Sequence(std::string info, bool num_fixed) : Trace(SEQUENCE, info), newIter(false), num_fixed(num_fixed), num(1), pt(0), endReached(false), shared(false), root(false) {
 	addIteration(1);
 }
 
-Sequence::Sequence(unsigned int num, bool root, bool opt) : Trace(SEQUENCE), num_fixed(false), num(num), pt(0), endReached(false), shared(false), root(root), newIter(false)
+Sequence::Sequence(unsigned int num, bool root, bool opt) : Trace(SEQUENCE), newIter(false), num_fixed(false), num(num), pt(0), endReached(false), shared(false), root(root)
 {
 	addIteration(num);
 	setOptional(opt);
@@ -805,6 +805,9 @@ std::vector<Trace::sp_trace> &Sequence::getLinearSequence(int start, int end)
 		std::stack<Sequence::sp_sequence> stack;
 		stack.push(sps);
 		Sequence::sp_sequence tmpSeq = boost::make_shared<Sequence>("Begin", -1);
+		// remove default iteration description
+		tmpSeq->iterDesc.clear();
+		// and merge with the model's one
 		tmpSeq->mergeIterationDescription(sps->getIterationDescription());
 		tmpSeq->num = tmpSeq->getIterationDescription().rbegin()->first;
 		linearizedTraces.push_back(tmpSeq);

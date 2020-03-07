@@ -38,7 +38,7 @@ public:
 
 	
 	/**
-	 * Utilisé dans les séquences linéarisées ("Begin") pour stocker le contecte de l'analyse : true => arrivé à la fin de séquence et reprise au début ; false => avancé dans le pattern et arrivé au début d'une séquence
+	 * Utilisé dans les séquences linéarisées ("Begin") pour stocker le contecte de l'analyse dans le cas où le premier call d'une séquence n'est pas alignable avec le call du root traité : true => arrivé à la fin de séquence et reprise au début donc ajout du call du root en option au début de la séquence et en fin de séquence ; false => avancé dans le pattern et arrivé au début d'une séquence donc ajout du call du root en option au début de la séquence et avant la séquence.
 	 */
 	bool newIter;
 
