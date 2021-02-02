@@ -1,6 +1,13 @@
 #include "Scenario.h"
 #include "Sequence.h"
 
+// Init static fields
+float Scenario::SCORE_TOLERENCE = 0.1;
+float Scenario::WEIGHT_ALIGN_RATIO = 0.6;
+float Scenario::OPTION_PENALTY = 1.94;
+float Scenario::WEIGHT_MAXIMIZE_ALIGN = 0.2;
+float Scenario::WEIGHT_MINIMIZE_LENGTH = 0.2;
+
 Scenario::Scenario (std::vector<Trace::sp_trace> traces, int upCount, int rootStartingPos){
     pattern = traces;
 	position = 0;
@@ -23,12 +30,16 @@ Scenario::sp_scenario Scenario::clone (){
 float Scenario::simulateScore(int alignIncr, int optIncr, int minLength, int maxAligned){
     int nbAlign = alignCount+alignIncr;
     int nbOpt = optCount+optIncr;
+	if (nbAlign + nbOpt == 0) return 0;
     //return ((float)(nbAlign*nbAlign) / (nbAlign+nbOpt));
     //return ((float)(nbAlign) / (rootMainPos+nbAlign+nbOpt+pattern.size()-Sequence::getEndPosOfLinearSequence(pattern, 0)));
     //return ((float)(nbAlign) / (nbAlign+nbOpt));
     //return 0.7*(float)nbAlign / (nbAlign+nbOpt) + 0.3*(float)nbAlign / maxAligned;
-    return 0.6*(float)nbAlign / (nbAlign+nbOpt) + 0.2*(float)nbAlign / maxAligned + 0.2*(float)minLength / (upCount+pattern.size());
     //return 0.6*(float)nbAlign / (nbAlign+nbOpt) + 0.2*(float)nbAlign / maxAligned + 0.2*(float)minLength / (pattern.size());
+    //return 0.6*(float)nbAlign / (nbAlign+nbOpt) + 0.2*(float)nbAlign / maxAligned + 0.2*(float)minLength / (upCount+pattern.size());
+	//return 0.6*(float)nbAlign / (nbAlign+nbOpt*10000) + 0.2*(float)nbAlign / maxAligned + 0.2*(float)minLength / (upCount+pattern.size());
+
+	return WEIGHT_ALIGN_RATIO*(float)nbAlign / (nbAlign+nbOpt*OPTION_PENALTY) + WEIGHT_MAXIMIZE_ALIGN*(float)nbAlign / maxAligned + WEIGHT_MINIMIZE_LENGTH*(float)minLength / (upCount+pattern.size());
 }
 
 void Scenario::updateScore(int minLength, int maxAligned){
@@ -116,8 +127,21 @@ std::vector<Scenario::sp_scenario> Scenario::simulateMoveToNextCall(){
     return results;
 }
 
-std::vector<Scenario::sp_scenario> Scenario::simulateNewCallIntegration(const Trace::sp_trace & rootCall, float maxRatio, int minLength, int * maxAligned, int recIdKill){
+std::vector<Scenario::sp_scenario> Scenario::simulateNewCallIntegration(const Trace::sp_trace & rootCall, float maxRatio, int minLength, int * maxAligned, int nbRec, std::vector<Scenario::sp_scenario> * viewed){
+	std::cout << "Scenario::simulateNewCallIntegration " << position << "/" << pattern.size() << " " << nbRec;
+	if (position > 0 && position < (signed)pattern.size())
+		pattern[position]->exportAsString(std::cout);
+	else
+		std::cout << std::endl;
+	std::cout << "Root : ";
+	rootCall->exportAsString(std::cout); 
+	Sequence::exportLinearSequenceAsString(pattern, std::cout);
+
 	std::vector<Scenario::sp_scenario> result;
+
+	if (nbRec == 0 && viewed == NULL)
+		viewed = new std::vector<Scenario::sp_scenario>();
+	
     // Vérifier si on a dépassé la fin du pattern
 	if (position >= (signed)pattern.size())
 	{
@@ -138,12 +162,9 @@ std::vector<Scenario::sp_scenario> Scenario::simulateNewCallIntegration(const Tr
 		{
 			// Intégrer toutes les traces accumulées après la séquence mère du pattern à l'intérieur de la séquence mère et les mettre en optionnelle
 			// Passer de [Sd C C Sf C C] à [Sd C C opt(C) opt(C) Sf]
-
-            // Insérer un clone dans le vecteur de résultats
-            result.push_back(clone());
             
-            // on travaille maintenant sur ce dernier résultat
-            Scenario::sp_scenario tmpSc = result.back();
+            // on travaille maintenant sur un clone
+            Scenario::sp_scenario tmpSc = clone();
 
             // enregistrer la trace de fin de séquence
             Trace::sp_trace lastEndSeq = tmpSc->pattern[endSeqPos];
@@ -167,6 +188,9 @@ std::vector<Scenario::sp_scenario> Scenario::simulateNewCallIntegration(const Tr
             boost::dynamic_pointer_cast<Sequence>(tmpSc->pattern[tmpSc->position-1])->newIter = true;
             // Mise à jour du max
             *maxAligned = (tmpSc->alignCount > *maxAligned) ? tmpSc->alignCount : *maxAligned;
+			
+            // Insérer le clone dans le vecteur de résultats
+            result.push_back(tmpSc);
 		}
 
 		// Cas 2 : ajouter le Call courant (root) à la fin du pattern
@@ -182,14 +206,13 @@ std::vector<Scenario::sp_scenario> Scenario::simulateNewCallIntegration(const Tr
 		// Si le Call courrant du pattern == au Call du root
 		if (pattern[position]->operator==(rootCall.get()))
 		{
-			// Insérer un clone dans le vecteur de résultats
-			result.push_back(clone());
-				
-			// on travaille maintenant sur ce dernier résultat
-			Scenario::sp_scenario tmpSc = result.back();
-
+			// on travaille maintenant sur un clone
+			Scenario::sp_scenario tmpSc = clone();
 			// Cas idéal => augmenter de 1 le nombre d'alignement de ce pattern dans le vecteur de compteur d'alignement
 			tmpSc->alignCount++;
+			// Si la trace courrante du pattern est une option on augmente quand même le nombre d'option
+			if (tmpSc->pattern[tmpSc->position]->isOptional())
+				tmpSc->optCount++;
 			// Fusionner les deux appels
 			dynamic_cast<Call *>(tmpSc->pattern[tmpSc->position].get())->filterCall(dynamic_cast<const Call *>(rootCall.get()));
 			// Mise à jour du max
@@ -198,13 +221,15 @@ std::vector<Scenario::sp_scenario> Scenario::simulateNewCallIntegration(const Tr
             for (int i = 0 ; i < (signed)tmpSc->pattern.size() ; i++)
                 if (tmpSc->pattern[i]->isSequence() && tmpSc->pattern[i]->getInfo().compare("Begin") == 0)
                     boost::dynamic_pointer_cast<Sequence>(tmpSc->pattern[i])->newIter = false;
+			// Insérer le clone dans le vecteur de résultats
+			result.push_back(tmpSc);
 		}
 		else
 		{
 			// Ici les deux call ne sont pas alignable, l'un des deux doit être mis en option
 
 			// Vérifier que le score resterait intéressant malgrès l'ajout d'une nouvelle option
-			if (simulateScore(0, 1, minLength, *maxAligned) > maxRatio - SCORE_TOLERENCE){
+			if (pattern[position]->isOptional() || simulateScore(0, 1, minLength, *maxAligned) > maxRatio - SCORE_TOLERENCE){
 
 				// CAS 1 : Possibilité de mettre le Call du root en option
 				
@@ -216,14 +241,11 @@ std::vector<Scenario::sp_scenario> Scenario::simulateNewCallIntegration(const Tr
 
 					// => Dans ces deux possibilités un scénario consiste à insérer l'option en début de séquence (juste avant le call du pattern) ce qui correspond aussi au cas où on n'aurait pas été en début de séquence. Ce cas est traité juste à la sortie de ce "if"
 
-					int savePos = position; // on sauvegarde notre position dans le pattern pour pouvoir le rétablir après le traitement de la boucle qui peut faire évoluer la position notemment pour gérer les bas (b)
+					int savePos = position; // on sauvegarde notre position dans le pattern pour pouvoir le rétablir après le traitement de la boucle qui peut faire évoluer la position notemment pour gérer les cas (b)
 					bool newLoop = false;
 					do{
-						// Insérer un clone dans le vecteur de résultat
-						result.push_back(clone());
-				
-						// on travaille maintenant sur ce dernier résultat
-						Scenario::sp_scenario tmpSc = result.back();
+						// on travaille sur un clone
+						Scenario::sp_scenario tmpSc = clone();
 
 						// On teste pour vérifier dans quel contexte on est
 						if (boost::dynamic_pointer_cast<Sequence>(tmpSc->pattern[tmpSc->position-1])->newIter){
@@ -257,6 +279,9 @@ std::vector<Scenario::sp_scenario> Scenario::simulateNewCallIntegration(const Tr
 							// Vérifer s'il faut refaire un tour de boucle
 							newLoop = position-1 > 0 && pattern[position-1]->isSequence() && pattern[position-1]->getInfo().compare("Begin") == 0;
 						}
+
+						// Insérer le clone dans le vecteur de résultat
+						result.push_back(tmpSc);
 					} while (newLoop);
 					
 					// En sortant de cette boucle cela signifie que la trace actuelle du modèle n'est pas un début de séquence. Il faut donc revenir sur la position courrante
@@ -265,17 +290,15 @@ std::vector<Scenario::sp_scenario> Scenario::simulateNewCallIntegration(const Tr
 				
 				// Dans tous les cas on ajoute le call du root en option juste avant le call du pattern
 				// on céée un nouveau clone pour pouvoir gérer le Cas 2 (call du pattern en option)
-				result.push_back(clone());
-				
-				// on travaille maintenant sur ce dernier résultat
-				Scenario::sp_scenario tmpSc = result.back();
-
+				Scenario::sp_scenario tmpSc = clone();
 				// Ajout du call du root en option juste avant le call du pattern
 				tmpSc->pattern.insert (tmpSc->pattern.begin()+tmpSc->position, rootCall->clone());
 				// Indiquer ce clone du Call du root comme optionnel
 				tmpSc->pattern[tmpSc->position]->setOptional(true);
 				// Augmenter de 1 le nombre d'option de ce pattern
 				tmpSc->optCount++;
+				// Insérer le clone dans le vecteur de résultat
+				result.push_back(tmpSc);
 				
 				// CAS 2 : mettre le Call du pattern en option
 				// On crée un clone pour travailler
@@ -288,18 +311,38 @@ std::vector<Scenario::sp_scenario> Scenario::simulateNewCallIntegration(const Tr
 					// Augmenter de 1 le nombre d'option de ce pattern
 					tmpSc->optCount++;
 				}
-				// Avancer dans ce pattern pour prendre en compte la mise en option du Call du pattern
+				// Avancer dans ce pattern pour prendre en compte le fait qu'on saute l'option
 				std::vector<Scenario::sp_scenario> movedScenar = tmpSc->simulateMoveToNextCall();
 				for (int j = 0 ; j < (signed)movedScenar.size() ; j++){
-					// Vérifier si on est pas revenu à la position initiale (prévenir appel récursif infini)
-					if (movedScenar[j]->position != recIdKill){
+					// Vérifier si on n'est pas retombé sur un scénario déjà expertisé
+					if (!movedScenar[j]->existsIn(*viewed, true) && !movedScenar[j]->existsIn(result, true)){
 						// On fait donc un appel récursif pour tenter de positionner la trace courrante
-						std::vector<Scenario::sp_scenario> res = movedScenar[j]->simulateNewCallIntegration(rootCall, maxRatio, minLength, maxAligned, recIdKill);
-                        result.insert(result.end(), res.begin(), res.end());
+						viewed->push_back(movedScenar[j]);
+						std::vector<Scenario::sp_scenario> sim = movedScenar[j]->simulateNewCallIntegration(rootCall, maxRatio, minLength, maxAligned, nbRec+1, viewed);
+						// Intégration aux résultats des scénarios simulés
+						result.insert(result.end(), sim.begin(), sim.end());
                     }
 				}
 			}
 		}
 	}
-    return result;
+	if (nbRec == 0)
+		delete viewed;
+	return result;
+}
+
+bool Scenario::existsIn(std::vector<Scenario::sp_scenario> set, bool checkPosition){
+	bool found = false;
+	std::stringstream thisSS;
+	Sequence::exportLinearSequenceAsString(pattern, thisSS, false);
+	for (int i = 0 ; i < (signed)set.size() && !found; i++){
+		if (set[i]->pattern.size() == pattern.size()){
+			std::stringstream setSS;
+			Sequence::exportLinearSequenceAsString(set[i]->pattern, setSS, false);
+			found = setSS.str().compare(thisSS.str()) == 0;
+			if (checkPosition)
+				found = found && set[i]->position == position;
+		}
+	}
+	return found;
 }

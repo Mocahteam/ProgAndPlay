@@ -144,12 +144,16 @@ void Sequence::exportAsCompressedString(std::ostream &os) const
 		os << std::endl;
 }
 
-void Sequence::exportLinearSequenceAsString(std::vector<Trace::sp_trace> & linearSequence, std::ostream &os)
+void Sequence::exportLinearSequenceAsString(std::vector<Trace::sp_trace> & linearSequence, std::ostream &os, bool exportSeqIter)
 {
 	for (int i = 0 ; i < (signed)linearSequence.size() ; i++)
 	{
-		if (linearSequence[i]->isSequence())
-			os << "Seq(" << linearSequence[i]->getInfo() << "*" << boost::dynamic_pointer_cast<Sequence>(linearSequence[i])->getNum() << ")\t";
+		if (linearSequence[i]->isSequence()){
+			os << "Seq(" << linearSequence[i]->getInfo();
+			if (exportSeqIter)
+				os << "*" << boost::dynamic_pointer_cast<Sequence>(linearSequence[i])->getNum();
+			os << ") ";
+		}
 		else
 			linearSequence[i]->exportAsCompressedString(os);
 	}

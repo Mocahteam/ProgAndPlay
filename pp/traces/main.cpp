@@ -6,6 +6,7 @@
 
 #include "TracesParser.h"
 #include "TracesAnalyser.h"
+#include "Scenario.h"
 #include "../test/constantList_KP4.1.h"
 
 static std::string dir_path = "./example";
@@ -166,9 +167,23 @@ std::vector<std::string> loadExpertsXml()
 	return experts_xml;
 }
 
+int getParamPos(int argc, char *argv[], const char *param){
+	for (int i = 0 ; i < argc ; i++)
+		if (strcmp(argv[i], param) == 0)
+			return i;
+	return -1;
+}
+
 int main(int argc, char *argv[])
 {
-	if (argc < 2 || argc > 6 || strcmp(argv[1], "-h") == 0 || strcmp(argv[1], "--help") == 0)
+	// reset static fields
+	Scenario::SCORE_TOLERENCE = 0.1;
+	Scenario::WEIGHT_ALIGN_RATIO = 0.6;
+	Scenario::OPTION_PENALTY = 1.6;
+	Scenario::WEIGHT_MAXIMIZE_ALIGN = 0.2;
+	Scenario::WEIGHT_MINIMIZE_LENGTH = 0.2;
+
+/*	if (argc < 2 || argc > 6 || strcmp(argv[1], "-h") == 0 || strcmp(argv[1], "--help") == 0)
 	{
 		std::cout << "Usage: parser all [dir_path]\n";
 		std::cout << "\tall: all complete traces files present in dir_path directory and its subdirectories (recursively) will be compressed\n";
@@ -183,17 +198,9 @@ int main(int argc, char *argv[])
 		std::cout << "\t\t- there must be at least one solution (an XML file) for the mission in the directory \"[dir_path]/expert/[mission_name]\"\n";
 		std::cout << "\t-o output: the output file name (without extension) to write results (default ./exemple/[filename]_compressed.txt)\n\n";
 		return -1;
-	}
-	bool analysis = (argc == 3 && strcmp(argv[2], "-la") == 0) || (argc == 4 && strcmp(argv[3], "-la") == 0);
-	if (argc >= 3 && strcmp(argv[2], "-la") != 0 && argc >= 3 && strcmp(argv[2], "-o") != 0)
+	}*/
+	if (argc >= 3 && strcmp(argv[2], "-la") != 0 && strcmp(argv[2], "-o") != 0)
 		dir_path = argv[2];
-	output = "";
-	if (argc >= 4 && strcmp(argv[2], "-o") == 0)
-		output = argv[3];
-	if (argc >= 5 && strcmp(argv[3], "-o") == 0)
-		output = argv[4];
-	if (argc >= 6 && strcmp(argv[4], "-o") == 0)
-		output = argv[5];
 	// load compression params
 	std::cout << "Try to open params.json file from example directory (" + dir_path + "/)" << std::endl;
 	TracesParser::params_json = loadFile(dir_path + "/params.json");
@@ -205,6 +212,43 @@ int main(int argc, char *argv[])
 		return compressAllTraces(dir_path);
 	else
 	{
+		bool analysis = getParamPos(argc, argv, "-la") != -1;
+
+		output = "";
+		int paramPos = getParamPos(argc, argv, "-o");
+		if (paramPos != -1 && paramPos+1 < argc)
+			output = argv[paramPos+1];
+		
+		paramPos = getParamPos(argc, argv, "-sc");
+		if (paramPos != -1 && paramPos+1 < argc)
+			Scenario::SCORE_TOLERENCE = strtof(argv[paramPos+1], NULL);
+		else
+			Scenario::SCORE_TOLERENCE = 0.1;
+		
+		paramPos = getParamPos(argc, argv, "-war");
+		if (paramPos != -1 && paramPos+1 < argc)
+			Scenario::WEIGHT_ALIGN_RATIO = strtof(argv[paramPos+1], NULL);
+		else
+			Scenario::WEIGHT_ALIGN_RATIO = 0.6;
+		
+		paramPos = getParamPos(argc, argv, "-op");
+		if (paramPos != -1 && paramPos+1 < argc)
+			Scenario::OPTION_PENALTY = strtof(argv[paramPos+1], NULL);
+		else
+			Scenario::OPTION_PENALTY = 1.6;
+		
+		paramPos = getParamPos(argc, argv, "-wma");
+		if (paramPos != -1 && paramPos+1 < argc)
+			Scenario::WEIGHT_MAXIMIZE_ALIGN = strtof(argv[paramPos+1], NULL);
+		else
+			Scenario::WEIGHT_MAXIMIZE_ALIGN = 0.2;
+		
+		paramPos = getParamPos(argc, argv, "-wml");
+		if (paramPos != -1 && paramPos+1 < argc)
+			Scenario::WEIGHT_MINIMIZE_LENGTH = strtof(argv[paramPos+1], NULL);
+		else
+			Scenario::WEIGHT_MINIMIZE_LENGTH = 0.2;
+
 		// Compression
 		std::string filename = argv[1];
 		if (filename.find(".log") == std::string::npos)

@@ -11,19 +11,24 @@
 #ifndef __SCENARIO_H__
 #define __SCENARIO_H__
 
-
-/**
- * Seuil utilisé pour déterminer quels patterns concervés. Un Pattern dont le score est inférieur de SCORE_TOLERENCE par rapport au meilleur score calculé sera supprimé
- */
-#define SCORE_TOLERENCE 0.1
-
 class Scenario {
 
 public:
 	/**
-	  * Définition du type pointeur intelligent vers un objet Trace.
+	  * Définition du type pointeur intelligent vers un objet Scenario.
 	  */
 	typedef boost::shared_ptr<Scenario> sp_scenario;
+  
+  /**
+   * Seuil utilisé pour déterminer quels patterns concerver. Un Pattern dont le score est inférieur de SCORE_TOLERENCE par rapport au meilleur score calculé sera supprimé
+   */
+  static float SCORE_TOLERENCE;
+
+  // Constantes utiliser pour le calcul du score d'un pattern
+  static float WEIGHT_ALIGN_RATIO;
+  static float OPTION_PENALTY;
+  static float WEIGHT_MAXIMIZE_ALIGN;
+  static float WEIGHT_MINIMIZE_LENGTH;
 
 	// pattern stocké sous une forme linéarisée
 	std::vector<Trace::sp_trace> pattern;
@@ -66,11 +71,10 @@ public:
      * \param maxRatio Meilleur score obtenu parmis les patterns à traiter
      * \param minLength Taille du plus petit pattern (le plus compressé)
      * \param maxAligned Nombre maximal d'alignement parmis les patterns à traiter
-     * \param recIdKill Cette fonction étant récursive il y a un risque d'entrer dans une récursion infinie (notemment si une séquence ne contient que des traces optionnelles). Si la position du scénario retombe donc sur recIdKill, la récursion est stoppée
      * 
      * \return la liste des scénario découlant de l'ajout du Call dans le scénario courant
      */
-    std::vector<Scenario::sp_scenario> simulateNewCallIntegration(const Trace::sp_trace & rootCall, float maxRatio, int minLength, int * maxAligned, int recIdKill);
+    std::vector<Scenario::sp_scenario> simulateNewCallIntegration(const Trace::sp_trace & rootCall, float maxRatio, int minLength, int * maxAligned, int nbRec = 0, std::vector<Scenario::sp_scenario> * viewed = NULL);
 
     /**
      * \brief Recalcule le score du scénario. Ce calcul dépend des autres scénarios à considérer.
@@ -89,6 +93,16 @@ public:
      * \param maxAligned nombre maximal d'alignement dans les autres scénario considérés
      */
     float simulateScore(int alignIncr, int optIncr, int minLength, int maxAligned);
+
+    /**
+     * \brief Vérifie si this est inclus dans l'ensemble de scénario passé en paramètre.
+     * 
+     * \param set ensemble de scénarios
+     * \param checkPosition inclus la position dans l'évaluation de l'inclusion
+     * 
+     * \return true si le scénario est inclus dans l'ensemble et false sinon
+     */
+    bool existsIn(std::vector<Scenario::sp_scenario> set, bool checkPosition = false);
 };
 
 #endif

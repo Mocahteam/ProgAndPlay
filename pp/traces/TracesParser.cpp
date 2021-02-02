@@ -317,7 +317,7 @@ void TracesParser::parseLogs(std::istream &logs, bool waitEndFlag)
 #endif
 					}
 				}
-			}
+			} // End loop: read next line
 			// No more lines to read, check if it's due to end of file
 			// If yes, we can continue
 			// If no (means another error), then we stop to read input file
@@ -337,27 +337,26 @@ void TracesParser::parseLogs(std::istream &logs, bool waitEndFlag)
 				{
 // We try to detect and compress remaining traces
 #ifdef DEBUG_PARSER
-					osParser << "\tWe try to detect and compress sequences" << std::endl;
+					osParser << "We try to detect and compress sequences" << std::endl;
 #endif
 					offlineCompression();
 				}
 #ifdef DEBUG_PARSER
-				osParser << "\tWe save compression results in files" << std::endl;
+				osParser << "We save compression results in files" << std::endl;
 #endif
 				saveCompression();
 #ifdef DEBUG_PARSER
-				osParser << "\tWarn compression is done and can be used" << std::endl;
+				osParser << "Warn compression is done and can be used" << std::endl;
 #endif
 				compressed = true; // inform ProgAndPlay.cpp the compression is done
 #ifdef DEBUG_PARSER
-				osParser << "\treset flags" << std::endl;
+				osParser << "reset flags" << std::endl;
 #endif
 				// we reset flags
 				executionDetected = false;
 				proceed = false;
 			}
 		}
-		CloseResources();
 	}
 	else
 	{
@@ -368,6 +367,7 @@ void TracesParser::parseLogs(std::istream &logs, bool waitEndFlag)
 #ifdef DEBUG_PARSER
 	osParser << "End parsing traces" << std::endl;
 #endif
+	CloseResources();
 }
 
 Trace::sp_trace TracesParser::parseLine(const std::string &s)
@@ -683,15 +683,16 @@ void TracesParser::offlineCompression()
 
 	for (int r = 0 ; r < (signed)roots.size() ; r++)
 	{
+std::cout << r << " " << roots.size() << std::endl;
 		Sequence::sp_sequence rootSequence = roots[r].sequence;
 		float maxRatio = roots[r].scenario->score;
 
 		// Vecteur de patterns (ces différents patterns vont nous permettre d'envisager différentes options pour intégrer chaque trace)
 		std::vector<Scenario::sp_scenario> patterns;
 
-/*		std::cout << "--- NEW PASS ---" << std::endl;
-		scenario->exportAsCompressedString(std::cout);
-		std::cout << std::endl;*/
+		osParser << "--- NEW PASS ---" << std::endl;
+		rootSequence->exportAsCompressedString(osParser);
+		osParser << std::endl;
 
 		// Recherche du point de départ effectif => le premier Call du root non intégré dans une séquence
 		int startingPos = start;
@@ -700,9 +701,6 @@ void TracesParser::offlineCompression()
 				startingPos++;
 			else
 				break;
-
-int statsMove = 0;
-int statsAdd = 0;
 
 		// On parcours toute la trace à partir du premier Call trouvé
 		for (int currentPos = startingPos; currentPos < (int)rootSequence->size(); currentPos++)
@@ -720,8 +718,15 @@ int statsAdd = 0;
 			// récupération de la trace courante
 			Trace::sp_trace currentTrace = rootSequence->at(currentPos);
 			// Si la trace courante est un event, on stoppe l'annalyse (ici c'est forcement un event non alignable vue que les autres ont été filtrés lors du parsage des logs)
-			if (currentTrace->isEvent())
+			if (currentTrace->isEvent()){
+				// Vérifier si on ne serait pas à la fin d'une séquence dans chaque scénario, dans ce cas il faut ajouter une dernière itération à chacun de ces scénarios
+				for (int i = 0 ; i < (signed)patterns.size() ; i++){
+					Scenario::sp_scenario scenar = patterns[i];
+					if (scenar->position+1 < (signed)scenar->pattern.size() && scenar->pattern[scenar->position+1]->isSequence() && scenar->pattern[scenar->position+1]->getInfo().compare("End") == 0)
+						boost::dynamic_pointer_cast<Sequence>(scenar->pattern[Sequence::getBeginPosOfLinearSequence(scenar->pattern, scenar->position+1)])->addOne();
+				}
 				break;
+			}
 
 			// Rechercher des accroches en amont (une trace égale au Call courrant). Cette accroche peut être soit directement un Call du root soit le premier Call d'une séquence du root
 			// Donc on remonte la trace pour essayer de trouver ces accroches
@@ -754,14 +759,15 @@ int statsAdd = 0;
 					// ajout du pattern correspondant au up
 					patterns.push_back(boost::make_shared<Scenario>(up_seq->getLinearSequence(), rootSequence->getSubSequence(startingPos, upPos)->length(), upPos));
 				}
-			}
+			} // fin boucle : remonter pour trouver d'autres accroches
+
+			// ici on a fini de remonter la trace pour trouver des accroches correspondantes à la trace en cours d'analyse. Plusieurs patterns ont été identifiés il faut donc maintenant les faire avancer pour essayer d'aligner le prochain call.
 
 			// Positionner chaque pattern sur son prochain Call
 			std::vector<Scenario::sp_scenario> new_patterns;
 			for (int i = 0 ; i < (signed)patterns.size() ; i++){
 				std::vector<Scenario::sp_scenario> results = patterns[i]->simulateMoveToNextCall();
 				new_patterns.insert(new_patterns.end(), results.begin(), results.end());
-statsMove += results.size();
 			}
 			patterns = std::move(new_patterns);
 
@@ -803,9 +809,14 @@ statsMove += results.size();
 			std::vector<Scenario::sp_scenario> results;
 			// Parcourir tous les patterns
 			for (int i = 0 ; i < (signed)patterns.size() ; i++){
-				std::vector<Scenario::sp_scenario> res = patterns[i]->simulateNewCallIntegration(currentTrace, maxRatio, minLength, &maxAligned, patterns[i]->position);
-				results.insert(results.end(), res.begin(), res.end());
-statsAdd += res.size();
+				std::vector<Scenario::sp_scenario> viewed;
+				viewed.push_back(patterns[i]);
+				std::vector<Scenario::sp_scenario> sim = patterns[i]->simulateNewCallIntegration(currentTrace, maxRatio, minLength, &maxAligned);
+				for (int j = 0 ; j < (signed)sim.size() ; j++)
+					if (!sim[j]->existsIn(results))
+						results.push_back(sim[j]);
+				//results.insert(results.end(), sim.begin(), sim.end());
+				
 			}
 			patterns = std::move(results);
 
@@ -834,7 +845,7 @@ statsAdd += res.size();
 
 			// Suppression de tous les patterns qui ne pourront pas rattraper le meilleur score
 			for (int i = (signed)patterns.size()-1 ; i >= 0 ; i--){
-				if (patterns[i]->score < maxRatio - SCORE_TOLERENCE){ // TODO : pouvoir paramétrer ce seuil
+				if (patterns[i]->score < maxRatio - Scenario::SCORE_TOLERENCE){
 //osParser << "Suppression du pattern s" << patterns[i]->score << "/" << maxRatio << " a" << patterns[i]->alignCount << " o" << patterns[i]->optCount << " ma" << maxAligned << " [" << patterns[i]->position << "] ";
 //Sequence::exportLinearSequenceAsString(patterns[i]->pattern, osParser);
 					patterns.erase(patterns.begin()+i);
@@ -850,58 +861,45 @@ statsAdd += res.size();
 	}
 	std::cout << std::endl;
 }*/
-		}
+		} // fin boucle : descente dans la trace
 
-std::sort(patterns.begin(), patterns.end(), sortFunction2);
-		float averageScore = 0;
-		float minScore = 1;
-		float maxScore = 0;
-		for (int i = 0 ; i < (signed)patterns.size() ; i++){
-			averageScore += patterns[i]->score;
-			if (patterns[i]->score < minScore)
-				minScore = patterns[i]->score;
-			if (patterns[i]->score > maxScore)
-				maxScore = patterns[i]->score;
-		}
-		averageScore = averageScore/patterns.size();
-std::cout << r << " " << roots.size() << " " << patterns.size() << " " << statsMove << " " << statsAdd << " " << averageScore << " " << minScore << " " << maxScore << std::endl;
-
+		int maxAligned = 0;
+		int minLength = INT_MAX;
 		// Maintenant qu'on a terminé de parcourir la trace pour cette accroche, on créé autant de nouveaux roots que de patterns concervés pour poursuivre leur exploration
 		for (int i = 0 ; i < (signed)patterns.size() ; i++)
 		{
 			// On ignore tous les patterns qui contiendraient des calls non optionnelles au delà de la position du dernier ajout. En effet si le dernier call du root a été intégré en plein milieu d'un scénario et que ce scénario inclus dans la suite des calls obligatoires (non optionnels), celà signifierait que ce pattern produirait des calls au dela de la dernière trace du root... Ce qui n'est pas possible vue que le root est terminé, donc ce pattern est faux
-			if (Sequence::getNonOptCallInLinearSequence(patterns[i]->pattern, patterns[i]->position) > 0)
+			if (Sequence::getNonOptCallInLinearSequence(patterns[i]->pattern, patterns[i]->position+1) > 0)
 				continue;
-				
-osParser << patterns[i]->score << " " << patterns[i]->upCount << " " << patterns[i]->rootStartingPos << " " << patterns[i]->alignCount << " " << patterns[i]->optCount << " " << patterns[i]->pattern.size() << " ";
-Sequence::exportLinearSequenceAsString(patterns[i]->pattern, osParser);
 
 			roots.push_back(ScoredSequence(patterns[i], boost::dynamic_pointer_cast<Sequence>(rootSequence->clone())));
+			// Prise en compte de la qualité du pattern inclus
+			roots.back().scenario->alignCount += roots[r].scenario->alignCount;
+			maxAligned = roots.back().scenario->alignCount > maxAligned ? roots.back().scenario->alignCount : maxAligned;
+			roots.back().scenario->optCount += roots[r].scenario->optCount;
+			// suppression de la partie du root devant être remplacé par le pattern
 			std::vector<Trace::sp_trace> & traces = roots.back().sequence->getTraces();
-			// Incrustation du pattern dans le clone
-std::cout << patterns[i]->rootStartingPos << " " << traces.size() << std::endl;
 			traces.erase(traces.begin()+patterns[i]->rootStartingPos, traces.end());
-std::cout << traces.size() << std::endl;
+			// Incrustation du pattern dans le clone
 			roots.back().sequence->insertLinearSequence(patterns[i]->pattern, patterns[i]->rootStartingPos);
-roots.back().sequence->exportAsCompressedString(std::cout);
+			minLength = (signed)roots.back().sequence->length() < minLength ? roots.back().sequence->length() : minLength;
 		}
-
-std::cout << "Apres sortie de boucle" << std::endl;
-for (int r2 = 0 ; r2 < roots.size() ; r2++){
-	roots[r2].sequence->exportAsCompressedString(osParser);
-}
-
-osParser << r << "," << roots.size() << "," << maxRatio << "," << roots[r].scenario->score << "," << roots[r].scenario->alignCount << "," << roots[r].scenario->optCount << ",";
-rootSequence->exportAsCompressedString(osParser);
-
-	}
+		if (maxAligned != 0 && minLength != INT_MAX){
+			// mis à jour du scrore de tous les scénarios
+			for (int i = 0 ; i < (signed)roots.size() ; i++){
+				roots[i].scenario->updateScore(minLength, maxAligned);
+			}
+		}
+	} // fin boucle : passer au prochain scénario
 
 	std::sort(roots.begin(), roots.end(), sortFunction);
 	osParser << "BEST SOLUTION !!!!" << std::endl;
 	for (int i = 0 ; i < (signed)roots.size() ; i++){
-		osParser << roots[i].scenario->score << " ";
+		osParser << roots[i].scenario->score << " " << roots[i].scenario->alignCount << " " << roots[i].scenario->optCount;
 		roots[i].sequence->exportAsCompressedString(osParser);
 	}
+
+	root = roots[0].sequence;
 }
 
 void TracesParser::exportTracesAsString(std::ostream &os)

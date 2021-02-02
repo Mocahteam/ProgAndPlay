@@ -355,9 +355,9 @@ public:
 	void insertLinearSequence (std::vector<Trace::sp_trace> & linearSequence, int pos);
 
 	/**
-	 * \brief exporte une séquence linéarisée sous la forme d'une chaine de caractère et écrit le résultat dans le flux "os"
+	 * \brief exporte une séquence linéarisée sous la forme d'une chaine de caractère et écrit le résultat dans le flux "os". Si exportSeqIter == true, une séquence est exportée sous la forme "Seq(Begin*22)", sinon une séquence est exportée sous la forme "Seq(Begin)"
 	 */
-	static void exportLinearSequenceAsString(std::vector<Trace::sp_trace> & linearSequence, std::ostream &os = std::cout);
+	static void exportLinearSequenceAsString(std::vector<Trace::sp_trace> & linearSequence, std::ostream &os = std::cout, bool exportSeqIter = true);
 
 	/**
 	 * \brief clone une trace linéarisée
