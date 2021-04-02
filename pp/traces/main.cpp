@@ -201,7 +201,7 @@ int main(int argc, char *argv[])
 		std::cout << "\t-op n: OPTION_PENALTY (default 1.6) define penalty value of optional tokens. 1 means optional tokens have the same weight of aligned values, lesser than 1 means optional tokens are minimize against aligned tokens, greater than 1 means optional tokens are maximized against aligned tokens\n";
 		std::cout << "\t-wma n: WEIGHT_MAXIMIZE_ALIGN (default 0.2) define weight of aligned tokens over maximal alignment. -war + -wma + -wml sould be equal to 1.\n";
 		std::cout << "\t-wml n: WEIGHT_MINIMIZE_LENGTH (default 0.2) define weight of patterns length. -war + -wma + -wml sould be equal to 1.\n";
-		std::cout << "\t-mw n: MIN_WINDOW (default 2) minimal window require to compress.\n";
+		std::cout << "\t-mw n: MIN_WINDOW (default 1) minimal window require to compress.\n";
 		std::cout << "\t-o output: the output file name (without extension) to write results (default ./exemple/[filename]_compressed.txt)\n\n";
 		return -1;
 	}
@@ -260,7 +260,7 @@ int main(int argc, char *argv[])
 		if (paramPos != -1 && paramPos+1 < argc)
 			Scenario::MIN_WINDOW = strtof(argv[paramPos+1], NULL);
 		else
-			Scenario::MIN_WINDOW = 2;
+			Scenario::MIN_WINDOW = 1;
 
 		// Compression
 		std::string filename = argv[1];
