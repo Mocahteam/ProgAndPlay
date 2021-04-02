@@ -49,7 +49,7 @@ public:
 	virtual ~Trace() {}
 
 	/**
-	  * \brief Retourne la longueur d'une trace.
+	  * \brief Retourne la longueur d'une trace comprise dans l'intervalle [start, end[.
 	  *
 	  * Cette fonction est implémentée dans les classes héritant de Trace.
 	  *

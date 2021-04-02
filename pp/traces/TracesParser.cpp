@@ -680,19 +680,22 @@ void TracesParser::offlineCompression()
 	roots.push_back(ScoredSequence(boost::dynamic_pointer_cast<Sequence>(root->clone())));
 
 	std::vector <Trace::sp_trace> bestPattern;
-
-	for (int r = 0 ; r < (signed)roots.size() ; r++)
+	int cpt = 0;
+	for (unsigned int r = 0 ; r < roots.size() ; r++)
 	{
-std::cout << r << " " << roots.size() << std::endl;
 		Sequence::sp_sequence rootSequence = roots[r].sequence;
 		float maxRatio = roots[r].scenario->score;
 
 		// Vecteur de patterns (ces différents patterns vont nous permettre d'envisager différentes options pour intégrer chaque trace)
 		std::vector<Scenario::sp_scenario> patterns;
 
-		osParser << "--- NEW PASS ---" << std::endl;
+		osParser << "--- NEW PASS (" << r << "/" << roots.size() << ") ---" << std::endl;
 		rootSequence->exportAsCompressedString(osParser);
 		osParser << std::endl;
+
+std::cout << "--- NEW PASS (" << r << "/" << roots.size() << ") ---" << std::endl;
+rootSequence->exportAsCompressedString(std::cout);
+std::cout << std::endl;
 
 		// Recherche du point de départ effectif => le premier Call du root non intégré dans une séquence
 		int startingPos = start;
@@ -705,8 +708,100 @@ std::cout << r << " " << roots.size() << std::endl;
 		// On parcours toute la trace à partir du premier Call trouvé
 		for (int currentPos = startingPos; currentPos < (int)rootSequence->size(); currentPos++)
 		{
+/*cpt++;
+if (rootSequence->at(currentPos)->isCall() && boost::dynamic_pointer_cast<Call>(rootSequence->at(currentPos))->getKey() == "PP_Unit_ActionOnPosition"){
+	osParser << "Debut traitement (" << cpt << ") : ";
+	rootSequence->at(currentPos)->exportAsCompressedString(osParser);
+	osParser << std::endl;
+	for (int i = 0 ; i < (signed)patterns.size() ; i++){
+		osParser << patterns[i]->position << " ";
+		Sequence::exportLinearSequenceAsString(patterns[i]->pattern, osParser);
+	}
+	osParser << std::endl;
+}*/
+			// récupération de la trace courante
+			Trace::sp_trace currentTrace = rootSequence->at(currentPos);
+			// Si la trace courante est un event, on stoppe l'annalyse (ici c'est forcement un event non alignable vue que les autres ont été filtrés lors du parsage des logs)
+			if (currentTrace->isEvent()){
+				// Vérifier si on ne serait pas à la fin d'une séquence dans chaque scénario, dans ce cas il faut ajouter une dernière itération à chacun de ces scénarios
+				for (unsigned int i = 0 ; i < patterns.size() ; i++){
+					Scenario::sp_scenario scenar = patterns[i];
+					if ((unsigned)scenar->position+1 < scenar->pattern.size() && scenar->pattern[scenar->position+1]->isSequence() && scenar->pattern[scenar->position+1]->getInfo().compare("End") == 0)
+						boost::dynamic_pointer_cast<Sequence>(scenar->pattern[Sequence::getBeginPosOfLinearSequence(scenar->pattern, scenar->position+1)])->addOne();
+				}
+				break;
+			}
+
+			// Rechercher des accroches en amont (une trace égale au Call courrant). Cette accroche peut être soit directement un Call du root soit un Call d'une séquence
+			// Donc on remonte la trace pour essayer de trouver ces accroches
+			for (int upPos = currentPos-1 ; upPos >= startingPos ; upPos--)
+			{
+				Sequence::sp_sequence up_seq;
+				int lengthBeforeUpPos = Trace::getLength(rootSequence->getTraces(), startingPos, upPos);
+				// Cas où on trouve une accroche directement dans root
+				if (rootSequence->at(upPos)->isCall() && rootSequence->at(upPos)->operator==(currentTrace.get()))
+				{
+					// on souhaite une distance minimale de taille 2 (defaut) (pour éviter de fusionner des Calls successifs s'il n'y en pas au moins 3)
+					if (currentPos-upPos >= Scenario::MIN_WINDOW)
+					{
+						// On construit une séquence contenant les traces comprises dans [upPos, currentPos[
+						up_seq = rootSequence->getSubSequence(upPos, currentPos);
+						patterns.push_back(boost::make_shared<Scenario>(up_seq->getLinearSequence(), lengthBeforeUpPos, upPos));
+					}
+				}
+				// Cas où on doit analyser une séquence, on va tenter de trouver une accroche à l'intérieur de cette séquence
+				else if (rootSequence->at(upPos)->isSequence())
+				{
+					// Récupération de la séquence linéarisée 
+					std::vector<Trace::sp_trace> linearSequence = boost::dynamic_pointer_cast<Sequence>(rootSequence->at(upPos))->getLinearSequence();
+					int firstCallPos = Sequence::getCallPosInLinearSequence(linearSequence, 0);
+					for (unsigned int i = 0 ; i < linearSequence.size() ; i++){
+						if (linearSequence[i]->operator==(currentTrace.get())){
+							// Cas où le match est le premier Call de la séquence
+							if ((signed)i == firstCallPos){
+								// si la séquence en question précède immediatement currentPos, on peut directement utiliser cette séquence
+								if (currentPos-upPos == 1)
+									up_seq = boost::dynamic_pointer_cast<Sequence>(rootSequence->at(upPos)->clone());
+								else
+									// sinon on construit une séquence contenant les traces comprises dans [upPos, currentPos[
+									up_seq = rootSequence->getSubSequence(upPos, currentPos);
+								// création et ajout de ce scénario aux patterns
+								patterns.push_back(boost::make_shared<Scenario>(up_seq->getLinearSequence(), lengthBeforeUpPos, upPos));
+							}
+							else
+							{
+								// Cas où le match est dans la séquence, on ne traite ce cas là que si la séquence précède immédiatement la trace courante. Les cas où il y aurait des traces intérmédiaires entre la fin de la séquence et la trace courante est géré par les autres scénario qui devraient contenir ces traces intermédiaires comme options en fin de séquence.
+								if (currentPos-upPos == 1){
+									int lastCallPos = Sequence::getCallPosInLinearSequence(linearSequence, INT_MAX);
+									int endSeqPos = Sequence::getEndPosOfLinearSequence(linearSequence, i);
+									// On crée un nouveau scénario si le match fait partie de la dernière séquence du scénario
+									if (lastCallPos < endSeqPos){
+										// Créer un scénario qui part de la séquence contenant le match
+										Scenario::sp_scenario newScenar = boost::make_shared<Scenario>(Sequence::cloneLinearSequence(linearSequence), lengthBeforeUpPos, upPos);
+										// positionner le scénario juste avant l'accroche
+										newScenar->position = i-1;
+										// Si le match n'est pas le premier Call de sa séquence, on crée une sous-séquence à partir de la position du match et la fin de la séquence dans laquelle il se trouve
+										if (Sequence::getBeginPosOfLinearSequence(newScenar->pattern, i) != (signed)i-1){
+											// ajout d'un début de séquence à la position i
+											newScenar->pattern.insert(newScenar->pattern.begin()+i, boost::make_shared<Sequence>("Begin", -1));
+											// ajout d'une fin de séquence à la position endSeqPos+1 (due à l'intégration du Begin)
+											newScenar->pattern.insert(newScenar->pattern.begin()+endSeqPos+1, boost::make_shared<Sequence>("End", -1));
+											// ajout de 2 aux positions calculées en raison de l'ajout du début et de la fin de la séquence 
+											lastCallPos++;
+											endSeqPos++;
+											newScenar->position++;
+										}
+										// création et ajout de ce scénario aux patterns
+										patterns.push_back(newScenar);
+									}
+								}
+							}
+						}
+					}
+				}
+			} // fin boucle : remonter pour trouver d'autres accroches
 /*if (currentPos == (int)rootSequence->size()-2){
-	std::cout << "Debut traitement : ";
+	std::cout << "Fin traitement : ";
 	rootSequence->at(currentPos)->exportAsCompressedString(std::cout);
 	std::cout << std::endl;
 	for (int i = 0 ; i < (signed)patterns.size() ; i++){
@@ -715,57 +810,11 @@ std::cout << r << " " << roots.size() << std::endl;
 	}
 	std::cout << std::endl;
 }*/
-			// récupération de la trace courante
-			Trace::sp_trace currentTrace = rootSequence->at(currentPos);
-			// Si la trace courante est un event, on stoppe l'annalyse (ici c'est forcement un event non alignable vue que les autres ont été filtrés lors du parsage des logs)
-			if (currentTrace->isEvent()){
-				// Vérifier si on ne serait pas à la fin d'une séquence dans chaque scénario, dans ce cas il faut ajouter une dernière itération à chacun de ces scénarios
-				for (int i = 0 ; i < (signed)patterns.size() ; i++){
-					Scenario::sp_scenario scenar = patterns[i];
-					if (scenar->position+1 < (signed)scenar->pattern.size() && scenar->pattern[scenar->position+1]->isSequence() && scenar->pattern[scenar->position+1]->getInfo().compare("End") == 0)
-						boost::dynamic_pointer_cast<Sequence>(scenar->pattern[Sequence::getBeginPosOfLinearSequence(scenar->pattern, scenar->position+1)])->addOne();
-				}
-				break;
-			}
-
-			// Rechercher des accroches en amont (une trace égale au Call courrant). Cette accroche peut être soit directement un Call du root soit le premier Call d'une séquence du root
-			// Donc on remonte la trace pour essayer de trouver ces accroches
-			for (int upPos = currentPos-1 ; upPos >= startingPos ; upPos--)
-			{
-				Sequence::sp_sequence up_seq;
-				// Cas où on trouve une accroche directement dans root
-				if (rootSequence->at(upPos)->isCall() && rootSequence->at(upPos)->operator==(currentTrace.get()))
-				{
-					// on souhaite une distance minimale de taille 2 (pour éviter de fusionner des Calls successifs s'il n'y en pas au moins 3)
-					if (currentPos-upPos >= 2)
-					{
-						// On construit une séquence contenant les traces comprises dans [upPos, currentPos[
-						up_seq = rootSequence->getSubSequence(upPos, currentPos);
-					}
-				}
-				// Cas où on trouve une accroche pour le premier Call d'une séquence
-				else if (rootSequence->at(upPos)->isSequence() && boost::dynamic_pointer_cast<Sequence>(rootSequence->at(upPos))->getFirstCall()->operator==(currentTrace.get()))
-				{
-					// si la séquence en question précède immediatement currentPos, on peut directement utiliser cette séquence
-					if (currentPos-upPos == 1)
-						up_seq = boost::dynamic_pointer_cast<Sequence>(rootSequence->at(upPos)->clone());
-					else
-						// sinon on construit une séquence contenant les traces comprises dans [upPos, currentPos[
-						up_seq = rootSequence->getSubSequence(upPos, currentPos);
-				}
-				if (up_seq)
-				{
-					// Ici dans up_seq on a toutes les traces comprises entre l'accroche et la position courante
-					// ajout du pattern correspondant au up
-					patterns.push_back(boost::make_shared<Scenario>(up_seq->getLinearSequence(), rootSequence->getSubSequence(startingPos, upPos)->length(), upPos));
-				}
-			} // fin boucle : remonter pour trouver d'autres accroches
-
 			// ici on a fini de remonter la trace pour trouver des accroches correspondantes à la trace en cours d'analyse. Plusieurs patterns ont été identifiés il faut donc maintenant les faire avancer pour essayer d'aligner le prochain call.
 
 			// Positionner chaque pattern sur son prochain Call
 			std::vector<Scenario::sp_scenario> new_patterns;
-			for (int i = 0 ; i < (signed)patterns.size() ; i++){
+			for (unsigned int i = 0 ; i < patterns.size() ; i++){
 				std::vector<Scenario::sp_scenario> results = patterns[i]->simulateMoveToNextCall();
 				new_patterns.insert(new_patterns.end(), results.begin(), results.end());
 			}
@@ -775,7 +824,7 @@ std::cout << r << " " << roots.size() << std::endl;
 	std::cout << "Après le MOVE : ";
 	rootSequence->at(currentPos)->exportAsCompressedString(std::cout);
 	std::cout << std::endl;
-	for (int i = 0 ; i < (signed)patterns.size() ; i++){
+	for (unsigned int i = 0 ; i < patterns.size() ; i++){
 		std::cout << patterns[i]->position << " ";
 		Sequence::exportLinearSequenceAsString(patterns[i]->pattern, std::cout);
 	}
@@ -786,7 +835,7 @@ std::cout << r << " " << roots.size() << std::endl;
 			int maxAligned;
 			if (patterns.size() > 0){
 				maxAligned = patterns[0]->alignCount;
-				for (int i = 1 ; i < (signed)patterns.size() ; i++){
+				for (unsigned int i = 1 ; i < patterns.size() ; i++){
 					if (patterns[i]->alignCount > maxAligned){
 						maxAligned = patterns[i]->alignCount;
 					}
@@ -799,7 +848,7 @@ std::cout << r << " " << roots.size() << std::endl;
 			if (patterns.size() > 0){
 				bool considerUpCount = true;
 				minLength = patterns[0]->pattern.size()+(considerUpCount ? patterns[0]->upCount : 0);
-				for (int i = 1 ; i < (signed)patterns.size() ; i++){
+				for (unsigned int i = 1 ; i < patterns.size() ; i++){
 					if ((signed)patterns[i]->pattern.size()+(considerUpCount ? patterns[i]->upCount : 0) < minLength)
 						minLength = patterns[i]->pattern.size()+(considerUpCount ? patterns[i]->upCount : 0);
 				}
@@ -808,20 +857,17 @@ std::cout << r << " " << roots.size() << std::endl;
 			// Intégration du Call courrant du root dans chaque pattern
 			std::vector<Scenario::sp_scenario> results;
 			// Parcourir tous les patterns
-			for (int i = 0 ; i < (signed)patterns.size() ; i++){
-				std::vector<Scenario::sp_scenario> viewed;
-				viewed.push_back(patterns[i]);
+			for (unsigned int i = 0 ; i < patterns.size() ; i++){
 				std::vector<Scenario::sp_scenario> sim = patterns[i]->simulateNewCallIntegration(currentTrace, maxRatio, minLength, &maxAligned);
-				for (int j = 0 ; j < (signed)sim.size() ; j++)
+				for (unsigned int j = 0 ; j < sim.size() ; j++)
 					if (!sim[j]->existsIn(results))
 						results.push_back(sim[j]);
 				//results.insert(results.end(), sim.begin(), sim.end());
-				
 			}
 			patterns = std::move(results);
 
-/*if (currentPos == (int)rootSequence->size()-2){
-	std::cout << "Après le ADD : ";
+/*if (rootSequence->at(currentPos)->isCall() && boost::dynamic_pointer_cast<Call>(rootSequence->at(currentPos))->getKey() == "PP_Unit_ActionOnPosition"){
+	std::cout << "Apres le ADD : ";
 	rootSequence->at(currentPos)->exportAsCompressedString(std::cout);
 	std::cout << std::endl;
 	for (int i = 0 ; i < (signed)patterns.size() ; i++){
@@ -833,7 +879,7 @@ std::cout << r << " " << roots.size() << std::endl;
 
 			// Calcul du score de chaque pattern et mise à jour du maxRatio
 			maxRatio = 0;
-			for (int i = 0 ; i < (signed)patterns.size() ; i++){
+			for (unsigned int i = 0 ; i < patterns.size() ; i++){
 //std::cout << "B " << computeScore (rootMainPos, patterns[i]->pattern, patterns[i]->alignCount, patterns[i]->optCount) << " " << patterns[i]->alignCount << " " << patterns[i]->optCount << std::endl;
 				patterns[i]->updateScore(minLength, maxAligned); // mise à jour du score
 				if (patterns[i]->score > maxRatio){
@@ -851,51 +897,69 @@ std::cout << r << " " << roots.size() << std::endl;
 					patterns.erase(patterns.begin()+i);
 				}
 			}
-/*if (currentPos == (int)rootSequence->size()-2){
-	std::cout << "Fin traitement : ";
-	rootSequence->at(currentPos)->exportAsCompressedString(std::cout);
-	std::cout << std::endl;
+/*if (rootSequence->at(currentPos)->isCall() && boost::dynamic_pointer_cast<Call>(rootSequence->at(currentPos))->getKey() == "PP_Unit_ActionOnPosition"){
+	osParser << "Fin traitement : ";
+	rootSequence->at(currentPos)->exportAsCompressedString(osParser);
+	osParser << std::endl;
 	for (int i = 0 ; i < (signed)patterns.size() ; i++){
-		std::cout << patterns[i]->position << " ";
-		Sequence::exportLinearSequenceAsString(patterns[i]->pattern, std::cout);
+		osParser << patterns[i]->position << " ";
+		Sequence::exportLinearSequenceAsString(patterns[i]->pattern, osParser);
 	}
-	std::cout << std::endl;
+	osParser << std::endl;
 }*/
 		} // fin boucle : descente dans la trace
 
 		int maxAligned = 0;
 		int minLength = INT_MAX;
-		// Maintenant qu'on a terminé de parcourir la trace pour cette accroche, on créé autant de nouveaux roots que de patterns concervés pour poursuivre leur exploration
-		for (int i = 0 ; i < (signed)patterns.size() ; i++)
+		// Maintenant qu'on a terminé de parcourir la trace, on créé autant de nouveaux roots que de patterns conservés pour poursuivre leur exploration
+		for (unsigned int i = 0 ; i < patterns.size() ; i++)
 		{
-			// On ignore tous les patterns qui contiendraient des calls non optionnelles au delà de la position du dernier ajout. En effet si le dernier call du root a été intégré en plein milieu d'un scénario et que ce scénario inclus dans la suite des calls obligatoires (non optionnels), celà signifierait que ce pattern produirait des calls au dela de la dernière trace du root... Ce qui n'est pas possible vue que le root est terminé, donc ce pattern est faux
+			// On ignore tous les patterns qui contiendraient des calls non optionnelles au delà de la position du dernier ajout. En effet si le dernier call du root a été intégré en plein milieu d'un scénario et que ce scénario inclus dans la suite des calls obligatoires (non optionnels), cela signifierait que ce pattern produirait des calls au dela de la dernière trace du root... Ce qui n'est pas possible vue que le root est terminé, donc ce pattern est faux
 			if (Sequence::getNonOptCallInLinearSequence(patterns[i]->pattern, patterns[i]->position+1) > 0)
 				continue;
-
-			roots.push_back(ScoredSequence(patterns[i], boost::dynamic_pointer_cast<Sequence>(rootSequence->clone())));
-			// Prise en compte de la qualité du pattern inclus
-			roots.back().scenario->alignCount += roots[r].scenario->alignCount;
-			maxAligned = roots.back().scenario->alignCount > maxAligned ? roots.back().scenario->alignCount : maxAligned;
-			roots.back().scenario->optCount += roots[r].scenario->optCount;
-			// suppression de la partie du root devant être remplacé par le pattern
-			std::vector<Trace::sp_trace> & traces = roots.back().sequence->getTraces();
-			traces.erase(traces.begin()+patterns[i]->rootStartingPos, traces.end());
-			// Incrustation du pattern dans le clone
-			roots.back().sequence->insertLinearSequence(patterns[i]->pattern, patterns[i]->rootStartingPos);
-			minLength = (signed)roots.back().sequence->length() < minLength ? roots.back().sequence->length() : minLength;
+			
+			// Vérifier que ce pattern n'a pas déjà été traité dans les scénarios déjà enregistrés
+			bool found = false;
+			for (unsigned int j = 0 ; j < roots.size() && !found ; j++)
+				found = roots[j].scenario->isEqualWith(patterns[i]);
+			if (!found){
+				roots.push_back(ScoredSequence(patterns[i], boost::dynamic_pointer_cast<Sequence>(rootSequence->clone())));
+				// Prise en compte de la qualité du pattern inclus
+				roots.back().scenario->alignCount += roots[r].scenario->alignCount;
+				maxAligned = roots.back().scenario->alignCount > maxAligned ? roots.back().scenario->alignCount : maxAligned;
+				roots.back().scenario->optCount += roots[r].scenario->optCount;
+				// suppression de la partie du root devant être remplacé par le pattern
+				std::vector<Trace::sp_trace> & traces = roots.back().sequence->getTraces();
+				traces.erase(traces.begin()+patterns[i]->rootStartingPos, traces.end());
+				// Incrustation du pattern dans le clone
+				roots.back().sequence->insertLinearSequence(patterns[i]->pattern, patterns[i]->rootStartingPos);
+				minLength = (signed)roots.back().sequence->length() < minLength ? roots.back().sequence->length() : minLength;
+			}
 		}
 		if (maxAligned != 0 && minLength != INT_MAX){
 			// mis à jour du scrore de tous les scénarios
-			for (int i = 0 ; i < (signed)roots.size() ; i++){
+			for (unsigned int i = 0 ; i < roots.size() ; i++){
 				roots[i].scenario->updateScore(minLength, maxAligned);
 			}
 		}
+
+/*if (r==0){
+	for (int i = 0 ; i < (signed)roots.size() ; i++){
+		Sequence::exportLinearSequenceAsString(roots[i].scenario->pattern, std::cout);
+	}
+}
+std::cout << "--- END PASS ---" << std::endl;*/
+
 	} // fin boucle : passer au prochain scénario
 
 	std::sort(roots.begin(), roots.end(), sortFunction);
 	osParser << "BEST SOLUTION !!!!" << std::endl;
-	for (int i = 0 ; i < (signed)roots.size() ; i++){
-		osParser << roots[i].scenario->score << " " << roots[i].scenario->alignCount << " " << roots[i].scenario->optCount;
+	for (unsigned int i = 0 ; i < roots.size() ; i++){
+		if (i==0)
+			osParser << "[1er] ";
+		else
+			osParser << "[" << (i+1) << "ème] ";
+		osParser << roots[i].scenario->score << " " << roots[i].scenario->alignCount  << " " << roots[i].scenario->optCount << " " << roots[i].scenario->position;
 		roots[i].sequence->exportAsCompressedString(osParser);
 	}
 

@@ -444,6 +444,13 @@ public:
 	void addOne();
 
 	/**
+	  * \brief Retire une répétition pour la séquence.
+	  *
+	  * Cette fonction met à jour l'objet Sequence::iterDesc de la séquence.
+	  */
+	void removeOne();
+
+	/**
 	  * \brief Ajout d'une trace dans le vecteur de la séquence.
 	  *
 	  * Cette fonction permet d'ajouter une trace dans le vecteur Sequence::traces. La séquence devient le nouveau parent de \p spt durant l'opération.

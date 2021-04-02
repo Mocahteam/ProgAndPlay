@@ -127,7 +127,7 @@ void Sequence::exportAsCompressedString(std::ostream &os) const
 	if (opt)
 		os << "*";
 	if (!root)
-		os << "Sequence"
+		os << "Sequence(" << getIterartionDescriptionString(getPercentageIterationDescription()) << ")"
 		   << " ";
 	else
 		os << "Root"
@@ -240,6 +240,14 @@ void Sequence::addOne()
 	addIteration(num, -1);
 	// And we increase the number of iteration and we add one more appearance
 	addIteration(++num);
+}
+
+void Sequence::removeOne()
+{
+	// We remove one appearance of the current number of iteration
+	addIteration(num, -1);
+	// And we decrease the number of iteration and we add one more appearance
+	addIteration(--num);
 }
 
 unsigned int Sequence::size() const

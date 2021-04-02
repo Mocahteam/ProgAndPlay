@@ -183,24 +183,31 @@ int main(int argc, char *argv[])
 	Scenario::WEIGHT_MAXIMIZE_ALIGN = 0.2;
 	Scenario::WEIGHT_MINIMIZE_LENGTH = 0.2;
 
-/*	if (argc < 2 || argc > 6 || strcmp(argv[1], "-h") == 0 || strcmp(argv[1], "--help") == 0)
+	if (strcmp(argv[1], "-h") == 0 || strcmp(argv[1], "--help") == 0)
 	{
-		std::cout << "Usage: parser all [dir_path]\n";
+		std::cout << "Usage: parser all [-d dir_path]\n";
 		std::cout << "\tall: all complete traces files present in dir_path directory and its subdirectories (recursively) will be compressed\n";
 		std::cout << "\tdir_path: path to the directory containing complete traces files (default ./example/)\n\n";
-		std::cout << "Usage: parser filename [dir_path] [-la] [-o output]\n";
+		std::cout << "Usage: parser filename [-d dir_path] [-la] [-sc n] [-war n] [-op n] [-wma n] [-wml] [-o output]\n";
 		std::cout << "\tfilename: the complete traces file named filename will be compressed. This file must have the extension .log\n";
-		std::cout << "\tdir_path: path to the directory containing complete traces files (default ./example/)\n";
+		std::cout << "\t-d dir_path: path to the directory containing complete traces files (default ./example/)\n";
 		std::cout << "\t-la: launch analysis after compression. If this option is used :\n";
 		std::cout << "\t\t- \"params.json\" has to be present in the dir_path directory. If no params file exist, the default compression mod will be used.\n";
 		std::cout << "\t\t- \"feedbacks.xml\" has to be present in the dir_path directory\n";
 		std::cout << "\t\t- \"feedbacks.xml\" in the directory \"[dir_path]/expert/[mission_name]\" can be present to add extra feedbacks for the mission\n";
 		std::cout << "\t\t- there must be at least one solution (an XML file) for the mission in the directory \"[dir_path]/expert/[mission_name]\"\n";
+		std::cout << "\t-sc n: SCORE_TOLERENCE  (default 0.1) define minimal score required to keep a pattern (a pattern with a score lesser than n will be ignored)\n";
+		std::cout << "\t-war n: WEIGHT_ALIGN_RATIO (default 0.6) define weight of aligned tokens over optional tokens in score computing. -war + -wma + -wml sould be equal to 1.\n";
+		std::cout << "\t-op n: OPTION_PENALTY (default 1.6) define penalty value of optional tokens. 1 means optional tokens have the same weight of aligned values, lesser than 1 means optional tokens are minimize against aligned tokens, greater than 1 means optional tokens are maximized against aligned tokens\n";
+		std::cout << "\t-wma n: WEIGHT_MAXIMIZE_ALIGN (default 0.2) define weight of aligned tokens over maximal alignment. -war + -wma + -wml sould be equal to 1.\n";
+		std::cout << "\t-wml n: WEIGHT_MINIMIZE_LENGTH (default 0.2) define weight of patterns length. -war + -wma + -wml sould be equal to 1.\n";
+		std::cout << "\t-mw n: MIN_WINDOW (default 2) minimal window require to compress.\n";
 		std::cout << "\t-o output: the output file name (without extension) to write results (default ./exemple/[filename]_compressed.txt)\n\n";
 		return -1;
-	}*/
-	if (argc >= 3 && strcmp(argv[2], "-la") != 0 && strcmp(argv[2], "-o") != 0)
-		dir_path = argv[2];
+	}
+	int paramPos = getParamPos(argc, argv, "-d");
+	if (paramPos != -1 && paramPos+1 < argc)
+		dir_path = argv[paramPos+1];
 	// load compression params
 	std::cout << "Try to open params.json file from example directory (" + dir_path + "/)" << std::endl;
 	TracesParser::params_json = loadFile(dir_path + "/params.json");
@@ -215,7 +222,7 @@ int main(int argc, char *argv[])
 		bool analysis = getParamPos(argc, argv, "-la") != -1;
 
 		output = "";
-		int paramPos = getParamPos(argc, argv, "-o");
+		paramPos = getParamPos(argc, argv, "-o");
 		if (paramPos != -1 && paramPos+1 < argc)
 			output = argv[paramPos+1];
 		
@@ -248,6 +255,12 @@ int main(int argc, char *argv[])
 			Scenario::WEIGHT_MINIMIZE_LENGTH = strtof(argv[paramPos+1], NULL);
 		else
 			Scenario::WEIGHT_MINIMIZE_LENGTH = 0.2;
+		
+		paramPos = getParamPos(argc, argv, "-mw");
+		if (paramPos != -1 && paramPos+1 < argc)
+			Scenario::MIN_WINDOW = strtof(argv[paramPos+1], NULL);
+		else
+			Scenario::MIN_WINDOW = 2;
 
 		// Compression
 		std::string filename = argv[1];
@@ -266,6 +279,8 @@ int main(int argc, char *argv[])
 		tp.parseLogs(ifs, false);
 		std::cout << "traces compressed" << std::endl;
 		saveCompressedTraces(filename);
+
+		std::cout << Scenario::SCORE_TOLERENCE << " " << Scenario::WEIGHT_ALIGN_RATIO << " " << Scenario::OPTION_PENALTY << " " << Scenario::WEIGHT_MAXIMIZE_ALIGN << " " << Scenario::WEIGHT_MINIMIZE_LENGTH << " " << Scenario::MIN_WINDOW << std::endl;
 
 		if (analysis)
 		{

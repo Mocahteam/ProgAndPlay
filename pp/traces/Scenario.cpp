@@ -7,13 +7,14 @@ float Scenario::WEIGHT_ALIGN_RATIO = 0.6;
 float Scenario::OPTION_PENALTY = 1.94;
 float Scenario::WEIGHT_MAXIMIZE_ALIGN = 0.2;
 float Scenario::WEIGHT_MINIMIZE_LENGTH = 0.2;
+float Scenario::MIN_WINDOW = 2;
 
-Scenario::Scenario (std::vector<Trace::sp_trace> traces, int upCount, int rootStartingPos){
+Scenario::Scenario (std::vector<Trace::sp_trace> traces, int upCount, int rootStartingPos, int initAlignCount, int initoptCount, int initScore){
     pattern = traces;
 	position = 0;
-	alignCount = 0;
-	optCount = 0;
-	score = -1;
+	alignCount = initAlignCount;
+	optCount = initoptCount;
+	score = initScore;
     this->upCount = upCount;
 	this->rootStartingPos = rootStartingPos;
 }
@@ -128,14 +129,14 @@ std::vector<Scenario::sp_scenario> Scenario::simulateMoveToNextCall(){
 }
 
 std::vector<Scenario::sp_scenario> Scenario::simulateNewCallIntegration(const Trace::sp_trace & rootCall, float maxRatio, int minLength, int * maxAligned, int nbRec, std::vector<Scenario::sp_scenario> * viewed){
-	std::cout << "Scenario::simulateNewCallIntegration " << position << "/" << pattern.size() << " " << nbRec;
+	/*std::cout << "Scenario::simulateNewCallIntegration " << position << "/" << pattern.size() << " " << nbRec;
 	if (position > 0 && position < (signed)pattern.size())
 		pattern[position]->exportAsString(std::cout);
 	else
 		std::cout << std::endl;
 	std::cout << "Root : ";
 	rootCall->exportAsString(std::cout); 
-	Sequence::exportLinearSequenceAsString(pattern, std::cout);
+	Sequence::exportLinearSequenceAsString(pattern, std::cout);*/
 
 	std::vector<Scenario::sp_scenario> result;
 
@@ -145,58 +146,48 @@ std::vector<Scenario::sp_scenario> Scenario::simulateNewCallIntegration(const Tr
     // Vérifier si on a dépassé la fin du pattern
 	if (position >= (signed)pattern.size())
 	{
-		// Si on a dépassé la fin du pattern courrant il faut vérifier plusieurs choses :
-		//  1 - si le Call courrant est identique au premier Call du pattern et que des traces ont commencé à être accumulées à la fin du pattern on va se repositionner au début du pattern et insérer les traces accumulées comme optionnelles (on prend soin de simuler le nouveau score pour ne pas faire ça pour rien)
-		//      Exemple on veut passer de [Sd C_i C_d Sf C_a C_e C_i] à [Sd C_i C_d opt(C_A) opt(C_e) Sf]
-		//		Cas particulier, on ne gère pas ici le cas [Sd C_i C_d Sf C_i] où il n'y a pas encore de traces qui ont été accumulées à la fin du pattern car ce cas est déjà géré lorsqu'on atteind la fin de la séquence (Sf)
+		// Si on a dépassé la fin du pattern courrant deux cas se présentent :
+		//  1 - si le Call courrant précède immédiatement une fin de séquence, l'ajouter comme option de cette fin de séquence (remonter tant qu'on a des fins de séquences)
 		//  2 - ajouter ce Call à la fin du pattern
 
-		// Cas 1 : Si le premier Call du pattern == au Call en cours d'analyse du root et traces accumulées en fin de pattern et score simulé toujours intéressant
-		int firstCallPos = Sequence::getCallPosInLinearSequence(pattern, 0);
+		// Cas 1 : si le Call courrant précède immédiatement une fin de séquence et que le score resterait intéressant malgrès l'ajout d'une nouvelle option
 		int endSeqPos = Sequence::getEndPosOfLinearSequence(pattern, 0);
-		if (firstCallPos > -1 && endSeqPos > -1 &&
-			pattern[firstCallPos]->operator==(rootCall.get()) && // premier call du pattern == call du root
-			endSeqPos < (signed)pattern.size()-1 && // il y a déjà au moins une trace accumulée après la fin de la séquence principale du pattern
-            simulateScore(1, pattern.size()-1-endSeqPos, minLength, (alignCount+1 > *maxAligned ? alignCount+1 : *maxAligned)) > maxRatio - SCORE_TOLERENCE // simulation du score en comptant un alignement supplémentaire et autant d'options que de traces accumulées à la fin du pattern qui seront intégrées dans ce dernier en option
-		)
+		if (endSeqPos == (signed)pattern.size()-1 && simulateScore(0, 1, minLength, *maxAligned) > maxRatio - SCORE_TOLERENCE)
 		{
-			// Intégrer toutes les traces accumulées après la séquence mère du pattern à l'intérieur de la séquence mère et les mettre en optionnelle
-			// Passer de [Sd C C Sf C C] à [Sd C C opt(C) opt(C) Sf]
-            
-            // on travaille maintenant sur un clone
-            Scenario::sp_scenario tmpSc = clone();
-
-            // enregistrer la trace de fin de séquence
-            Trace::sp_trace lastEndSeq = tmpSc->pattern[endSeqPos];
-            // décaller d'une position vers la gauche toutes les traces et les passer en optionnelle (si elles ne le sont pas déjà)
-            for (int j = endSeqPos ; j < (signed)tmpSc->pattern.size()-1 ; j++)
-            {
-                tmpSc->pattern[j] = tmpSc->pattern[j+1];
-                if (!tmpSc->pattern[j]->isOptional())
-                {
-                    tmpSc->pattern[j]->setOptional(true);
-                    tmpSc->optCount++;
-                }
-            }
-            // remplacer la dernière trace (qui a été décallé juste avant) par la fin de séquence
-            tmpSc->pattern.back() = lastEndSeq;
-            // Se repositionner sur le premier Call du pattern
-            tmpSc->position = firstCallPos;
-            // Augmenter de 1 le nombre de trace alignée
-            tmpSc->alignCount++;
-            // Indication qu'on reprend une itération
-            boost::dynamic_pointer_cast<Sequence>(tmpSc->pattern[tmpSc->position-1])->newIter = true;
-            // Mise à jour du max
-            *maxAligned = (tmpSc->alignCount > *maxAligned) ? tmpSc->alignCount : *maxAligned;
-			
-            // Insérer le clone dans le vecteur de résultats
-            result.push_back(tmpSc);
+			// Ajouter comme option le Call en fin de séquence (on remonte tant qu'on tombe sur une fin de séquence ou sur une trace optionnelle)
+            while (endSeqPos > 0 && (pattern[endSeqPos]->getInfo().compare("End") == 0 || pattern[endSeqPos]->isOptional())){
+				// On ajoute le Call comme option que si on est sur une fin de séquence
+				if (pattern[endSeqPos]->getInfo().compare("End") == 0){
+					// on travaille maintenant sur un clone
+					Scenario::sp_scenario tmpSc = clone();
+					tmpSc->pattern.insert(tmpSc->pattern.begin()+endSeqPos, rootCall->clone());
+					if (!tmpSc->pattern[endSeqPos]->isOptional())
+					{
+						tmpSc->pattern[endSeqPos]->setOptional(true);
+						tmpSc->optCount++;
+					}
+					// Bien se repositionner à la fin du pattern
+					tmpSc->position = endSeqPos;
+					// On est revenu dans la séquence donc il faut réduire le nombre d'itération de 1 car on va la remettre quand on retombera à nouveau sur la fin de la séquence
+					int startSeqPos = Sequence::getBeginPosOfLinearSequence(tmpSc->pattern, endSeqPos);
+					while (startSeqPos != -1){
+						if (tmpSc->pattern[startSeqPos]->isSequence()){
+							boost::dynamic_pointer_cast<Sequence>(tmpSc->pattern[startSeqPos])->removeOne();
+						}
+						startSeqPos = Sequence::getBeginPosOfLinearSequence(tmpSc->pattern, startSeqPos-1);
+					}
+					// Insérer le clone dans le vecteur de résultats
+					result.push_back(tmpSc);
+				}
+				// Tenter de remonter à la fin de séquence précédente
+				endSeqPos--;
+			}
 		}
 
 		// Cas 2 : ajouter le Call courant (root) à la fin du pattern
 		// Insérer un clone dans le vecteur de résultats
 		result.push_back(clone());
-		// Ici on stoque la trace à l'extérieur du pattern, pas la peine de noter ces traces là comme optionnelles. Si elles seront réintégrées dans le pattern, c'est à ce moment là qu'elles passeront optionnelles
+		// Ici on stoque la trace à l'extérieur du pattern
 		result.back()->pattern.push_back(rootCall->clone());
 		result.back()->position++;
 	}
@@ -336,13 +327,20 @@ bool Scenario::existsIn(std::vector<Scenario::sp_scenario> set, bool checkPositi
 	std::stringstream thisSS;
 	Sequence::exportLinearSequenceAsString(pattern, thisSS, false);
 	for (int i = 0 ; i < (signed)set.size() && !found; i++){
-		if (set[i]->pattern.size() == pattern.size()){
-			std::stringstream setSS;
-			Sequence::exportLinearSequenceAsString(set[i]->pattern, setSS, false);
-			found = setSS.str().compare(thisSS.str()) == 0;
-			if (checkPosition)
-				found = found && set[i]->position == position;
-		}
+		found = this->isEqualWith(set[i], checkPosition);
 	}
 	return found;
+}
+
+bool Scenario::isEqualWith(Scenario::sp_scenario scenario, bool checkPosition){
+	if (scenario->pattern.size() == pattern.size()){
+		if (checkPosition && scenario->position != position)
+			return false;
+		std::stringstream setSS;
+		Sequence::exportLinearSequenceAsString(scenario->pattern, setSS, false);
+		std::stringstream thisSS;
+		Sequence::exportLinearSequenceAsString(pattern, thisSS, false);
+		return setSS.str().compare(thisSS.str()) == 0;
+	}
+	return false;
 }
