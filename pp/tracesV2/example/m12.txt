@@ -1,0 +1,10 @@
+PP_Open
+Sequence < 3:1 >
+PP_GetNumUnits 0 - 11
+PP_GetUnitAt 0 4 - 1350
+Sequence < 3:0.333333 4:0.666667 >
+PP_Unit_GetType 1350_4 - 4
+PP_Unit_ActionOnUnit 5397_4 20 25304_4 0
+EndSequence
+EndSequence
+PP_Close

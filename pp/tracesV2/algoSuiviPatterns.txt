@@ -1,0 +1,89 @@
+Algo de suivi progression pattern
+
+Structure de donnée :
+	Vecteur de patterns où chaque pattern est stocké sous une forme linéarisée (ces différentes instances de pattern vont nous permettre d'envisager différentes options pour intégrer chaque trace dans le pattern)
+	Vecteur de position nous permettant de connaître la position courante pour chaque instance de pattern
+	Vecteur de compteur d'alignement nous permettant de connaître pour chaque version de Pattern combien de trace ont pu être alignées
+	Vecteur de compteur d'option nous permettant de connaître pour chaque version de Pattern combien de trace optionnelle ont été définies
+
+Indice de départ des pattern = 0 // permet d'éviter de retraiter des patterns déjà analysés pour une trace donnée si elle a besoin d'être traitée en plusieurs temps (Cf : mettre le call du pattern en option)
+Tant qu'on doit poursuivre l'analyse des trace du root pour intégration aux patterns
+	// Faire avancer chaque pattern de 1 pour se positionner sur le prochain call disponible
+	Tantqu'on n'a pas atteint la fin du vecteur de pattern (Important, prendre en compte dans le parcours les nouveaux patterns ajoutés durant les itérations)
+		Incrémenter de 1 l'indice de parcours du pattern courrant
+		Si on a dépassé la fin du pattern courrant
+			Ne rien faire, passer simplement au pattern suivant
+		Sinon
+			Si on est sur une fin de séquence
+				Augmenter le nombre d'itération de cette séquence de 1
+				Se repositionner au début de la séquence (le cas où la première trace est une séquence est géré dans la boucle juste après)
+				Cloner le pattern en fin de vecteur et positionner l'indice de ce clone sur la position de la fin de la séquence, ainsi l'indice sera augmenté de 1 lorsque ce pattern sera évalué et sera donc positionné sur la trace suivant immédiatement cette séquence
+			FinSi
+			Tantqu'on est sur un début de séquence
+				Si cette séquence est optionnelle
+					Cloner le pattern en fin de vecteur
+					Positionner l'indice de ce clone sur la position de la fin de cette séquence clonée, ainsi l'indice sera augmenté de 1 lorsque ce pattern sera évalué et sera donc positionné sur la trace suivant immédiatement cette séquence clonée
+				FinSi
+				Pour la trace non clonnée, se positionner sur la première trace de cette séquence (si cette trace est elle même une séquence, elle sera traitée par le prochain tour de boucle)
+			FinTq
+		FinSi
+	FinTq
+	
+	// Ici pour chaque pattern on est soit à la fin, soit on est positionné sur un Call
+	
+	// Intégrer la trace courante dans chaque pattern
+	reprisePattern = false
+	Tantqu'on n'a pas atteint la fin du vecteur de pattern
+		Si on a dépassé la fin du pattern courrant
+			Si le premier Call du pattern == au Call du root
+				Cloner le pattern en fin de vecteur
+				Positionner l'indice du clone sur la position du premier Call (gérer le fait qu'il peut appartenir à une sous-séquence)
+				Pour ce clone, intégrer toutes les traces accumulées après la séquence mère du pattern à l'intérieur de la séquence mère
+			FinSi
+			Insérer dans le pattern (l'original qui a servit de source au clone) la trace courante et la noter comme optionnelle
+			Augmenter de 1 le nombre d'option de ce pattern dans le vecteur de compteur des options
+		Sinon
+			Si le Call courrant du pattern == au Call du root
+				Cas idéal => Simplement augmenter de 1 le nombre d'alignement de ce pattern dans le vecteur de compteur d'alignement
+			Sinon
+				// CAS 1 : Possibilité de mettre le Call du root en option
+				Cloner le pattern en fin de vecteur (clone 1)
+				Tantque la trace courante du clone 1 est la première d'une séquence
+					Cloner le clone 1 en fin de vecteur (clone 2)
+					Insérer dans clone 1 un clone du Call du root (donc à l'intérieur de la séquence)
+					Indiquer ce clone du Call du root comme optionnel
+					Augmenter de 1 le nombre d'option de ce pattern dans le vecteur de compteur des options
+					Positionner l'indice de clone 2 à sa position courante - 1 (donc sur la trace indiquant le début de la séquence)
+					Affecter clone 2 dans clone 1
+				FinTq
+				Insérer dans clone 1 un clone du Call du root (donc à l'intérieur de la séquence)
+				Indiquer ce clone du Call du root comme optionnel
+				Augmenter de 1 le nombre d'option de ce pattern dans le vecteur de compteur des options
+				
+				// CAS 2 : Possibilité de mettre le Call du pattern en option
+				Si la trace courrante du pattern n'est pas une option
+					Indiquer la trace courante du pattern comme optionnel
+					Augmenter de 1 le nombre d'option de ce pattern dans le vecteur de compteur des options
+				FinSi
+				// Problème ici, il ne faut pas avancer dans les traces tant qu'on n'a pas réussi à positionner la trace courante. On modifie donc l'indice de parcours des traces à analyser pour traiter à nouveau cette trace et on précise également l'indice du pattern à reprendre
+				Indice des traces à analyser--
+				reprisePattern = true
+				Indice de départ des pattern = indice courrant
+				break;
+			FinSi
+		FinSi
+	FinTq
+	Si non reprisePattern
+		Indice de départ des pattern = 0
+		// Nettoyer les patterns qui n'ont pas un score suffisant
+		Si le nombre de trace analysé est supérieur à la longueur INITIALE du pattern
+			Parcourir tous les patterns en sens inverse
+				=> Trouver ici une solution pour éliminer les patterns qui ne donneront rien (nombre d'option par rapport au nombre d'aligné + prise ne compte de l'avancement dans le pattern ?)
+	FinSi
+FinTq
+
+//Déterminer le meilleur pattern
+Rechercher dans le vecteur de compteur d'alignement celui qui a le meilleurs score
+Pour ce pattern, compter le nombre de traces ajoutées comme optionnelle en fin de pattern (toutes ces traces devront être retraitées avec le prochain pattern en fonction de la trace suivant immediatement de dernier pattern)
+Retourner la séquence reconstruite à partir de ce pattern (sans prendre en compte les traces en trop, ie les traces décomptés précédemment car non incluses dans le pattern)
+Renvoyer également l'indice à utiliser pour reprendre l'analyse (indice de fin des traces à analyser - le nombre des traces décomptés précédemment)

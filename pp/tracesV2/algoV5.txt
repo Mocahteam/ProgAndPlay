@@ -1,0 +1,27 @@
+Initialiser la liste des scénario au root brut
+
+Tant qu'il reste des scénario à analyser
+	
+	Se positionner sur le premier Call du scénario courrant
+	
+	Parcourir le scénario courrant à partir du premier Call trouvé
+		
+		Définir le Call courrant de ce scénario comme le point d'analyse
+		
+		Analyser la partie du scénario se trouvant en amont du point d'analyse
+			
+			si on trouve un Call identique au point d'analyse
+				
+				Construire un pattern de la séquence amont
+				
+				Ajouter ce pattern à la liste des patterns
+		
+		Faire avancer chaque pattern sur son prochain Call et créer de nouveaux patterns si besoin
+					
+		Ajouter le call courrant du scénario à chaque pattern
+
+		Calculer le score de chaque pattern et retenir le meilleur score
+					
+		Supprimer tous les patterns dont le score n'est pas suffisant
+				
+	Intégrer chaque pattern identifié à la base de scénario à analyser

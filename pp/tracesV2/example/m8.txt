@@ -1,0 +1,16 @@
+PP_Open
+Sequence < 11:1 >
+PP_GetNumUnits 0 - 11
+PP_GetUnitAt 0 ? - ?
+PP_Unit_GetType ?_? - ?
+EndSequence
+PP_GetNumUnits 0 - 11
+Sequence < 10:1 >
+PP_GetNumUnits 0 - 11
+PP_GetUnitAt 0 ? - ?
+PP_Unit_ActionOnUnit 5924_2 40 ?_? 1
+EndSequence
+PP_GetNumUnits 0 - 11
+PP_GetUnitAt 0 0 - 26221
+PP_GetNumUnits 0 - 11
+PP_Close

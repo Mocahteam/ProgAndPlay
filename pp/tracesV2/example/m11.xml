@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<trace>
+<call label="PP_Open" info=""/>
+<sequence num_map="3:1" info="" nb_iteration_fixed="true">
+<call label="PP_GetNumUnits" params="0" return="11" info=""/>
+<call label="PP_GetUnitAt" params="0 4" return="1350" info=""/>
+<sequence num_map="4:3" info="" nb_iteration_fixed="true">
+<call label="PP_Unit_GetType" params="1350_4" return="4" info=""/>
+<call label="PP_Unit_ActionOnUnit" params="5397_4 20 25304_4 0" info=""/>
+</sequence>
+</sequence>
+<call label="PP_Close" info=""/>
+</execution>
+</mission>
+</trace>
+

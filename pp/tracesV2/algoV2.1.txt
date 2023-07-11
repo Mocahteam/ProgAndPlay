@@ -1,0 +1,24 @@
+Version 2 (révision : 4e84f86)
+Idée principale :
+ - on cherche à identifier en priorité les récurrences de granularité fine puis de plus en plus grosses pour chercher à identifier d'abord les boucles internes puis les boucles de boucles...
+ - on tente de rattraper les decallages dû à la présence de symboles intercallés (cas classique quand le programme inclus des If dans les boucles)
+ - Ajout de la transformation de [[AB]CD] en [AB(CD)] => même résultat mais limitte l'encapsulation de sous-séquences difficiles à fusionner
+
+Algo de détection des boucles identique à la version 1
+
+Algo de rattrapage des décallages
+On parcours toute la trace
+	Si la trace courante est une séquence
+		AJOUT : on passe toute la trace pour réduire les sous-séquences
+		On extrait son contexte (c'est à dire l'ensemble des traces en amont et en aval pouvant intervenir dans le fenêtre de recherche pour le calcul des partie optionnelles)
+		On clone ce contexte et on lui opère une rotation "up" (tentative d'intégrer en amont de la séquence les traces de la fin de la séquence => passer de D[ABCD] à [DABC]D)
+		On clone une nouvelle fois le contexte initial et on lui opère cette fois ci une rotation "down" (tentative d'intégrer en aval de la séquence les traces du début de la séquence => passer de [ABCD]A à A[BCDA])
+		// Ici nous avons donc trois contextes : l'initial, avec une opération de rotation up et avec une opération de rotationn down
+		On tente d'identifier les options dans ces trois contextes (Voir algo "Identification des options")
+		Si on obtient de meilleurs résultats (trace plus courte) sur l'un de ces trois contextes, on l'intègre dans la trace mère
+
+(Note : cet algo est appelé successivement pour les TROIS contextes)
+Algo "identification des options" => Idem algo V2
+		
+Problème de cette solution :
+	La réduction des sous-séquences a pour effet de réduire trop de chose dans les première séquences avec trop d'option par rapport à la réalité

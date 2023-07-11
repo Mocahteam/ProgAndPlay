@@ -1,0 +1,16 @@
+	PP_Open
+	Sequence < 1:1 >
+		PP_GetNumUnits - 11.000000
+	EndSequence
+	Sequence < 6:1 >
+		PP_GetUnitAt - ?
+		PP_Unit_GetType - ?
+		optional PP_Unit_ActionOnUnit
+		optional PP_GetNumUnits - 11.000000
+	EndSequence
+	Sequence < 9:1 >
+		PP_GetNumUnits - 11.000000
+		optional PP_GetUnitAt - ?
+		optional PP_Unit_ActionOnPosition
+	EndSequence
+	PP_Close

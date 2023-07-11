@@ -1,0 +1,4 @@
+PP_Open
+PP_GetUnitAt 0 0 - 12472
+PP_Unit_ActionOnPosition 12472_4 10 1980 1676 0
+PP_Close

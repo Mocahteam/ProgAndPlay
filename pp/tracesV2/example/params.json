@@ -1,0 +1,373 @@
+{
+"_comment":[
+"This file enables to define parameters for the compression processed. For",
+"each possible call a set of data are defined:",
+" 1 - the call_type data define if this call uses parameters or not",
+" 2 - association a public labels to each compatible programming language",
+"     (used to build feedback content)",
+" 3 - for each return value or parameter a boolean that specifies if these",
+"     fields has to be take in account for compress trace. If true the field",
+"     will be taking in account, if false the field is ignored.",
+"This file is the default version, if you want modify compression for a",
+"specific mission, you can make a copy of this file, update boolean value",
+"on fields you want compression processes differently and paste it into the",
+"folder used to compress this mission. If no params.json file is set for a",
+"specific mission the default one will be used."],
+"PP_Open": {
+"call_type": "CallWithNoParam",
+"C_public_label": "PP_Open",
+"Python_public_label": "PP_Open",
+"Ada_public_label": "Open",
+"OCaml_public_label": "openConnexion",
+"Scratch_public_label": "[en]open Prog&Play[en][fr]ouvrir Prog&Play[fr]",
+"Java_public_label": "PP::open"
+},
+"PP_Close": {
+"call_type": "CallWithNoParam",
+"C_public_label": "PP_Close",
+"Python_public_label": "PP_Close",
+"Ada_public_label": "Close",
+"OCaml_public_label": "closeConnexion",
+"Scratch_public_label": "[en]close Prog&Play[en][fr]fermer Prog&Play[fr]",
+"Java_public_label": "PP::close"
+},
+"PP_IsGameOver": {
+"call_type": "CallWithNoParam",
+"C_public_label": "PP_IsGameOver",
+"Python_public_label": "PP_IsGameOver",
+"Ada_public_label": "IsGameOver",
+"OCaml_public_label": "isGameOver",
+"Scratch_public_label": "[en]is game over?[en][fr]jeu termin� ?[fr]",
+"Java_public_label": "PP::isGameOver",
+"return": false
+},
+"PP_IsGamePaused": {
+"call_type": "CallWithNoParam",
+"C_public_label": "PP_IsGamePaused",
+"Python_public_label": "PP_IsGamePaused",
+"Ada_public_label": "IsGamePaused",
+"OCaml_public_label": "isGamePaused",
+"Java_public_label": "PP::isGamePaused",
+"return": false
+},
+"PP_GetMapSize": {
+"call_type": "CallWithNoParam",
+"C_public_label": "PP_GetMapSize",
+"Python_public_label": "PP_GetMapSize",
+"Ada_public_label": "GetMapSize",
+"OCaml_public_label": "getMapSize",
+"Java_public_label": "PP::getMapSize",
+"return": false
+},
+"PP_GetMapWidth": {
+"call_type": "CallWithNoParam",
+"Scratch_public_label": "[en]map width[en][fr]largeur carte[fr]",
+"return": false
+},
+"PP_GetMapHeight": {
+"call_type": "CallWithNoParam",
+"Scratch_public_label": "[en]map height[en][fr]hauteur carte[fr]",
+"return": false
+},
+"PP_GetStartPosition": {
+"call_type": "CallWithNoParam",
+"C_public_label": "PP_GetStartPosition",
+"Python_public_label": "PP_GetStartPosition",
+"Ada_public_label": "GetStartPosition",
+"OCaml_public_label": "getStartPosition",
+"Java_public_label": "PP::getStartPosition",
+"return": false
+},
+"PP_GetStartXPosition": {
+"call_type": "CallWithNoParam",
+"return": false
+},
+"PP_GetStartYPosition": {
+"call_type": "CallWithNoParam",
+"return": false
+},
+"PP_GetNumSpecialAreas": {
+"call_type": "CallWithNoParam",
+"C_public_label": "PP_GetNumSpecialAreas",
+"Python_public_label": "PP_GetNumSpecialAreas",
+"Ada_public_label": "GetNumSpecialAreas",
+"Scratch_public_label": "[en]number of special areas[en][fr]nombre de zone speciale[fr]",
+"Java_public_label": "PP::getNumSpecialAreas",
+"return": false
+},
+"PP_GetSpecialAreaPosition": {
+"call_type": "CallWithIntParam",
+"C_public_label": "PP_GetSpecialAreaPosition",
+"Python_public_label": "PP_GetSpecialAreaPosition",
+"Ada_public_label": "GetSpecialAreaPosition",
+"Java_public_label": "PP::getSpecialAreasPosition",
+"return": false,
+"specialAreaId": true
+},
+"PP_GetSpecialAreaXPosition": {
+"call_type": "CallWithIntParam",
+"Scratch_public_label": "[en]x position of special area _ [en][fr]position x de la zone speciale _ [fr]",
+"return": false,
+"specialAreaId": true
+},
+"PP_GetSpecialAreaYPosition": {
+"call_type": "CallWithIntParam",
+"Scratch_public_label": "[en]y position of special area _ [en][fr]position y de la zone speciale _ [fr]",
+"return": false,
+"specialAreaId": true
+},
+"PP_GetSpecialAreas": {
+"call_type": "CallWithNoParam",
+"OCaml_public_label": "getSpecialAreas"
+},
+"PP_GetResource": {
+"call_type": "CallWithIntParam",
+"C_public_label": "PP_GetResource",
+"Python_public_label": "PP_GetResource",
+"Ada_public_label": "GetResource",
+"OCaml_public_label": "getResource",
+"Scratch_public_label": "[en]amount of _ resource [en][fr]quantit� de _ [fr]",
+"Java_public_label": "PP::getResource",
+"return": false,
+"resourceId": true
+},
+"PP_GetNumUnits": {
+"call_type": "CallWithIntParam",
+"C_public_label": "PP_GetNumUnits",
+"Python_public_label": "PP_GetNumUnits",
+"Ada_public_label": "GetNumUnits",
+"Scratch_public_label": "[en]number of unit in _ coalition [en][fr]nombre d'unit� _ [fr]",
+"Java_public_label": "PP::getNumUnits",
+"return": false,
+"coalition": true
+},
+"PP_GetUnitAt": {
+"call_type": "CallWithIntIntParams",
+"C_public_label": "PP_GetUnitAt",
+"Python_public_label": "PP_GetUnitAt",
+"Ada_public_label": "GetUnitAt",
+"Java_public_label": "PP::getUnitAt",
+"return": false,
+"coalitionFirst": true,
+"indexSecond": false
+},
+"PP_GetUnitAtIndexFirst": {
+"call_type": "CallWithIntIntParams",
+"Scratch_public_label": "[en]unit _ of _ coalition [en][fr]unit� _ _ [fr]",
+"return": false,
+"indexFirst": false,
+"coalitionSecond": true
+},
+"PP_GetUnits": {
+"call_type": "CallWithIntParam",
+"OCaml_public_label": "getEntities",
+"coalition": true
+},
+ 	"PP_Unit_GetCoalition": {
+"call_type": "CallWithUnitParam",
+"C_public_label": "PP_Unit_GetCoalition",
+"Python_public_label": "PP_Unit_GetCoalition",
+"Ada_public_label": "GetCoalition",
+"OCaml_public_label": "getCoalition",
+"Java_public_label": "Unit::getCoalition",
+"return": false,
+"unitId": false,
+"unitType": false
+},
+"PP_Unit_BelongTo": {
+"call_type": "CallWithUnitIntParams",
+"Scratch_public_label": "[en]does unit id _ belong to _? [en][fr]l'unit� r�f : _ est-elle _ (coalition) ? [fr]",
+"return": false,
+"unitId": false,
+"unitType": false,
+"coalition": true
+},
+"PP_Unit_GetType": {
+"call_type": "CallWithUnitParam",
+"C_public_label": "PP_Unit_GetType",
+"Python_public_label": "PP_Unit_GetType",
+"Ada_public_label": "GetType",
+"OCaml_public_label": "getType",
+"Java_public_label": "Unit::getType",
+"return": false,
+"unitId": false,
+"unitType": false
+},
+"PP_Unit_IsType": {
+"call_type": "CallWithUnitIntParams",
+"Scratch_public_label": "[en]is unit id _ a _? [en][fr]l'unit� r�f : _ est-elle _ (type) ? [fr]",
+"return": false,
+"unitId": false,
+"unitType": false,
+"typeToCheck": true
+},
+"PP_Unit_GetPosition": {
+"call_type": "CallWithUnitParam",
+"C_public_label": "PP_Unit_GetPosition",
+"Python_public_label": "PP_Unit_GetPosition",
+"Ada_public_label": "GetPosition",
+"OCaml_public_label": "getPosition",
+"Java_public_label": "Unit::getPosition",
+"return": false,
+"unitId": false,
+"unitType": false
+},
+"PP_Unit_GetXPosition": {
+"call_type": "CallWithUnitParam",
+"Scratch_public_label": "[en]x position of unit id _ [en][fr]position x de l'unit� r�f : _ [fr]",
+"return": false,
+"unitId": false,
+"unitType": false
+},
+"PP_Unit_GetYPosition": {
+"call_type": "CallWithUnitParam",
+"Scratch_public_label": "[en]y position of unit id _ [en][fr]position y de l'unit� r�f : _ [fr]",
+"return": false,
+"unitId": false,
+"unitType": false
+},
+"PP_Unit_GetHealth": {
+"call_type": "CallWithUnitParam",
+"C_public_label": "PP_Unit_GetHealth",
+"Python_public_label": "PP_Unit_GetHealth",
+"Ada_public_label": "GetHealth",
+"OCaml_public_label": "getHealth",
+"Scratch_public_label": "[en]health of unit id _ [en][fr]sant� de l'unit� r�f : _ [fr]",
+"Java_public_label": "Unit::getHealth",
+"return": false,
+"unitId": false,
+"unitType": false
+},
+"PP_Unit_GetMaxHealth": {
+"call_type": "CallWithUnitParam",
+"C_public_label": "PP_Unit_GetMaxHealth",
+"Python_public_label": "PP_Unit_GetMaxHealth",
+"Ada_public_label": "GetMaxHealth",
+"OCaml_public_label": "getMaxHealth",
+"Scratch_public_label": "[en]max health of unit id _ [en][fr]sant� max de l'unit� r�f : _ [fr]",
+"Java_public_label": "Unit::getMaxHealth",
+"return": false,
+"unitId": false,
+"unitType": false
+},
+"PP_Unit_GetPendingCommands": {
+	"call_type": "CallWithUnitParam",
+	"C_public_label": "PP_Unit_GetPendingCommands",
+	"Python_public_label": "PP_Unit_GetPendingCommands",
+	"Ada_public_label": "GetPendingCommands",
+	"OCaml_public_label": "getPendingCommands",
+	"Java_public_label": "Unit::getPendingCommands",
+	"unitId": false,
+	"unitType": false
+},
+"PP_Unit_GetNumPdgCmds": {
+"call_type": "CallWithUnitParam",
+"return": false,
+"unitId": false,
+"unitType": false
+},
+"PP_Unit_PdgCmd_IsEqualTo": {
+"call_type": "CallWithIntUnitIntParams",
+"return": false,
+"index" : false,
+"unitId": false,
+"unitType": false,
+"action" : false
+},
+"PP_Unit_PdgCmd_GetNumParams": {
+"call_type": "CallWithIntUnitParams",
+"return": false,
+"index" : false,
+"unitId": false,
+"unitType": false
+},
+"PP_Unit_PdgCmd_GetParam": {
+"call_type": "CallWithIntIntUnitParams",
+"return": false,
+"paramIndex" : false,
+"cmdIndex" : false,
+"unitId": false,
+"unitType": false
+},
+"PP_Unit_GetGroup": {
+"call_type": "CallWithUnitParam",
+"C_public_label": "PP_Unit_GetGroup",
+"Python_public_label": "PP_Unit_GetGroup",
+"Ada_public_label": "GetGroup",
+"OCaml_public_label": "getGroup",
+"Scratch_public_label": "[en]group of unit id _ [en][fr]groupe de l'unit� r�f : _ [fr]",
+"Java_public_label": "Unit::getGroup",
+"return": false,
+"unitId": false,
+"unitType": false
+},
+"PP_Unit_SetGroup": {
+"call_type": "CallWithUnitIntParams",
+"C_public_label": "PP_Unit_SetGroup",
+"Python_public_label": "PP_Unit_SetGroup",
+"Ada_public_label": "SetGroup",
+"OCaml_public_label": "setGroup",
+"Scratch_public_label": "[en]affect unit id _ to group _ [en][fr]affecter l'unit� r�f : _ au groupe _ [fr]",
+"Java_public_label": "Unit::setGroup",
+"unitId": false,
+"unitType": false,
+"groupId": false
+},
+"PP_Unit_RemoveFromGroup": {
+"call_type": "CallWithUnitParam",
+"Java_public_label": "Unit::removeFromGroup",
+"unitId": false,
+"unitType": false
+},
+"PP_Unit_ActionOnUnit": {
+"call_type": "CallWithUnitIntUnitIntParams",
+"C_public_label": "PP_Unit_ActionOnUnit",
+"Python_public_label": "PP_Unit_ActionOnUnit",
+"Ada_public_label": "CarryOutCommand",
+"OCaml_public_label": "actionOnEntity",
+"Scratch_public_label": "[en]command unit id _ to _ on unit id _ and _ [en][fr]commander l'unit� r�f : _ de _ l'unit� r�f : _ et _ [fr]",
+"Java_public_label": "Unit::command",
+"unitId": false,
+"unitType": false,
+"action": true,
+"targetId": false,
+"targetType": false,
+"synchronized": true
+},
+"PP_Unit_ActionOnPosition": {
+"call_type": "CallWithUnitIntPosIntParams",
+"C_public_label": "PP_Unit_ActionOnPosition",
+"Python_public_label": "PP_Unit_ActionOnPosition",
+"Ada_public_label": "CarryOutCommand",
+"OCaml_public_label": "actionOnPosition",
+"Scratch_public_label": "[en]command unit id _ to _ to x: _ y: _ and _ [en][fr]commander l'unit� r�f : _ de _ x : _ y : _ et _ [fr]",
+"Java_public_label": "Unit::command",
+"unitId": false,
+"unitType": false,
+"action": true,
+"position": false,
+"synchronized": true
+},
+"PP_Unit_UntargetedAction": {
+"call_type": "CallWithUnitIntFloatIntParams",
+"C_public_label": "PP_Unit_UntargetedAction",
+"Python_public_label": "PP_Unit_UntargetedAction",
+"Ada_public_label": "CarryOutCommand",
+"OCaml_public_label": "untargetedAction",
+"Scratch_public_label": "[en]command unit id _ to set _ to _ and _ [en][fr]commander l'unit� r�f : _ de d�finir _ � _ et _ [fr]",
+"Java_public_label": "Unit::command",
+"unitId": false,
+"unitType": false,
+"action": true,
+"param": false,
+"synchronized": true
+},
+"PP_Unit_UntargetedActionWithoutParam": {
+"call_type": "CallWithUnitIntIntParams",
+"Scratch_public_label": "[en]command unit id _ to _ and _ [en][fr]commander l'unit� r�f : _ de _ et _ [fr]",
+"unitId": false,
+"unitType": false,
+"action": true,
+"synchronized": true
+}
+}

@@ -1,0 +1,31 @@
+Résumé algo
+
+Parcourir toute la trace
+	Pour chaque élément de la trace
+		Rechercher une accroche en amont (un call précédent égal au courant)
+		Si on trouve une accroche
+			Construire une séquence : le UP *****
+		Si on a construit un UP
+			Parcourir la fin de la trace
+				Faire avancer chaque pattern d'une position
+					Si on arrive sur une fin de séquence
+						Dupliquer le pattern pour que l'un des deux recommance la séquence et le second continue
+					Tantqu'on est sur un début de séquence
+						On plonge dedans pour trouver le premier Call
+						Si on est sur séquence optionnelle
+							Dupliquer le pattern pour que l'un des deux traite l'option et le second le saute
+
+				Intégrer la trace courante dans chaque pattern => parcourir tout les patterns
+					Si on est en fin de pattern
+						Si le Call courant == au premier du pattern, créer un clone et injecter la suite du pattern en fin de pattern (à l'intérieur) + dans tous les cas, accumuler la trace à la suite du pattern
+					Sinonsi le Call courant == au Call du pattern courrant
+						noter l'alignement
+					Sinon
+						mettre le call du root en option (gérer le cas où on est en début de séquence => insérer le call avant la séquence ou comme premier élément de la séquence)
+						Dans un clone mettre le call du pattern en option et relancer cette itération pour tenter de calle le call du root
+				
+				Néttoyer les patterns non intéressants
+			
+			Identifier le meilleur pattern pour cette accroche
+						
+					

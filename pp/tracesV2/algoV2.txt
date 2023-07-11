@@ -1,0 +1,47 @@
+Version 2 (révision : 4e84f86)
+Idée principale :
+ - on cherche à identifier en priorité les récurrences de granularité fine puis de plus en plus grosses pour chercher à identifier d'abord les boucles internes puis les boucles de boucles...
+ - on tente de rattraper les decallages dû à la présence de symboles intercallés (cas classique quand le programme inclus des If dans les boucles)
+
+Algo de détection des boucles identique à la version 1
+
+Algo de rattrapage des décallages
+On parcours toute la trace
+	Si la trace courante est une séquence
+		On extrait son contexte (c'est à dire l'ensemble des traces en amont et en aval pouvant intervenir dans le fenêtre de recherche pour le calcul des partie optionnelles)
+		On clone ce contexte et on lui opère une rotation "up" (tentative d'intégrer en amont de la séquence les traces de la fin de la séquence => passer de D[ABCD] à [DABC]D)
+		On clone une nouvelle fois le contexte initial et on lui opère cette fois ci une rotation "down" (tentative d'intégrer en aval de la séquence les traces du début de la séquence => passer de [ABCD]A à A[BCDA])
+		// Ici nous avons donc trois contextes : l'initial, avec une opération de rotation up et avec une opération de rotationn down
+		On tente d'identifier les options dans ces trois contextes (Voir algo "Identification des options")
+		Si on obtient de meilleurs résultats (trace plus courte) sur l'un de ces trois contextes, on l'intègre dans la trace mère
+
+(Note : cet algo est appelé successivement pour les TROIS contextes)
+Algo "identification des options"
+tantque des améliorations sont constatées
+	On tente de traiter les traces non aggrégées dû à la présence de symboles intercalés (voir algo "traiter traces non aggégées")
+	// Si des traces ont été aggrégées => de nouvelles séquences contigues et fusionnable peuvent apparaître donc...
+	On tente de traiter les séquences fusionables (voir algo "traiter séquences fusionables)
+	// Si on a pu fusionner des séquence peut être que de nouvelles traces non aggrégées le seront donc on recommance la boucle
+	
+(Note : Analyse le contexte en amont et en aval d'une séquence  pour tenter d'y aggréger des traces qui ne l'ont pas été précédemment dû à des symboles intercalés
+Exemple passer de :
+	- ABC[AB]   => [AB(C)]
+	- [AB]CAB   => [(C)AB])
+Algo "traiter traces non aggrégées"
+	On regarde en amont de la séquence si une trace peut être intégrée moyennant l'ajout d'options (exemple passer de ABC[AB] à [AB(C)])
+		Prendre en compte de plus en plus de traces en amont et à chaque fois calculer le meilleur score
+		Si le meilleur score obtenu est supérieur au seuil
+			On intègre l'ajout de ces options dans ce contexte
+	On fait la même chose pour les traces en aval de cette séquence (ce coup ci pour passer de [AB]CAB à [AB(C)])
+
+(Note : Tente de trouver des séquences successives de longueurs différentes (éventuellement séparées par une suite de tokens) qui peuvent être fusionnées
+Exemple passer de :
+	- [ABC][ABDC] => [AB(D)C]
+	- [ABC]DE[ABC] => [ABC(DE)])
+Algo "traiter séquences fusionables"
+	On cherche en aval de la séquence une autre séquence dont le score d'alignement le plus important dépasse le seuil
+	Si on trouve un telle séquence, on intègre les symboles intercalés comme des otpions et si le score est toujours supérieur au seuil
+		Procéder à la fusion et l'intègre dans ce contexte
+		
+Problème de cette solution :
+	Certains cas sont difficiles à rattraper par exemple lorsqu'il est plus intéressant d'attendre une fenêtre plus grande pour fusionner (ex: ABCABCABCABABCABCABC va donner ABCABCABC[AB]CABCABC qui va ensuite donner [[AB]C] alors qu'il aurait falu obtenir [AB(C)])

@@ -1,0 +1,14 @@
+PP_Open
+Sequence()
+PP_GetNumUnits
+PP_GetUnitAt
+PP_Unit_GetType
+EndSequence
+PP_GetNumUnits
+PP_GetNumUnits
+Sequence()
+PP_GetUnitAt
+PP_Unit_ActionOnPosition
+PP_GetNumUnits
+EndSequence
+PP_Close

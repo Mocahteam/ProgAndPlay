@@ -1,0 +1,13 @@
+{
+    "configurations": [
+        {
+            "name": "Win32",
+            "includePath": [
+                "include"
+            ],
+            "compilerPath": "C:/MinGW-gcc4.8.5/bin/g++.exe",
+            "cppStandard": "c++11"
+        }
+    ],
+    "version": 4
+}

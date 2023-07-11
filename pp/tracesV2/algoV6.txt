@@ -1,0 +1,33 @@
+Initialiser la liste des scénario au root brut
+
+Tant qu'il reste des scénarios à analyser
+	
+	Se positionner sur le premier Call du scénario courrant
+	
+	Parcourir le scénario courrant à partir du premier Call trouvé
+		
+		Définir le Call courrant de ce scénario comme le point d'analyse
+		
+		Analyser la partie du scénario se trouvant en amont du point d'analyse
+			
+			si on trouve un Call pouvant servir d'accroche directement dans le root, ou comme premier Call d'une séquence, ou comme Call de la dernière séquence précédent immédiatement le Call courant
+				
+				Construire un pattern de la séquence amont
+				
+				Ajouter ce pattern à la liste des patterns
+		
+	    Faire avancer chaque pattern sur son prochain Call et créer de nouveaux patterns si besoin
+
+		Calculer le nombre maximal d'alignement et la trace la plus compressée
+					
+	    Ajouter le call courrant du scénario à chaque pattern
+        
+        Calcul du score de chaque pattern et retenir le meilleur score
+					
+		Supprimer tous les patterns dont le score n'est pas suffisant
+				
+	Intégrer chaque pattern identifié à la base de scénario à analyser
+	
+	
+
+TODO : trier les roots par leur score et éliminer les derniers (seuil, on garde les 1000 premiers ? On prend les 50% les plus performant ?...)

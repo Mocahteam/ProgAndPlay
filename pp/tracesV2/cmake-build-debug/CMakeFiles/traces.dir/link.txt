@@ -1,0 +1,3 @@
+"Z:\CLion 2020.3.2\bin\cmake\win\bin\cmake.exe" -E rm -f CMakeFiles\traces.dir/objects.a
+Z:\MinGW64\mingw64\bin\ar.exe cr CMakeFiles\traces.dir/objects.a @CMakeFiles\traces.dir\objects1.rsp
+Z:\MinGW64\mingw64\bin\g++.exe -g   -Wl,--whole-archive CMakeFiles\traces.dir/objects.a -Wl,--no-whole-archive  -o traces.exe -Wl,--out-implib,libtraces.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\traces.dir\linklibs.rsp

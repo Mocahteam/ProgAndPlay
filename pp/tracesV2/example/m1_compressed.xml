@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<trace>
+<call label="PP_Open" info=""/>
+<call label="PP_GetUnitAt" params="0 0" return="12472" info=""/>
+<call label="PP_Unit_ActionOnPosition" params="12472_4 10 1980 1676 0" info=""/>
+<call label="PP_Close" info=""/>
+</execution>
+</mission>
+</trace>
+

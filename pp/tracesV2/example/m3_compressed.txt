@@ -1,0 +1,5 @@
+PP_Open
+PP_GetUnitAt 0 0 - 3994
+PP_Unit_GetPosition 3994_4 - 1864.53003 1358.93994
+PP_Unit_ActionOnPosition 3994_4 10 1062.53003 1789.93994 0
+PP_Close

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<trace>
+	<call label="PP_Open" info=""/>
+	<call label="PP_GetNumUnits" return="11.000000" info=""/>
+	<call label="PP_GetUnitAt" return="1350.000000" info=""/>
+	<call label="PP_Unit_GetType" return="4.000000" info=""/>
+	<call label="PP_GetNumUnits" return="11.000000" info=""/>
+	<call label="PP_GetUnitAt" return="829.000000" info=""/>
+	<call label="PP_Unit_GetType" return="4.000000" info=""/>
+	<call label="PP_GetNumUnits" return="11.000000" info=""/>
+	<call label="PP_GetUnitAt" return="1868.000000" info=""/>
+	<call label="PP_Unit_GetType" return="4.000000" info=""/>
+	<call label="PP_GetNumUnits" return="11.000000" info=""/>
+	<call label="PP_GetUnitAt" return="2179.000000" info=""/>
+	<call label="PP_Unit_ActionOnPosition" info=""/>
+	<call label="PP_Unit_ActionOnUnit" info=""/>
+	<call label="PP_Unit_GetPosition" return="1864.530029 1358.939941" info=""/>
+	<call label="PP_Unit_GetType" return="2.000000" info=""/>
+	<call label="PP_GetNumUnits" return="11.000000" info=""/>
+	<call label="PP_GetUnitAt" return="2.000000" info=""/>
+	<call label="PP_Unit_GetType" return="7.000000" info=""/>
+	<call label="PP_GetNumUnits" return="11.000000" info=""/>
+	<call label="PP_GetUnitAt" return="1054.000000" info=""/>
+	<call label="PP_Unit_GetType" return="7.000000" info=""/>
+	<call label="PP_GetNumUnits" return="11.000000" info=""/>
+	<call label="PP_GetUnitAt" return="258.000000" info=""/>
+	<call label="PP_Unit_GetType" return="7.000000" info=""/>
+	<call label="PP_GetNumUnits" return="11.000000" info=""/>
+	<call label="PP_GetUnitAt" return="2457.000000" info=""/>
+	<call label="PP_Unit_GetType" return="4.000000" info=""/>
+	<call label="PP_GetNumUnits" return="11.000000" info=""/>
+	<call label="PP_GetUnitAt" return="191.000000" info=""/>
+	<call label="PP_Unit_GetType" return="4.000000" info=""/>
+	<call label="PP_GetNumUnits" return="11.000000" info=""/>
+	<call label="PP_GetUnitAt" return="2445.000000" info=""/>
+	<call label="PP_Unit_GetType" return="4.000000" info=""/>
+	<call label="PP_GetNumUnits" return="11.000000" info=""/>
+	<call label="PP_GetUnitAt" return="378.000000" info=""/>
+	<call label="PP_Unit_GetType" return="4.000000" info=""/>
+	<call label="PP_GetNumUnits" return="11.000000" info=""/>
+	<call label="PP_Close" info=""/>
+</trace>
+

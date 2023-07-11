@@ -1,0 +1,29 @@
+Test optionnelle => si optionnelle ou hierarchie parentale optionnelle
+
+Pour la formation de la matrice
+	Si colonne i optionnelle OU Se => reporter valeur i-1
+	Si ligne j optionnelle OU Se => reporter valeur j-1
+	Si colonne i == ligne j => Min ([i-1][j]+1, [i][j-1]+1, [i-1][j-1]+0)
+	Si colonne i != ligne j => Min ([i-1][j]+1, [i][j-1]+1, [i-1][j-1]+1)
+
+
+principe de l'algo :
+	partir du coin inférieur droit de la matrice et remonter soit à gauche, soit en haut, soit en diagonale (sémantique des orientations : gauche i-1 <- i => ajouter colonne i (si Call, taguer optionnel) ; haut j-1 <- j => ajouter ligne j (si Call, taguer optionnel) ; diagonale [i-1][j-1] <- [i][j] => ajouter la fusion de colonne i avec ligne j)
+	
+	Si i == 0 et j == 0, fin
+	
+	Si i == 0, prendre en haut
+	
+	Si j == 0, prendre à gauche
+	
+	XxY
+	Si colonne i et ligne j sont des call. Si diagonale c Min et colonne i == ligne j privilégier la diagonale sinon privilégier le min entre haut et gauche, si égalité réduire en priorité la trace la plus longue, sinon prendre en haut en priorité.
+	
+	XxS
+	Si l'un est un Call et l'autre un Seq, privilégier l'orientation vers le haut ou la gauche avec le poid minimal (interdire la diagonale). Si égalité privilégier l'orientation du Seq.
+	
+	SxS
+	Si colonne i et ligne j sont des Seq. Si diagonale c Min et colonne i == ligne j privilégier la diagonale, sinon privilégier le min entre haut et gauche, si égalité et colonne i != ligne j privilégier le Sb sinon si égalité et colonne i == ligne j réduire en priorité la trace la plus longue, sinon prendre en haut en priorité.
+	
+	Post traitement : Si suite à un Se on revient sur la diagonale cela signifie qu'on vient de rééquilibrer les niveaux d'imbriquation de boucle entre les deux séquences => Ne pas ajouter ce Se, rechercher le Se qui avait fait quitter la diagonale et mettre toutes les traces accumulées comme optionnelles.
+	

@@ -1,0 +1,5 @@
+PP_Open
+PP_GetUnitAt 0 0 - 5397
+PP_GetUnitAt 2 0 - 25304
+PP_Unit_ActionOnUnit 5397_4 20 25304_4 0
+PP_Close

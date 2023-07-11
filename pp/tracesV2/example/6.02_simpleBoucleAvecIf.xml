@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<trace>
+<call label="PP_Open" info=""/>
+<call label="PP_GetNumUnits" params="0" return="11" info=""/>
+<call label="PP_GetUnitAt" params="0 4" return="1350" info=""/>
+<call label="PP_Unit_GetType" params="1350_4" return="4" info=""/>
+<call label="PP_GetNumUnits" params="0" return="11" info=""/>
+<call label="PP_GetUnitAt" params="0 5" return="829" info=""/>
+<call label="PP_Unit_GetType" params="829_4" return="4" info=""/>
+<call label="PP_GetNumUnits" params="0" return="11" info=""/>
+<call label="PP_GetUnitAt" params="0 6" return="1868" info=""/>
+<call label="PP_Unit_GetType" params="1868_4" return="4" info=""/>
+<call label="PP_GetNumUnits" params="0" return="11" info=""/>
+<call label="PP_GetUnitAt" params="0 10" return="2179" info=""/>
+<call label="PP_Unit_GetType" params="2179_2" return="2" info=""/>
+<call label="PP_GetNumUnits" params="0" return="11" info=""/>
+<call label="PP_Unit_ActionOnPosition" params="2179_2 10 256 811 ?" info=""/>
+<call label="PP_GetUnitAt" params="0 7" return="2" info=""/>
+<call label="PP_Unit_GetType" params="2_7" return="7" info=""/>
+<call label="PP_GetNumUnits" params="0" return="11" info=""/>
+<call label="PP_GetUnitAt" params="0 8" return="1054" info=""/>
+<call label="PP_Unit_GetType" params="1054_7" return="7" info=""/>
+<call label="PP_GetNumUnits" params="0" return="11" info=""/>
+<call label="PP_GetUnitAt" params="0 9" return="258" info=""/>
+<call label="PP_Unit_GetType" params="258_7" return="7" info=""/>
+<call label="PP_GetNumUnits" params="0" return="11" info=""/>
+<call label="PP_GetUnitAt" params="0 0" return="2457" info=""/>
+<call label="PP_Unit_GetType" params="2457_4" return="4" info=""/>
+<call label="PP_GetNumUnits" params="0" return="11" info=""/>
+<call label="PP_GetUnitAt" params="0 1" return="191" info=""/>
+<call label="PP_Unit_GetType" params="191_4" return="4" info=""/>
+<call label="PP_GetNumUnits" params="0" return="11" info=""/>
+<call label="PP_GetUnitAt" params="0 2" return="2445" info=""/>
+<call label="PP_Unit_GetType" params="2445_4" return="4" info=""/>
+<call label="PP_GetNumUnits" params="0" return="11" info=""/>
+<call label="PP_GetUnitAt" params="0 3" return="378" info=""/>
+<call label="PP_Unit_GetType" params="378_4" return="4" info=""/>
+<call label="PP_GetNumUnits" params="0" return="11" info=""/>
+<call label="PP_Close" info=""/>
+</execution>
+</mission>
+</trace>
+

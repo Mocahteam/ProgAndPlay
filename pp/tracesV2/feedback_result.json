@@ -1,0 +1,14 @@
+{
+    "num_attempts": 1,
+    "execution_time": 0.0,
+    "ref_execution_time": 0.0,
+    "resolution_time": 9.0,
+    "ref_resolution_time": 9.0,
+    "won": true,
+    "score": 57.0,
+    "feedbacks": [
+        "C'est curieux, vous êtes le premier joueur à utiliser la fonction \"PP_GetNumUnits\" pour résoudre cette mission. Vous avez peut-être trouvé une nouvelle solution... ou alors vous ne devriez pas l'utiliser.",
+        "C'est curieux, vous êtes le premier joueur à utiliser la fonction \"PP_Unit_GetPosition\" pour résoudre cette mission. Vous avez peut-être trouvé une nouvelle solution... ou alors vous ne devriez pas l'utiliser.",
+        "L'appel \"PP_GetNumUnits(MY_COALITION)\" n'est pas forcément nécessaire."
+    ]
+}

@@ -1,0 +1,77 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "mon GDB",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "C:\\Users\\mmuratet\\Documents\\Data\\INSHEA\\Recherche\\Projets\\EnCours\\ProgAndPlay\\StageYufei\\SystemFeedback\\MyParserTest.exe",
+            //"args": ["1_rienAFaire.log", "./example", "-o", "test"],
+            //"args": ["2_simpleBoucle.log", "./example", "-sc", "0.2", "-war", "0", "-ws", "1", "-o", "test"],
+            //"args": ["3_simpleBoucleAvecDebut.log", "./example", "-o", "test"],
+            //"args": ["4_simpleBoucleAvecFin.log", "./example", "-o", "test"],
+            //"args": ["5_simpleBoucleAvecDebutEtFin.log", "./example", "-o", "test"],
+            //"args": ["6_simpleBoucleAvecDebutEtFinEtCasArret.log", "./example", "-o", "test"],
+            //"args": ["6_simpleBoucleAvecDebutEtFinEtCasArret.log", "./example", "-o", "test"],
+            //"args": ["6.01_simpleBoucleAvecIf.log", "./example", "-war", "1", "-ws", "0", "-pb", "0", "-o", "test"],
+            //"args": ["6.02_simpleBoucleAvecIf.log", "./example", "-o", "test"],
+            //"args": ["6.03_simpleBoucleAvecIf.log", "./example", "-o", "test"],
+            //"args": ["6.04_simpleBoucleAvecIf.log", "./example", "-o", "test"],
+            //"args": ["6.05_simpleBoucleAvecIf.log", "./example", "-o", "test"],
+            //"args": ["6.06_simpleBoucleAvecIf.log", "./example", "-o", "test"],
+            //"args": ["6.07_simpleBoucleAvecIf.log", "./example", "-o", "test"],
+            //"args": ["6.08_simpleBoucleAvecIf.log", "./example", "-o", "test"],
+            //"args": ["6.09_simpleBoucleAvecIf.log", "./example", "-o", "test"],
+            //"args": ["6.10_simpleBoucleAvecIf.log", "./example", "-o", "test"],
+            //"args": ["6.11_simpleBoucleAvecIf.log", "./example", "-o", "test"],
+            //"args": ["6.12_simpleBoucleAvecIf.log", "./example", "-o", "test"],
+            //"args": ["6.13_simpleBoucleAvecIf.log", "./example", "-o", "test"],
+            //"args": ["6.14_simpleBoucleAvecIf.log", "./example", "-o", "test"],
+            //"args": ["7.01_bouclesEnSequence.log", "./example", "-o", "test"],
+            //"args": ["7.02_bouclesEnSequence.log", "./example", "-war", "0.5", "-ws", "0", "-pb", "0.5", "-o", "test"],
+            //"args": ["8_bouclesEnSequenceAvecIf.log", "./example", "-o", "test"],
+            //"args": ["8_bouclesEnSequenceAvecIf.log", "./example", "-o", "test", "-op", "1.8", "-wml", "0.21"],
+            //"args": ["9_bouclesImbriquees.log", "./example", "-o", "test"],
+            //"args": ["9.01_bouclesImbriquees.log", "./example", "-o", "test", "-ws", "0.5", "-pb", "0.5", "-tl", "100"],// "-disableLogs"],
+            "args": ["9.02_bouclesImbriquees.log", "./example", "-o", "test", "-ws", "0.5", "-pb", "0.5", "-tl", "10000"],
+            //"args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "miDebuggerPath": "C:\\MinGW-gcc4.8.5\\bin\\gdb.exe",
+            "setupCommands": [
+                {
+                    "description": "Activer l'impression en mode Pretty pour gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        }
+        // {
+        //     "name": "g++.exe - Générer et déboguer le fichier actif",
+        //     "type": "cppdbg",
+        //     "request": "launch",
+        //     "program": "${fileDirname}\\${fileBasenameNoExtension}.exe",
+        //     "args": [],
+        //     "stopAtEntry": false,
+        //     "cwd": "${workspaceFolder}",
+        //     "environment": [],
+        //     "externalConsole": false,
+        //     "MIMode": "gdb",
+        //     "miDebuggerPath": "C:\\MinGW-gcc4.8.5\\bin\\gdb.exe",
+        //     "setupCommands": [
+        //         {
+        //             "description": "Activer l'impression en mode Pretty pour gdb",
+        //             "text": "-enable-pretty-printing",
+        //             "ignoreFailures": true
+        //         }
+        //     ],
+        //     "preLaunchTask": "C/C++: g++.exe build active file"
+        // }
+    ]
+}

@@ -1,0 +1,8 @@
+PP_Open
+Sequence < 13:1 >
+optional PP_GetNumUnits - 11
+optional PP_Close
+optional PP_GetUnitAt - ?
+optional PP_Unit_GetType - ?
+optional PP_Unit_ActionOnPosition
+EndSequence

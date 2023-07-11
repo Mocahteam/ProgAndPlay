@@ -1,0 +1,28 @@
+Version 3 (révision : fccff375872e1af61a71ce4ac186b087850e0a5e)
+Idée principale :
+ - on cherche à identifier en priorité les récurrences de granularité fine puis de plus en plus grosses pour chercher à identifier d'abord les boucles internes puis les boucles de boucles...
+ - Hypothèse : obtenir un meilleur résultat en affinant l'exploitation des fenêtres "up" et "down", l'idée est de vérifier avant d'acter une fusion qu'on obtiendrait pas un meilleur résultat avec des fenêtre "up" plus grande
+ 
+On fait glisser des fenêtre de plus en plus grosse
+Pour chaque taille de fenêtre
+	Tantqu'on peut continuer à faire avancer cette fenêtre
+		On construit un fenêtre up (sauf si une fusion a été faite à l'itération précédente => on évite alors de reconstuire un "up")
+			Si une fenêtre "up" est constructible, on tente de l'aligner avec plusieurs tailles de fenêtre down
+			On augmente ensuite la fenêtre "up" progressivement et pour chaque version on refait le test avec les fenêtre "down"
+			Si une des fenêtres "up" augmentées obtient un meilleur résultat qu'avec la fenêtre "up" originale c'est qu'on a intérêt à attendre que le "up" grossisse
+				On passe donc à la trace suivante
+				continue;
+			sinon
+				On sauvegarde les données relatives au meilleur score de fusion
+		S'il n'est pas utile de reconstruire un "up"
+			on tente d'analyse les score de fusion entre le "up" et les différents "down" et on stocke les données relatives au meilleur score obtenu
+		Si le meilleur score de fusion obtenu dépasse le seuil
+			acter ce résultat comme étant le nouveau up (Au prochain tour de boucle le up ne sera pas reconstruit mais le down si
+		sinon
+			Aggréger les fusions précédentes s'il y en avait eu
+			passer à la trace suivante pour chercher un nouveau up
+	Aggréger les fusions précédentes s'il y en avait eu
+	Augmenter la taille de la fenêtre
+	
+Résultat:
+	Résultats peu satisfaisant

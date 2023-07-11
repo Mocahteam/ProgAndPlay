@@ -1,0 +1,550 @@
+In file included from ./include/boost/mpl/aux_/integral_wrapper.hpp:22:0,
+                 from ./include/boost/mpl/int.hpp:20,
+                 from ./include/boost/mpl/lambda_fwd.hpp:23,
+                 from ./include/boost/mpl/aux_/na_spec.hpp:18,
+                 from ./include/boost/mpl/if.hpp:19,
+                 from ./include/boost/lexical_cast.hpp:37,
+                 from TracesParser.h:22,
+                 from TracesParser.cpp:1:
+./include/boost/concept_check.hpp: In function 'void boost::function_requires(Model*)':
+./include/boost/concept/detail/general.hpp:71:20: warning: typedef 'boost_concept_check45' locally defined but not used [-Wunused-local-typedefs]
+       BOOST_PP_CAT(boost_concept_check,__LINE__)
+                    ^
+./include/boost/preprocessor/cat.hpp:29:34: note: in definition of macro 'BOOST_PP_CAT_I'
+ #    define BOOST_PP_CAT_I(a, b) a ## b
+                                  ^
+./include/boost/concept/detail/general.hpp:71:7: note: in expansion of macro 'BOOST_PP_CAT'
+       BOOST_PP_CAT(boost_concept_check,__LINE__)
+       ^
+./include/boost/concept/assert.hpp:44:5: note: in expansion of macro 'BOOST_CONCEPT_ASSERT_FN'
+     BOOST_CONCEPT_ASSERT_FN(void(*)ModelInParens)
+     ^
+./include/boost/concept_check.hpp:45:7: note: in expansion of macro 'BOOST_CONCEPT_ASSERT'
+       BOOST_CONCEPT_ASSERT((Model));
+       ^
+./include/boost/concept_check.hpp: In destructor 'boost::AdaptableGenerator<Func, Return>::~AdaptableGenerator()':
+./include/boost/concept/detail/general.hpp:71:20: warning: typedef 'boost_concept_check453' locally defined but not used [-Wunused-local-typedefs]
+       BOOST_PP_CAT(boost_concept_check,__LINE__)
+                    ^
+./include/boost/preprocessor/cat.hpp:29:34: note: in definition of macro 'BOOST_PP_CAT_I'
+ #    define BOOST_PP_CAT_I(a, b) a ## b
+                                  ^
+./include/boost/concept/detail/general.hpp:71:7: note: in expansion of macro 'BOOST_PP_CAT'
+       BOOST_PP_CAT(boost_concept_check,__LINE__)
+       ^
+./include/boost/concept/assert.hpp:44:5: note: in expansion of macro 'BOOST_CONCEPT_ASSERT_FN'
+     BOOST_CONCEPT_ASSERT_FN(void(*)ModelInParens)
+     ^
+./include/boost/concept_check.hpp:453:11: note: in expansion of macro 'BOOST_CONCEPT_ASSERT'
+           BOOST_CONCEPT_ASSERT((Convertible<result_type, Return>));
+           ^
+./include/boost/concept_check.hpp: In destructor 'boost::AdaptableUnaryFunction<Func, Return, Arg>::~AdaptableUnaryFunction()':
+./include/boost/concept/detail/general.hpp:71:20: warning: typedef 'boost_concept_check465' locally defined but not used [-Wunused-local-typedefs]
+       BOOST_PP_CAT(boost_concept_check,__LINE__)
+                    ^
+./include/boost/preprocessor/cat.hpp:29:34: note: in definition of macro 'BOOST_PP_CAT_I'
+ #    define BOOST_PP_CAT_I(a, b) a ## b
+                                  ^
+./include/boost/concept/detail/general.hpp:71:7: note: in expansion of macro 'BOOST_PP_CAT'
+       BOOST_PP_CAT(boost_concept_check,__LINE__)
+       ^
+./include/boost/concept/assert.hpp:44:5: note: in expansion of macro 'BOOST_CONCEPT_ASSERT_FN'
+     BOOST_CONCEPT_ASSERT_FN(void(*)ModelInParens)
+     ^
+./include/boost/concept_check.hpp:465:11: note: in expansion of macro 'BOOST_CONCEPT_ASSERT'
+           BOOST_CONCEPT_ASSERT((Convertible<result_type, Return>));
+           ^
+./include/boost/concept/detail/general.hpp:71:20: warning: typedef 'boost_concept_check466' locally defined but not used [-Wunused-local-typedefs]
+       BOOST_PP_CAT(boost_concept_check,__LINE__)
+                    ^
+./include/boost/preprocessor/cat.hpp:29:34: note: in definition of macro 'BOOST_PP_CAT_I'
+ #    define BOOST_PP_CAT_I(a, b) a ## b
+                                  ^
+./include/boost/concept/detail/general.hpp:71:7: note: in expansion of macro 'BOOST_PP_CAT'
+       BOOST_PP_CAT(boost_concept_check,__LINE__)
+       ^
+./include/boost/concept/assert.hpp:44:5: note: in expansion of macro 'BOOST_CONCEPT_ASSERT_FN'
+     BOOST_CONCEPT_ASSERT_FN(void(*)ModelInParens)
+     ^
+./include/boost/concept_check.hpp:466:11: note: in expansion of macro 'BOOST_CONCEPT_ASSERT'
+           BOOST_CONCEPT_ASSERT((Convertible<Arg, argument_type>));
+           ^
+./include/boost/concept_check.hpp: In destructor 'boost::AdaptableBinaryFunction<Func, Return, First, Second>::~AdaptableBinaryFunction()':
+./include/boost/concept/detail/general.hpp:71:20: warning: typedef 'boost_concept_check484' locally defined but not used [-Wunused-local-typedefs]
+       BOOST_PP_CAT(boost_concept_check,__LINE__)
+                    ^
+./include/boost/preprocessor/cat.hpp:29:34: note: in definition of macro 'BOOST_PP_CAT_I'
+ #    define BOOST_PP_CAT_I(a, b) a ## b
+                                  ^
+./include/boost/concept/detail/general.hpp:71:7: note: in expansion of macro 'BOOST_PP_CAT'
+       BOOST_PP_CAT(boost_concept_check,__LINE__)
+       ^
+./include/boost/concept/assert.hpp:44:5: note: in expansion of macro 'BOOST_CONCEPT_ASSERT_FN'
+     BOOST_CONCEPT_ASSERT_FN(void(*)ModelInParens)
+     ^
+./include/boost/concept_check.hpp:484:11: note: in expansion of macro 'BOOST_CONCEPT_ASSERT'
+           BOOST_CONCEPT_ASSERT((Convertible<result_type, Return>));
+           ^
+./include/boost/concept/detail/general.hpp:71:20: warning: typedef 'boost_concept_check485' locally defined but not used [-Wunused-local-typedefs]
+       BOOST_PP_CAT(boost_concept_check,__LINE__)
+                    ^
+./include/boost/preprocessor/cat.hpp:29:34: note: in definition of macro 'BOOST_PP_CAT_I'
+ #    define BOOST_PP_CAT_I(a, b) a ## b
+                                  ^
+./include/boost/concept/detail/general.hpp:71:7: note: in expansion of macro 'BOOST_PP_CAT'
+       BOOST_PP_CAT(boost_concept_check,__LINE__)
+       ^
+./include/boost/concept/assert.hpp:44:5: note: in expansion of macro 'BOOST_CONCEPT_ASSERT_FN'
+     BOOST_CONCEPT_ASSERT_FN(void(*)ModelInParens)
+     ^
+./include/boost/concept_check.hpp:485:11: note: in expansion of macro 'BOOST_CONCEPT_ASSERT'
+           BOOST_CONCEPT_ASSERT((Convertible<First, first_argument_type>));
+           ^
+./include/boost/concept/detail/general.hpp:71:20: warning: typedef 'boost_concept_check486' locally defined but not used [-Wunused-local-typedefs]
+       BOOST_PP_CAT(boost_concept_check,__LINE__)
+                    ^
+./include/boost/preprocessor/cat.hpp:29:34: note: in definition of macro 'BOOST_PP_CAT_I'
+ #    define BOOST_PP_CAT_I(a, b) a ## b
+                                  ^
+./include/boost/concept/detail/general.hpp:71:7: note: in expansion of macro 'BOOST_PP_CAT'
+       BOOST_PP_CAT(boost_concept_check,__LINE__)
+       ^
+./include/boost/concept/assert.hpp:44:5: note: in expansion of macro 'BOOST_CONCEPT_ASSERT_FN'
+     BOOST_CONCEPT_ASSERT_FN(void(*)ModelInParens)
+     ^
+./include/boost/concept_check.hpp:486:11: note: in expansion of macro 'BOOST_CONCEPT_ASSERT'
+           BOOST_CONCEPT_ASSERT((Convertible<Second, second_argument_type>));
+           ^
+./include/boost/concept_check.hpp: In destructor 'boost::InputIterator<TT>::~InputIterator()':
+./include/boost/concept/detail/general.hpp:71:20: warning: typedef 'boost_concept_check517' locally defined but not used [-Wunused-local-typedefs]
+       BOOST_PP_CAT(boost_concept_check,__LINE__)
+                    ^
+./include/boost/preprocessor/cat.hpp:29:34: note: in definition of macro 'BOOST_PP_CAT_I'
+ #    define BOOST_PP_CAT_I(a, b) a ## b
+                                  ^
+./include/boost/concept/detail/general.hpp:71:7: note: in expansion of macro 'BOOST_PP_CAT'
+       BOOST_PP_CAT(boost_concept_check,__LINE__)
+       ^
+./include/boost/concept/assert.hpp:44:5: note: in expansion of macro 'BOOST_CONCEPT_ASSERT_FN'
+     BOOST_CONCEPT_ASSERT_FN(void(*)ModelInParens)
+     ^
+./include/boost/concept_check.hpp:517:9: note: in expansion of macro 'BOOST_CONCEPT_ASSERT'
+         BOOST_CONCEPT_ASSERT((SignedInteger<difference_type>));
+         ^
+./include/boost/concept/detail/general.hpp:71:20: warning: typedef 'boost_concept_check518' locally defined but not used [-Wunused-local-typedefs]
+       BOOST_PP_CAT(boost_concept_check,__LINE__)
+                    ^
+./include/boost/preprocessor/cat.hpp:29:34: note: in definition of macro 'BOOST_PP_CAT_I'
+ #    define BOOST_PP_CAT_I(a, b) a ## b
+                                  ^
+./include/boost/concept/detail/general.hpp:71:7: note: in expansion of macro 'BOOST_PP_CAT'
+       BOOST_PP_CAT(boost_concept_check,__LINE__)
+       ^
+./include/boost/concept/assert.hpp:44:5: note: in expansion of macro 'BOOST_CONCEPT_ASSERT_FN'
+     BOOST_CONCEPT_ASSERT_FN(void(*)ModelInParens)
+     ^
+./include/boost/concept_check.hpp:518:9: note: in expansion of macro 'BOOST_CONCEPT_ASSERT'
+         BOOST_CONCEPT_ASSERT((Convertible<iterator_category, std::input_iterator_tag>));
+         ^
+./include/boost/concept_check.hpp: In destructor 'boost::ForwardIterator<TT>::~ForwardIterator()':
+./include/boost/concept/detail/general.hpp:71:20: warning: typedef 'boost_concept_check551' locally defined but not used [-Wunused-local-typedefs]
+       BOOST_PP_CAT(boost_concept_check,__LINE__)
+                    ^
+./include/boost/preprocessor/cat.hpp:29:34: note: in definition of macro 'BOOST_PP_CAT_I'
+ #    define BOOST_PP_CAT_I(a, b) a ## b
+                                  ^
+./include/boost/concept/detail/general.hpp:71:7: note: in expansion of macro 'BOOST_PP_CAT'
+       BOOST_PP_CAT(boost_concept_check,__LINE__)
+       ^
+./include/boost/concept/assert.hpp:44:5: note: in expansion of macro 'BOOST_CONCEPT_ASSERT_FN'
+     BOOST_CONCEPT_ASSERT_FN(void(*)ModelInParens)
+     ^
+./include/boost/concept_check.hpp:548:11: note: in expansion of macro 'BOOST_CONCEPT_ASSERT'
+           BOOST_CONCEPT_ASSERT((Convertible<
+           ^
+./include/boost/concept_check.hpp: In destructor 'boost::BidirectionalIterator<TT>::~BidirectionalIterator()':
+./include/boost/concept/detail/general.hpp:71:20: warning: typedef 'boost_concept_check579' locally defined but not used [-Wunused-local-typedefs]
+       BOOST_PP_CAT(boost_concept_check,__LINE__)
+                    ^
+./include/boost/preprocessor/cat.hpp:29:34: note: in definition of macro 'BOOST_PP_CAT_I'
+ #    define BOOST_PP_CAT_I(a, b) a ## b
+                                  ^
+./include/boost/concept/detail/general.hpp:71:7: note: in expansion of macro 'BOOST_PP_CAT'
+       BOOST_PP_CAT(boost_concept_check,__LINE__)
+       ^
+./include/boost/concept/assert.hpp:44:5: note: in expansion of macro 'BOOST_CONCEPT_ASSERT_FN'
+     BOOST_CONCEPT_ASSERT_FN(void(*)ModelInParens)
+     ^
+./include/boost/concept_check.hpp:576:11: note: in expansion of macro 'BOOST_CONCEPT_ASSERT'
+           BOOST_CONCEPT_ASSERT((Convertible<
+           ^
+./include/boost/concept_check.hpp: In destructor 'boost::RandomAccessIterator<TT>::~RandomAccessIterator()':
+./include/boost/concept/detail/general.hpp:71:20: warning: typedef 'boost_concept_check609' locally defined but not used [-Wunused-local-typedefs]
+       BOOST_PP_CAT(boost_concept_check,__LINE__)
+                    ^
+./include/boost/preprocessor/cat.hpp:29:34: note: in definition of macro 'BOOST_PP_CAT_I'
+ #    define BOOST_PP_CAT_I(a, b) a ## b
+                                  ^
+./include/boost/concept/detail/general.hpp:71:7: note: in expansion of macro 'BOOST_PP_CAT'
+       BOOST_PP_CAT(boost_concept_check,__LINE__)
+       ^
+./include/boost/concept/assert.hpp:44:5: note: in expansion of macro 'BOOST_CONCEPT_ASSERT_FN'
+     BOOST_CONCEPT_ASSERT_FN(void(*)ModelInParens)
+     ^
+./include/boost/concept_check.hpp:606:11: note: in expansion of macro 'BOOST_CONCEPT_ASSERT'
+           BOOST_CONCEPT_ASSERT((Convertible<
+           ^
+./include/boost/concept_check.hpp: In destructor 'boost::Container<C>::~Container()':
+./include/boost/concept/detail/general.hpp:71:20: warning: typedef 'boost_concept_check653' locally defined but not used [-Wunused-local-typedefs]
+       BOOST_PP_CAT(boost_concept_check,__LINE__)
+                    ^
+./include/boost/preprocessor/cat.hpp:29:34: note: in definition of macro 'BOOST_PP_CAT_I'
+ #    define BOOST_PP_CAT_I(a, b) a ## b
+                                  ^
+./include/boost/concept/detail/general.hpp:71:7: note: in expansion of macro 'BOOST_PP_CAT'
+       BOOST_PP_CAT(boost_concept_check,__LINE__)
+       ^
+./include/boost/concept/assert.hpp:44:5: note: in expansion of macro 'BOOST_CONCEPT_ASSERT_FN'
+     BOOST_CONCEPT_ASSERT_FN(void(*)ModelInParens)
+     ^
+./include/boost/concept_check.hpp:653:11: note: in expansion of macro 'BOOST_CONCEPT_ASSERT'
+           BOOST_CONCEPT_ASSERT((InputIterator<const_iterator>));
+           ^
+./include/boost/concept_check.hpp: In destructor 'boost::Mutable_Container<C>::~Mutable_Container()':
+./include/boost/concept/detail/general.hpp:71:20: warning: typedef 'boost_concept_check681' locally defined but not used [-Wunused-local-typedefs]
+       BOOST_PP_CAT(boost_concept_check,__LINE__)
+                    ^
+./include/boost/preprocessor/cat.hpp:29:34: note: in definition of macro 'BOOST_PP_CAT_I'
+ #    define BOOST_PP_CAT_I(a, b) a ## b
+                                  ^
+./include/boost/concept/detail/general.hpp:71:7: note: in expansion of macro 'BOOST_PP_CAT'
+       BOOST_PP_CAT(boost_concept_check,__LINE__)
+       ^
+./include/boost/concept/assert.hpp:44:5: note: in expansion of macro 'BOOST_CONCEPT_ASSERT_FN'
+     BOOST_CONCEPT_ASSERT_FN(void(*)ModelInParens)
+     ^
+./include/boost/concept_check.hpp:680:11: note: in expansion of macro 'BOOST_CONCEPT_ASSERT'
+           BOOST_CONCEPT_ASSERT((
+           ^
+./include/boost/concept/detail/general.hpp:71:20: warning: typedef 'boost_concept_check683' locally defined but not used [-Wunused-local-typedefs]
+       BOOST_PP_CAT(boost_concept_check,__LINE__)
+                    ^
+./include/boost/preprocessor/cat.hpp:29:34: note: in definition of macro 'BOOST_PP_CAT_I'
+ #    define BOOST_PP_CAT_I(a, b) a ## b
+                                  ^
+./include/boost/concept/detail/general.hpp:71:7: note: in expansion of macro 'BOOST_PP_CAT'
+       BOOST_PP_CAT(boost_concept_check,__LINE__)
+       ^
+./include/boost/concept/assert.hpp:44:5: note: in expansion of macro 'BOOST_CONCEPT_ASSERT_FN'
+     BOOST_CONCEPT_ASSERT_FN(void(*)ModelInParens)
+     ^
+./include/boost/concept_check.hpp:683:11: note: in expansion of macro 'BOOST_CONCEPT_ASSERT'
+           BOOST_CONCEPT_ASSERT((InputIterator<iterator>));
+           ^
+./include/boost/concept_check.hpp: In destructor 'boost::ForwardContainer<C>::~ForwardContainer()':
+./include/boost/concept/detail/general.hpp:71:20: warning: typedef 'boost_concept_check703' locally defined but not used [-Wunused-local-typedefs]
+       BOOST_PP_CAT(boost_concept_check,__LINE__)
+                    ^
+./include/boost/preprocessor/cat.hpp:29:34: note: in definition of macro 'BOOST_PP_CAT_I'
+ #    define BOOST_PP_CAT_I(a, b) a ## b
+                                  ^
+./include/boost/concept/detail/general.hpp:71:7: note: in expansion of macro 'BOOST_PP_CAT'
+       BOOST_PP_CAT(boost_concept_check,__LINE__)
+       ^
+./include/boost/concept/assert.hpp:44:5: note: in expansion of macro 'BOOST_CONCEPT_ASSERT_FN'
+     BOOST_CONCEPT_ASSERT_FN(void(*)ModelInParens)
+     ^
+./include/boost/concept_check.hpp:700:11: note: in expansion of macro 'BOOST_CONCEPT_ASSERT'
+           BOOST_CONCEPT_ASSERT((
+           ^
+./include/boost/concept_check.hpp: In destructor 'boost::Mutable_ForwardContainer<C>::~Mutable_ForwardContainer()':
+./include/boost/concept/detail/general.hpp:71:20: warning: typedef 'boost_concept_check716' locally defined but not used [-Wunused-local-typedefs]
+       BOOST_PP_CAT(boost_concept_check,__LINE__)
+                    ^
+./include/boost/preprocessor/cat.hpp:29:34: note: in definition of macro 'BOOST_PP_CAT_I'
+ #    define BOOST_PP_CAT_I(a, b) a ## b
+                                  ^
+./include/boost/concept/detail/general.hpp:71:7: note: in expansion of macro 'BOOST_PP_CAT'
+       BOOST_PP_CAT(boost_concept_check,__LINE__)
+       ^
+./include/boost/concept/assert.hpp:44:5: note: in expansion of macro 'BOOST_CONCEPT_ASSERT_FN'
+     BOOST_CONCEPT_ASSERT_FN(void(*)ModelInParens)
+     ^
+./include/boost/concept_check.hpp:713:11: note: in expansion of macro 'BOOST_CONCEPT_ASSERT'
+           BOOST_CONCEPT_ASSERT((
+           ^
+./include/boost/concept_check.hpp: In destructor 'boost::ReversibleContainer<C>::~ReversibleContainer()':
+./include/boost/concept/detail/general.hpp:71:20: warning: typedef 'boost_concept_check731' locally defined but not used [-Wunused-local-typedefs]
+       BOOST_PP_CAT(boost_concept_check,__LINE__)
+                    ^
+./include/boost/preprocessor/cat.hpp:29:34: note: in definition of macro 'BOOST_PP_CAT_I'
+ #    define BOOST_PP_CAT_I(a, b) a ## b
+                                  ^
+./include/boost/concept/detail/general.hpp:71:7: note: in expansion of macro 'BOOST_PP_CAT'
+       BOOST_PP_CAT(boost_concept_check,__LINE__)
+       ^
+./include/boost/concept/assert.hpp:44:5: note: in expansion of macro 'BOOST_CONCEPT_ASSERT_FN'
+     BOOST_CONCEPT_ASSERT_FN(void(*)ModelInParens)
+     ^
+./include/boost/concept_check.hpp:729:11: note: in expansion of macro 'BOOST_CONCEPT_ASSERT'
+           BOOST_CONCEPT_ASSERT((
+           ^
+./include/boost/concept/detail/general.hpp:71:20: warning: typedef 'boost_concept_check733' locally defined but not used [-Wunused-local-typedefs]
+       BOOST_PP_CAT(boost_concept_check,__LINE__)
+                    ^
+./include/boost/preprocessor/cat.hpp:29:34: note: in definition of macro 'BOOST_PP_CAT_I'
+ #    define BOOST_PP_CAT_I(a, b) a ## b
+                                  ^
+./include/boost/concept/detail/general.hpp:71:7: note: in expansion of macro 'BOOST_PP_CAT'
+       BOOST_PP_CAT(boost_concept_check,__LINE__)
+       ^
+./include/boost/concept/assert.hpp:44:5: note: in expansion of macro 'BOOST_CONCEPT_ASSERT_FN'
+     BOOST_CONCEPT_ASSERT_FN(void(*)ModelInParens)
+     ^
+./include/boost/concept_check.hpp:733:11: note: in expansion of macro 'BOOST_CONCEPT_ASSERT'
+           BOOST_CONCEPT_ASSERT((BidirectionalIterator<const_reverse_iterator>));
+           ^
+./include/boost/concept_check.hpp: In destructor 'boost::Mutable_ReversibleContainer<C>::~Mutable_ReversibleContainer()':
+./include/boost/concept/detail/general.hpp:71:20: warning: typedef 'boost_concept_check755' locally defined but not used [-Wunused-local-typedefs]
+       BOOST_PP_CAT(boost_concept_check,__LINE__)
+                    ^
+./include/boost/preprocessor/cat.hpp:29:34: note: in definition of macro 'BOOST_PP_CAT_I'
+ #    define BOOST_PP_CAT_I(a, b) a ## b
+                                  ^
+./include/boost/concept/detail/general.hpp:71:7: note: in expansion of macro 'BOOST_PP_CAT'
+       BOOST_PP_CAT(boost_concept_check,__LINE__)
+       ^
+./include/boost/concept/assert.hpp:44:5: note: in expansion of macro 'BOOST_CONCEPT_ASSERT_FN'
+     BOOST_CONCEPT_ASSERT_FN(void(*)ModelInParens)
+     ^
+./include/boost/concept_check.hpp:755:11: note: in expansion of macro 'BOOST_CONCEPT_ASSERT'
+           BOOST_CONCEPT_ASSERT((Mutable_BidirectionalIterator<iterator>));
+           ^
+./include/boost/concept/detail/general.hpp:71:20: warning: typedef 'boost_concept_check756' locally defined but not used [-Wunused-local-typedefs]
+       BOOST_PP_CAT(boost_concept_check,__LINE__)
+                    ^
+./include/boost/preprocessor/cat.hpp:29:34: note: in definition of macro 'BOOST_PP_CAT_I'
+ #    define BOOST_PP_CAT_I(a, b) a ## b
+                                  ^
+./include/boost/concept/detail/general.hpp:71:7: note: in expansion of macro 'BOOST_PP_CAT'
+       BOOST_PP_CAT(boost_concept_check,__LINE__)
+       ^
+./include/boost/concept/assert.hpp:44:5: note: in expansion of macro 'BOOST_CONCEPT_ASSERT_FN'
+     BOOST_CONCEPT_ASSERT_FN(void(*)ModelInParens)
+     ^
+./include/boost/concept_check.hpp:756:11: note: in expansion of macro 'BOOST_CONCEPT_ASSERT'
+           BOOST_CONCEPT_ASSERT((Mutable_BidirectionalIterator<reverse_iterator>));
+           ^
+./include/boost/concept_check.hpp: In destructor 'boost::RandomAccessContainer<C>::~RandomAccessContainer()':
+./include/boost/concept/detail/general.hpp:71:20: warning: typedef 'boost_concept_check776' locally defined but not used [-Wunused-local-typedefs]
+       BOOST_PP_CAT(boost_concept_check,__LINE__)
+                    ^
+./include/boost/preprocessor/cat.hpp:29:34: note: in definition of macro 'BOOST_PP_CAT_I'
+ #    define BOOST_PP_CAT_I(a, b) a ## b
+                                  ^
+./include/boost/concept/detail/general.hpp:71:7: note: in expansion of macro 'BOOST_PP_CAT'
+       BOOST_PP_CAT(boost_concept_check,__LINE__)
+       ^
+./include/boost/concept/assert.hpp:44:5: note: in expansion of macro 'BOOST_CONCEPT_ASSERT_FN'
+     BOOST_CONCEPT_ASSERT_FN(void(*)ModelInParens)
+     ^
+./include/boost/concept_check.hpp:773:11: note: in expansion of macro 'BOOST_CONCEPT_ASSERT'
+           BOOST_CONCEPT_ASSERT((
+           ^
+./include/boost/concept_check.hpp: In destructor 'boost::Mutable_RandomAccessContainer<C>::~Mutable_RandomAccessContainer()':
+./include/boost/concept/detail/general.hpp:71:20: warning: typedef 'boost_concept_check800' locally defined but not used [-Wunused-local-typedefs]
+       BOOST_PP_CAT(boost_concept_check,__LINE__)
+                    ^
+./include/boost/preprocessor/cat.hpp:29:34: note: in definition of macro 'BOOST_PP_CAT_I'
+ #    define BOOST_PP_CAT_I(a, b) a ## b
+                                  ^
+./include/boost/concept/detail/general.hpp:71:7: note: in expansion of macro 'BOOST_PP_CAT'
+       BOOST_PP_CAT(boost_concept_check,__LINE__)
+       ^
+./include/boost/concept/assert.hpp:44:5: note: in expansion of macro 'BOOST_CONCEPT_ASSERT_FN'
+     BOOST_CONCEPT_ASSERT_FN(void(*)ModelInParens)
+     ^
+./include/boost/concept_check.hpp:800:11: note: in expansion of macro 'BOOST_CONCEPT_ASSERT'
+           BOOST_CONCEPT_ASSERT((Mutable_RandomAccessIterator<typename self::iterator>));
+           ^
+./include/boost/concept/detail/general.hpp:71:20: warning: typedef 'boost_concept_check801' locally defined but not used [-Wunused-local-typedefs]
+       BOOST_PP_CAT(boost_concept_check,__LINE__)
+                    ^
+./include/boost/preprocessor/cat.hpp:29:34: note: in definition of macro 'BOOST_PP_CAT_I'
+ #    define BOOST_PP_CAT_I(a, b) a ## b
+                                  ^
+./include/boost/concept/detail/general.hpp:71:7: note: in expansion of macro 'BOOST_PP_CAT'
+       BOOST_PP_CAT(boost_concept_check,__LINE__)
+       ^
+./include/boost/concept/assert.hpp:44:5: note: in expansion of macro 'BOOST_CONCEPT_ASSERT_FN'
+     BOOST_CONCEPT_ASSERT_FN(void(*)ModelInParens)
+     ^
+./include/boost/concept_check.hpp:801:11: note: in expansion of macro 'BOOST_CONCEPT_ASSERT'
+           BOOST_CONCEPT_ASSERT((Mutable_RandomAccessIterator<typename self::reverse_iterator>));
+           ^
+./include/boost/concept_check.hpp: In destructor 'boost::AssociativeContainer<C>::~AssociativeContainer()':
+./include/boost/concept/detail/general.hpp:71:20: warning: typedef 'boost_concept_check905' locally defined but not used [-Wunused-local-typedefs]
+       BOOST_PP_CAT(boost_concept_check,__LINE__)
+                    ^
+./include/boost/preprocessor/cat.hpp:29:34: note: in definition of macro 'BOOST_PP_CAT_I'
+ #    define BOOST_PP_CAT_I(a, b) a ## b
+                                  ^
+./include/boost/concept/detail/general.hpp:71:7: note: in expansion of macro 'BOOST_PP_CAT'
+       BOOST_PP_CAT(boost_concept_check,__LINE__)
+       ^
+./include/boost/concept/assert.hpp:44:5: note: in expansion of macro 'BOOST_CONCEPT_ASSERT_FN'
+     BOOST_CONCEPT_ASSERT_FN(void(*)ModelInParens)
+     ^
+./include/boost/concept_check.hpp:905:11: note: in expansion of macro 'BOOST_CONCEPT_ASSERT'
+           BOOST_CONCEPT_ASSERT((BinaryPredicate<key_compare,key_type,key_type>));
+           ^
+./include/boost/concept/detail/general.hpp:71:20: warning: typedef 'boost_concept_check908' locally defined but not used [-Wunused-local-typedefs]
+       BOOST_PP_CAT(boost_concept_check,__LINE__)
+                    ^
+./include/boost/preprocessor/cat.hpp:29:34: note: in definition of macro 'BOOST_PP_CAT_I'
+ #    define BOOST_PP_CAT_I(a, b) a ## b
+                                  ^
+./include/boost/concept/detail/general.hpp:71:7: note: in expansion of macro 'BOOST_PP_CAT'
+       BOOST_PP_CAT(boost_concept_check,__LINE__)
+       ^
+./include/boost/concept/assert.hpp:44:5: note: in expansion of macro 'BOOST_CONCEPT_ASSERT_FN'
+     BOOST_CONCEPT_ASSERT_FN(void(*)ModelInParens)
+     ^
+./include/boost/concept_check.hpp:908:11: note: in expansion of macro 'BOOST_CONCEPT_ASSERT'
+           BOOST_CONCEPT_ASSERT((BinaryPredicate<value_compare,value_type_,value_type_>));
+           ^
+./include/boost/range/algorithm/equal.hpp: In function 'bool boost::range::equal(const SinglePassRange1&, const SinglePassRange2&)':
+./include/boost/concept/detail/general.hpp:71:20: warning: typedef 'boost_concept_check172' locally defined but not used [-Wunused-local-typedefs]
+       BOOST_PP_CAT(boost_concept_check,__LINE__)
+                    ^
+./include/boost/preprocessor/cat.hpp:29:34: note: in definition of macro 'BOOST_PP_CAT_I'
+ #    define BOOST_PP_CAT_I(a, b) a ## b
+                                  ^
+./include/boost/concept/detail/general.hpp:71:7: note: in expansion of macro 'BOOST_PP_CAT'
+       BOOST_PP_CAT(boost_concept_check,__LINE__)
+       ^
+./include/boost/concept/assert.hpp:44:5: note: in expansion of macro 'BOOST_CONCEPT_ASSERT_FN'
+     BOOST_CONCEPT_ASSERT_FN(void(*)ModelInParens)
+     ^
+./include/boost/range/concepts.hpp:92:45: note: in expansion of macro 'BOOST_CONCEPT_ASSERT'
+     #define BOOST_RANGE_CONCEPT_ASSERT( x ) BOOST_CONCEPT_ASSERT( x )
+                                             ^
+./include/boost/range/algorithm/equal.hpp:172:13: note: in expansion of macro 'BOOST_RANGE_CONCEPT_ASSERT'
+             BOOST_RANGE_CONCEPT_ASSERT(( SinglePassRangeConcept<const SinglePassRange1> ));
+             ^
+./include/boost/concept/detail/general.hpp:71:20: warning: typedef 'boost_concept_check173' locally defined but not used [-Wunused-local-typedefs]
+       BOOST_PP_CAT(boost_concept_check,__LINE__)
+                    ^
+./include/boost/preprocessor/cat.hpp:29:34: note: in definition of macro 'BOOST_PP_CAT_I'
+ #    define BOOST_PP_CAT_I(a, b) a ## b
+                                  ^
+./include/boost/concept/detail/general.hpp:71:7: note: in expansion of macro 'BOOST_PP_CAT'
+       BOOST_PP_CAT(boost_concept_check,__LINE__)
+       ^
+./include/boost/concept/assert.hpp:44:5: note: in expansion of macro 'BOOST_CONCEPT_ASSERT_FN'
+     BOOST_CONCEPT_ASSERT_FN(void(*)ModelInParens)
+     ^
+./include/boost/range/concepts.hpp:92:45: note: in expansion of macro 'BOOST_CONCEPT_ASSERT'
+     #define BOOST_RANGE_CONCEPT_ASSERT( x ) BOOST_CONCEPT_ASSERT( x )
+                                             ^
+./include/boost/range/algorithm/equal.hpp:173:13: note: in expansion of macro 'BOOST_RANGE_CONCEPT_ASSERT'
+             BOOST_RANGE_CONCEPT_ASSERT(( SinglePassRangeConcept<const SinglePassRange2> ));
+             ^
+./include/boost/range/algorithm/equal.hpp: In function 'bool boost::range::equal(const SinglePassRange1&, const SinglePassRange2&, BinaryPredicate)':
+./include/boost/concept/detail/general.hpp:71:20: warning: typedef 'boost_concept_check185' locally defined but not used [-Wunused-local-typedefs]
+       BOOST_PP_CAT(boost_concept_check,__LINE__)
+                    ^
+./include/boost/preprocessor/cat.hpp:29:34: note: in definition of macro 'BOOST_PP_CAT_I'
+ #    define BOOST_PP_CAT_I(a, b) a ## b
+                                  ^
+./include/boost/concept/detail/general.hpp:71:7: note: in expansion of macro 'BOOST_PP_CAT'
+       BOOST_PP_CAT(boost_concept_check,__LINE__)
+       ^
+./include/boost/concept/assert.hpp:44:5: note: in expansion of macro 'BOOST_CONCEPT_ASSERT_FN'
+     BOOST_CONCEPT_ASSERT_FN(void(*)ModelInParens)
+     ^
+./include/boost/range/concepts.hpp:92:45: note: in expansion of macro 'BOOST_CONCEPT_ASSERT'
+     #define BOOST_RANGE_CONCEPT_ASSERT( x ) BOOST_CONCEPT_ASSERT( x )
+                                             ^
+./include/boost/range/algorithm/equal.hpp:185:13: note: in expansion of macro 'BOOST_RANGE_CONCEPT_ASSERT'
+             BOOST_RANGE_CONCEPT_ASSERT(( SinglePassRangeConcept<const SinglePassRange1> ));
+             ^
+./include/boost/concept/detail/general.hpp:71:20: warning: typedef 'boost_concept_check186' locally defined but not used [-Wunused-local-typedefs]
+       BOOST_PP_CAT(boost_concept_check,__LINE__)
+                    ^
+./include/boost/preprocessor/cat.hpp:29:34: note: in definition of macro 'BOOST_PP_CAT_I'
+ #    define BOOST_PP_CAT_I(a, b) a ## b
+                                  ^
+./include/boost/concept/detail/general.hpp:71:7: note: in expansion of macro 'BOOST_PP_CAT'
+       BOOST_PP_CAT(boost_concept_check,__LINE__)
+       ^
+./include/boost/concept/assert.hpp:44:5: note: in expansion of macro 'BOOST_CONCEPT_ASSERT_FN'
+     BOOST_CONCEPT_ASSERT_FN(void(*)ModelInParens)
+     ^
+./include/boost/range/concepts.hpp:92:45: note: in expansion of macro 'BOOST_CONCEPT_ASSERT'
+     #define BOOST_RANGE_CONCEPT_ASSERT( x ) BOOST_CONCEPT_ASSERT( x )
+                                             ^
+./include/boost/range/algorithm/equal.hpp:186:13: note: in expansion of macro 'BOOST_RANGE_CONCEPT_ASSERT'
+             BOOST_RANGE_CONCEPT_ASSERT(( SinglePassRangeConcept<const SinglePassRange2> ));
+             ^
+TracesParser.cpp: In function 'double calculer_kieme(std::vector<boost::shared_ptr<Scenario> >, int)':
+TracesParser.cpp:664:22: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
+  if(k>=patterns.size()){
+                      ^
+TracesParser.cpp:668:31: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
+  for(int i=0; i<patterns.size(); i++){
+                               ^
+TracesParser.cpp: In function 'bool vectorTracesSame(std::vector<boost::shared_ptr<Trace> >, std::vector<boost::shared_ptr<Trace> >)':
+TracesParser.cpp:678:25: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
+  for(int i=0; i<v1.size(); ++i)
+                         ^
+TracesParser.cpp: In member function 'void TracesParser::offlineCompression()':
+TracesParser.cpp:720:53: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
+   for(int i=0; i<best_pattern->episode->events.size(); ++i)
+                                                     ^
+TracesParser.cpp:734:54: error: no match for 'operator[]' (operand types are '__gnu_cxx::__alloc_traits<std::allocator<std::shared_ptr<int []> > >::value_type {aka std::shared_ptr<int []>}' and 'int')
+   for (int currentPos = best_pattern->boundlist.at(0)[0]; currentPos <= best_pattern->boundlist.back()[1]; currentPos++)
+                                                      ^
+TracesParser.cpp:734:103: error: no match for 'operator[]' (operand types are '__gnu_cxx::__alloc_traits<std::allocator<std::shared_ptr<int []> > >::value_type {aka std::shared_ptr<int []>}' and 'int')
+   for (int currentPos = best_pattern->boundlist.at(0)[0]; currentPos <= best_pattern->boundlist.back()[1]; currentPos++)
+                                                                                                       ^
+TracesParser.cpp:745:91: error: no match for 'operator[]' (operand types are '__gnu_cxx::__alloc_traits<std::allocator<std::shared_ptr<int []> > >::value_type {aka std::shared_ptr<int []>}' and 'int')
+    std::cout<<"Im parcours scenario at ("<<currentPos<<"/"<<best_pattern->boundlist.back()[1]<<")... now patterns size="<<patterns.size()<<" and TIME_USED="<<dt/CLOCKS_PER_SEC<<std::endl;
+                                                                                           ^
+TracesParser.cpp:904:23: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
+    if(patterns.size()>CANDIDATE_LIMIT){
+                       ^
+TracesParser.cpp:919:82: error: no match for 'operator[]' (operand types are '__gnu_cxx::__alloc_traits<std::allocator<std::shared_ptr<int []> > >::value_type {aka std::shared_ptr<int []>}' and 'int')
+   std::vector<Trace::sp_trace> temp(vec_traces.begin()+best_pattern->boundlist[0][0], vec_traces.begin()+best_pattern->boundlist.back()[1]+1);
+                                                                                  ^
+TracesParser.cpp:919:136: error: no match for 'operator[]' (operand types are '__gnu_cxx::__alloc_traits<std::allocator<std::shared_ptr<int []> > >::value_type {aka std::shared_ptr<int []>}' and 'int')
+   std::vector<Trace::sp_trace> temp(vec_traces.begin()+best_pattern->boundlist[0][0], vec_traces.begin()+best_pattern->boundlist.back()[1]+1);
+                                                                                                                                        ^
+TracesParser.cpp:920:94: error: no match for 'operator[]' (operand types are '__gnu_cxx::__alloc_traits<std::allocator<std::shared_ptr<int []> > >::value_type {aka std::shared_ptr<int []>}' and 'int')
+   patterns.push_back(boost::make_shared<Scenario>(temp, 0, 0, (best_pattern->boundlist.back()[1]+1 - best_pattern->boundlist[0][0]), 0, 0 ));
+                                                                                              ^
+TracesParser.cpp:920:128: error: no match for 'operator[]' (operand types are '__gnu_cxx::__alloc_traits<std::allocator<std::shared_ptr<int []> > >::value_type {aka std::shared_ptr<int []>}' and 'int')
+   patterns.push_back(boost::make_shared<Scenario>(temp, 0, 0, (best_pattern->boundlist.back()[1]+1 - best_pattern->boundlist[0][0]), 0, 0 ));
+                                                                                                                                ^
+TracesParser.cpp:942:65: error: no match for 'operator[]' (operand types are '__gnu_cxx::__alloc_traits<std::allocator<std::shared_ptr<int []> > >::value_type {aka std::shared_ptr<int []>}' and 'int')
+          traces.erase(traces.begin() +best_pattern->boundlist[0][0], traces.begin()+best_pattern->boundlist.back()[1]+1);
+                                                                 ^
+TracesParser.cpp:942:115: error: no match for 'operator[]' (operand types are '__gnu_cxx::__alloc_traits<std::allocator<std::shared_ptr<int []> > >::value_type {aka std::shared_ptr<int []>}' and 'int')
+          traces.erase(traces.begin() +best_pattern->boundlist[0][0], traces.begin()+best_pattern->boundlist.back()[1]+1);
+                                                                                                                   ^
+TracesParser.cpp:943:96: error: no match for 'operator[]' (operand types are '__gnu_cxx::__alloc_traits<std::allocator<std::shared_ptr<int []> > >::value_type {aka std::shared_ptr<int []>}' and 'int')
+    roots.back().sequence->insertLinearSequence(patterns[0]->pattern, best_pattern->boundlist[0][0]);
+                                                                                                ^
+TracesParser.cpp:948:59: error: no match for 'operator[]' (operand types are '__gnu_cxx::__alloc_traits<std::allocator<std::shared_ptr<int []> > >::value_type {aka std::shared_ptr<int []>}' and 'int')
+    for(int prev_pos=0; prev_pos<best_pattern->boundlist[0][0]; ++prev_pos){
+                                                           ^
+TracesParser.cpp:951:51: error: no match for 'operator[]' (operand types are '__gnu_cxx::__alloc_traits<std::allocator<std::shared_ptr<int []> > >::value_type {aka std::shared_ptr<int []>}' and 'int')
+    for(int post_pos=best_pattern->boundlist.back()[1]+1; post_pos<vec_traces.size(); ++post_pos){
+                                                   ^
+TracesParser.cpp:951:83: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
+    for(int post_pos=best_pattern->boundlist.back()[1]+1; post_pos<vec_traces.size(); ++post_pos){
+                                                                                   ^
+TracesParser.cpp:698:6: warning: unused variable 'cpt' [-Wunused-variable]
+  int cpt = 0;
+      ^
+Mingw32-make: *** [TracesParser.o] Error 1

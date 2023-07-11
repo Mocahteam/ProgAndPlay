@@ -1,0 +1,25 @@
+Version 1
+Idée principale : on cherche à identifier en priorité les récurrences de granularité fine puis de plus en plus grosses pour chercher à identifier d'abord les boucles internes puis les boucles de boucles...
+
+On fait glisser des fenêtre de plus en plus grosse
+Pour chaque taille de fenêtre
+	Tantqu'on peut continuer à faire avancer cette fenêtre
+		On construit un fenêtre up (sauf si une fusion a été faite à l'itération précédente => on évite alors de reconstuire un "up")
+		On construit une fenêtre down de la même taille que la fenêtre up
+		Si pas possible
+			passer à la trace suivante pour chercher un nouveau up
+			continue;
+		Fusionner "up" et "down"
+		Si on obtient une fusion
+			acter ce résultat comme étant le nouveau up (Au prochain tour de boucle le up ne sera pas reconstruit mais le down si
+		sinon
+			Aggréger les fusions précédentes s'il y en avait eu
+			passer à la trace suivante pour chercher un nouveau up
+	Aggréger les fusions précédentes s'il y en avait eu
+	Augmenter la taille de la fenêtre
+	
+
+Problèmes de cette solution
+	Marche bien si on n'a que des boucles mais la présence de "If" intercalle des symboles qui décalle l'identification des boucles
+			
+		

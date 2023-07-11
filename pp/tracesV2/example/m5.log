@@ -1,0 +1,7 @@
+PP_Open
+PP_GetUnitAt 0 0 - 7035
+PP_Unit_GetType 7035_7 - 7
+PP_Unit_ActionOnPosition 7035_7 10 479 1825 0
+PP_GetUnitAt 0 1 - 21832
+PP_Unit_ActionOnPosition 21832_4 10 1400 1371 0
+PP_Close

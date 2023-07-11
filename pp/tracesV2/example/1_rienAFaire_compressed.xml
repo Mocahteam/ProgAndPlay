@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<trace>
+	<call label="PP_Open" info=""/>
+	<call label="PP_GetNumUnits" return="10.000000" info=""/>
+	<call label="PP_GetUnitAt" return="2804.000000" info=""/>
+	<call label="PP_Unit_ActionOnPosition" info=""/>
+	<call label="PP_Close" info=""/>
+</trace>
+
