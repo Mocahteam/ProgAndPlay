@@ -99,7 +99,7 @@ public:
    * 
    * \return la liste des scénario découlant de l'ajout du Call dans le scénario courant
    */
-  std::vector<Scenario::sp_scenario> simulateNewSeqIntegration(const Sequence::sp_sequence & rootSeq, float maxRatio, int minLength, int nbRec = 0, std::vector<Scenario::sp_scenario> * viewed = NULL);
+  //std::vector<Scenario::sp_scenario> simulateNewSeqIntegration(const Sequence::sp_sequence & rootSeq, float maxRatio, int minLength, int nbRec = 0, std::vector<Scenario::sp_scenario> * viewed = NULL);
 
   /**
    * \brief Recalcule le score du scénario. Ce calcul dépend des autres scénarios à considérer.

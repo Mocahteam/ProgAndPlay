@@ -2,6 +2,7 @@
 #include "TraceConstantList.h"
 #include "TracesParser.h"
 #include <algorithm>
+#include <exception>
 
 // Cette donnée est utilisée lors des différentes recherches de parties optionnelles. Lors de ces étapes on recherche en périphérie de la séquence à traiter des traces alignables avec cette séquence. Si la partie de la séquence analysée a une taille X, on s'autorise à regarder en périphérie (amont ou aval) X+MAX_OPT_WINDOW traces. Et donc potentiellement un nombre de traces optionnelles pour les parties périphériques égale à MAX_OPT_WINDOW.
 #define MAX_OPT_WINDOW 10
@@ -1018,33 +1019,261 @@ int Sequence::getEndPosOfLinearSequence(std::vector<Trace::sp_trace> & linearSeq
 	return -1;
 }
 
-int Sequence::computeLinearSequenceDistance(std::vector<Trace::sp_trace> & l1, std::vector<Trace::sp_trace> & l2){
-	// D est un tableau de longueurChaine1+1 rangées et longueurChaine2+1 colonnes
-	// D est indexé à partir de 0, les chaînes à partir de 1 
-	int D [l1.size()+1][l2.size()+1];
+std::vector<std::vector<int>> Sequence::computeLinearSequenceDistance(std::vector<Trace::sp_trace> & s1, std::vector<Trace::sp_trace> & s2){
+	// D est un tableau de s1+1 lignes et s2+1 colonnes
+	std::vector<std::vector<int>> D (s1.size()+1, std::vector<int>(s2.size()+1));
 
-	// Important pour la compréhension de la suite : dans notre adaptation de la distance de Levenshtein on considère que le coût vertical et horizontal est nul pour une option.
+	// Important pour la compréhension de la suite : dans notre adaptation de la distance de Levenshtein on considère que le coût vertical et horizontal est nul pour une option et pour une fin de séquence.
 
 	D[0][0] = 0;
-	// initialisation de la première ligne
-	for (int i = 1 ; i < l1.size()+1 ; i++)
-		D[i][0] = l1[i-1]->isOptional(true) ? D[i-1][0] : D[i-1][0]+1; // on ajoute 1 si la trace n'est pas optionnelle ou fille d'une trace optionnelle
 	// initialisation de la première colonne
-	for (int j = 1 ; j < l2.size()+1 ; j++)
-		D[0][j] = l2[j-1]->isOptional(true) ? D[0][j-1] : D[0][j-1]+1; // on ajoute 1 si la trace n'est pas optionnelle ou fille d'une trace optionnelle
+	for (unsigned int l = 1 ; l < s1.size()+1 ; l++)
+		D[l][0] = s1[l-1]->isOptional(true) || s1[l-1]->getInfo() == "End" ? D[l-1][0] : D[l-1][0]+1; // on ajoute 1 si la trace n'est pas optionnelle (ou fille d'une trace optionnelle) et que ce n'est pas une fin de séquence
+	// initialisation de la première ligne
+	for (unsigned int c = 1 ; c < s2.size()+1 ; c++)
+		D[0][c] = s2[c-1]->isOptional(true) || s2[c-1]->getInfo() == "End" ? D[0][c-1] : D[0][c-1]+1; // on ajoute 1 si la trace n'est pas optionnelle (ou fille d'une trace optionnelle) et que ce n'est pas une fin de séquence
 
 	// calcul de la distance
 	int substitutionCost;
-	for (int i = 1 ; i < l1.size()+1 ; i++)
-		for (int j = 1 ; j < l2.size()+1 ; j++){
-			substitutionCost = l1[i-1]->operator==(l2[j-1].get()) ? 0 : 1;
-			D[i][j] = std::min(std::min(
-				D[i-1][j]+(l1[i-1]->isOptional(true) ? 0 : 1), // Attention i dans la matrice D <=> i-1 dans l1. Donc si l1[i-1] est optionnel, le coût pour passer de D[i-1][X] à D[i][X] est 0 et 1 sinon
-				D[i][j-1]+(l2[j-1]->isOptional(true) ? 0 : 1)), // Attention j dans la matrice D <=> j-1 dans l2. Donc si l2[j-1] est optionnel, le coût pour passer de D[X][j-1] à D[X][j] est 0 et 1 sinon
-				D[i-1][j-1] + substitutionCost);
+	for (unsigned int l = 1 ; l < s1.size()+1 ; l++)
+		for (unsigned int c = 1 ; c < s2.size()+1 ; c++){
+			substitutionCost = s1[l-1]->operator==(s2[c-1].get()) ? 0 : 1;
+			D[l][c] = std::min(std::min(
+				D[l-1][c]+(s1[l-1]->isOptional(true) || s1[l-1]->getInfo() == "End" ? 0 : 1), // Attention l dans la matrice D <=> l-1 dans s1. Donc si s1[l-1] est optionnel ou est une fin de séquence, le coût pour passer de D[l-1][X] à D[l][X] est 0 et 1 sinon
+				D[l][c-1]+(s2[c-1]->isOptional(true) || s2[c-1]->getInfo() == "End" ? 0 : 1)), // Attention c dans la matrice D <=> c-1 dans s2. Donc si s2[c-1] est optionnel ou est une fin de séquence, le coût pour passer de D[X][c-1] à D[X][c] est 0 et 1 sinon
+				D[l-1][c-1] + substitutionCost);
 		}
 
-	return D [l1.size()][l2.size()];
+	return D;
+}
+
+void Sequence::unstackSequence(std::vector<std::tuple<std::string, Trace::sp_trace, bool>> & stack, std::vector<Trace::sp_trace> & mergedSequence, std::string action, Trace::sp_trace trace){
+	// l'action à dépiler est la même que la tête de la pile, c'est parfait on n'a qu'à la dépiler
+	if (std::get<0>(stack.back()) == action)
+		stack.pop_back();
+	// la tête de la pile est une diagonale et notre action n'est pas une diagonale, on transforme la tête de la pile en l'opposé de l'action à dépiler et on monte toutes les traces intercallées d'un niveau
+	// exemple : B[C] vs [BC] => avec "B[C]" sur les lignes de la matrice et "[BC]" sur les colonnes. Sur la remontée on sera sur "C]". Le "]" a été ajouté avec un "d" et on cherche à ajouter le "[" du "B[C]". Donc on transforme le "C]" en "C]]" et on change la tête de la pile à "c" pour noter que l'imbrication des lignes a été traité mais qu'il reste un "c" à gérer.
+	else if (std::get<0>(stack.back()) == "d"){
+		// rechercher dans le vecteur résultat la trace correspondant à ce dernier empilement en diagonale et ajout d'une nouvelle séquence
+		for (int i = mergedSequence.size()-1; i >= 0; i--)
+			if (mergedSequence[i] == std::get<1>(stack.back())){
+				mergedSequence.insert(mergedSequence.begin()+i+1, mergedSequence[i]->clone());
+				break;
+			}
+		// remplacement dans la pile du "d" par l'opposé de l'action
+		std::get<0>(stack.back()) = (action == "c" ? "l" : "c");
+	}
+	// l'action est une diagonale et la tête de la pile est soit "l" soit "c". On va décomposer le "d" pour traiter la tête de la pile. On ajoute donc une fermeture pour cette première composante du "d", on dépile l'action de la pile et on fait un appel récursif pour traiter le complément du "d" non traité.
+	// exemple : [B]C vs [BC] => avec "[B]C" sur les lignes de la matrice et "[BC]" sur les colonnes. Sur la remontée on sera sur "B]C]". Les deux "]" ont été ajoutés une première fois en colonne puis en ligne et on cherche à ajouter "[" en diagonale donc à la fois sur "l" et "c". Donc on ajoute un "[" supplémentaire et on dépile le premier des deux "l" et "c" et on fait un appel récursif pour gérer le complément non traité du "d".
+	else if (action == "d"){
+		std::string head = std::get<0>(stack.back());
+		// on dépile la stack, soit un "l" soit un "c" (on est sûr que ce n'est par un "d" car sinon on serait rentré dans le tout premier cas de cette fonction)
+		stack.pop_back();
+		// maintenant la tête de la pile peux être un autre "l" ou "c" mais aussi pourquoi pas un "d". On fait donc un appel récursif pour gérer le dépilement de la seconde composante de notre action "d". On passe donc comme action le complément au "d" de l'action en cours de traitement, donc "l" si "c" et "c" si "l"
+		unstackSequence(stack, mergedSequence, (head == "c" ? "l" : "c"), trace);
+		// on ajoute un clone additionnel pour intégrer cette double fermeture. Le second est ajouté comme pour les autres cas à l'extérieur de l'appel de cette fonction
+		mergedSequence.push_back(trace->clone());
+	}
+	// l'action est soit "l" soit "c" et la tête de la pile est l'opposée (cas de séquences qui se chevochent)
+	// exemple : A[BC] vs [AB]C => avec "A[BC]" sur les lignes de la matrice et "[AB]C" sur les colonnes. Sur la remontée on sera sur "B]C]". Les deux "]" ont été ajoutés une première fois en ligne puis en colonne (tête de la pile "c") et on cherche à ajouter "[" en ligne ce qui est pour l'instant pas possible puisque l'action à dépiler n'est pas cohérente avec la tête de la pile. On va donc passer les traces non incluses dans le chevauchement en optionnelle pour obtenir [*A[B]*C] qui est bien un moyen de fusionner les deux traces en exemple.
+	// Soit "x" l'action à dépiler (la tête de la pile est le complément de "x") :
+	// 1- Chercher dans la pile le premier "x" (ou "d") disponible correspondant à l'action, noté "t" pour target.
+	// 2- Mettre toutes les traces comprises entre "t" et la tête de la pile comme optionnelle (si on tombe sur une séquence on la marque comme optionnelle et on saute directement à son End pour éviter de traiter tout ses enfants).
+	// 3- Noter la tête de la pile en chevauchement de manière à ce que toute nouvelle trace soit notée comme optionnelle tant que cette tête se trouve en haut de pile.
+	// 4- Retirer "t" de la pile, s'il s'agit d'un "d" le remplacer par le complément de "x".
+	else if ((action == "l" && std::get<0>(stack.back()) == "c") || (action == "c" && std::get<0>(stack.back()) == "l")){
+		// 1- Chercher dans la pile le premier "x" (ou "d") disponible correspondant à l'action, noté "t" pour target.
+		int stackTpos = -1;
+		for (int i = stack.size()-1; i >= 0; i--)
+			if (std::get<0>(stack[i]) == action || std::get<0>(stack[i]) == "d"){
+				stackTpos = i;
+				break;
+			}
+		if (stackTpos == -1)
+			throw ("No action in the stack corresponding to the one expected");
+		
+		// 2- Mettre toutes les traces comprises entre "t" et la tête de la pile comme optionnelle (si on tombe sur une séquence on la marque comme optionnelle mais on ne traite pas ses enfants).
+		// Rechercher dans la séquence fusionnée la position de la trace correspondant à la tête de la pile
+		int headSeqPos = -1;
+		for (int i = mergedSequence.size()-1; i >= 0; i--)
+			if (mergedSequence[i] == std::get<1>(stack.back())){
+				headSeqPos = i;
+				break;
+			}
+		if (headSeqPos == -1)
+			throw ("No trace in the merged sequence corresponding to the one expected");
+		// Rechercher dans la séquence fusionnée la position de la trace correspondant à "t"
+		int targetSeqPos = -1;
+		for (int i = headSeqPos; i >= 0; i--)
+			if (mergedSequence[i] == std::get<1>(stack[stackTpos])){
+				targetSeqPos = i;
+				break;
+			}
+		if (targetSeqPos == -1)
+			throw ("No trace in the merged sequence corresponding to the one expected");
+		// passer en optionnel toutes les traces comprises entre la target et la tête de la pile. On ne traite que les trace au même niveau que la target.
+		int level = 0;
+		for (int i = targetSeqPos+1 ; i < headSeqPos ; i++){
+			if (level == 0)
+				mergedSequence[i]->setOptional(true);
+			if (mergedSequence[i]->isSequence() && mergedSequence[i]->getInfo() == "End")
+				level++;
+			if (mergedSequence[i]->isSequence() && mergedSequence[i]->getInfo() == "Begin")
+				level--;
+		}
+
+		// 3- Noter la tête de la pile en chevauchement de manière à ce que toute nouvelle trace soit notée comme optionnelle tant que cette tête se trouve en haut de pile.
+		std::get<2>(stack.back()) = true;
+
+		// 4- Retirer "t" de la pile, s'il s'agit d'un "d" le remplacer par le complément de "x".
+		if (std::get<0>(stack[stackTpos]) == "d")
+			std::get<0>(stack[stackTpos]) = (action == "c" ? "l" : "c");
+		else
+			stack.erase(stack.begin()+stackTpos);
+	}
+}
+
+void Sequence::manageStack(std::vector<std::tuple<std::string, Trace::sp_trace, bool>> & stack, std::vector<Trace::sp_trace> & mergedSequence, std::string action, Trace::sp_trace selection){
+	if (selection->getInfo() == "End"){
+		stack.push_back(std::make_tuple(action, selection, false)); // on enregistre qu'on rentre dans une séquence suite à une action "l", "c" ou "d" (pour rappel on remonte la trace donc on entre dans des séquences par des End et on en ressort par des Begin)
+	}
+	// ici on est sur un Begin, il faut vérifier si on peut dépiler simplement ou s'il faut faire des opérations spécifiques
+	else{
+		unstackSequence(stack, mergedSequence, action, selection);
+	}
+}
+
+std::vector<Trace::sp_trace> Sequence::mergeLinearSequences(std::vector<Trace::sp_trace> & s1, std::vector<Trace::sp_trace> & s2){
+	std::vector<Trace::sp_trace> mergedSequence; // la séquence contenant le résulta de la fusion
+	//la pile permettant d'enregistrer la provenance des séquences empilées. Chaque élément de la pile est composé de 3 valeurs{orientation, Trace, Chevauchement}. Orientation indique si l'empilement de la séquence provient de la ligne noté "l" (source s1), de la colonne noté "c" (source s2), ou de la diagonale noté "d" (sources s1 et s2 alignées) lors de la remonté de la matrice de transformation fournie par computeLinearSequenceDistance. Trace fournit la référence dans mergedSequence de la Sequence correspondant à cet empilement. Chevauchement est un booleen indiquant si cet empilement est en chevauchement avec une autre séquence (gestion du cas [AB]C vs A[BC]).
+	std::vector<std::tuple<std::string, Trace::sp_trace, bool>> stack;
+	std::vector<std::vector<int>> transformationMatrix = computeLinearSequenceDistance(s1, s2);
+	// partir du coin inférieur droit de la matrice et remonter soit à gauche, soit en haut, soit en diagonale (sémantique des orientations : gauche c-1 <- c => ajouter colonne c (si Call, taguer optionnel) ; haut l-1 <- l => ajouter ligne l (si Call, taguer optionnel) ; diagonale [l-1][c-1] <- [l][c] => ajouter la fusion de la ligne l et la colonne c)
+	int l = transformationMatrix.size()-1;
+	int c = transformationMatrix[0].size()-1;
+	// On s'arrête si Si l == 0 et c == 0
+	while (l > 0 || c > 0){
+		// si on est sur la première ligne prendre la trace de la colonne
+		if (l==0){
+			Trace::sp_trace merged = s2[c-1]->clone(); // transformationMatrix contient une ligne et une colonne de plus que s1 et s2, d'où le -1
+			if (merged->isCall())
+				merged->setOptional(true);
+			mergedSequence.push_back(merged);
+			c--;
+		}
+		// si on est sur la première colonne prendre la trace de la ligne
+		else if (c==0){
+			Trace::sp_trace merged = s1[l-1]->clone(); // transformationMatrix contient une ligne et une colonne de plus que s1 et s2, d'où le -1
+			if (merged->isCall())
+				merged->setOptional(true);
+			mergedSequence.push_back(merged);
+			l--;
+		}
+		// les deux traces sont des Call
+		else if (s1[l-1]->isCall() && s2[c-1]->isCall()){
+			// Si la diagonale est le coût minimal et colonne c == ligne l privilégier la diagonale sinon privilégier le min entre haut et gauche, si égalité réduire en priorité la trace la plus longue, sinon à défaut prendre à gauche.
+
+			// si les deux Call sont égaux et le coût minimal est la diagonale, prendre la diagonale
+			if (s1[l-1]->operator==(s2[c-1].get()) && transformationMatrix[l-1][c-1] <= std::min(transformationMatrix[l-1][c], transformationMatrix[l][c-1])){
+				// fusionner les deux Call
+				Trace::sp_trace merged = s1[l-1]->clone();
+				dynamic_cast<Call *>(merged.get())->filterCall(dynamic_cast<const Call *>(s2[c-1].get()));
+				// prise en compte des éventuelles traces optionnelles ou si la tête de la pile nous indique un chevauchement de séquence
+				merged->setOptional(s1[l-1]->isOptional() || s2[c-1]->isOptional() || (stack.size() > 0 && std::get<2>(stack.back())));
+				mergedSequence.push_back(merged);
+				l--;
+				c--;
+			}
+			// sinon si coût minimum sur la ligne d'en dessus ou coût égal mais le nombre de ligne est plus grand que le nombre de colonne, prendre la ligne du dessus
+			else if (transformationMatrix[l-1][c] < transformationMatrix[l][c-1] || (transformationMatrix[l-1][c] == transformationMatrix[l][c-1] && s1.size() > s2.size())){
+				Trace::sp_trace selection = s1[l-1]->clone();
+				selection->setOptional(true);
+				mergedSequence.push_back(selection);
+				l--;
+			}
+			// sinon on prend la colonne de gauche
+			else{
+				Trace::sp_trace selection = s2[c-1]->clone();
+				selection->setOptional(true);
+				mergedSequence.push_back(selection);
+				c--;
+			}
+		}
+		// une des traces est un Call et l'autre est une séquence
+		else if ((s1[l-1]->isCall() && s2[c-1]->isSequence()) || (s1[l-1]->isSequence() && s2[c-1]->isCall())){
+			// privilégier l'orientation vers le haut ou la gauche avec le poid minimal (interdire la diagonale). Si égalité privilégier l'orientation du Seq.
+
+			Trace::sp_trace selection;
+			std::string action;
+			// si le coût de la ligne du haut est plus petit que la colonne de gauche ou qu'ils sont égaux et que la séquence se trouve sur la ligne du haut, prendre la ligne
+			if (transformationMatrix[l-1][c] < transformationMatrix[l][c-1] || (transformationMatrix[l-1][c] == transformationMatrix[l][c-1] && s1[l-1]->isSequence())){
+				action = "l";
+				selection = s1[l-1]->clone();
+				// si on est sur un Call ou que la tête de la pile nous indique un chevauchement de séquence, on met la trace optionnelle
+				if (selection->isCall() || (stack.size() > 0 && std::get<2>(stack.back())))
+					selection->setOptional(true);
+				mergedSequence.push_back(selection);
+				l--;
+			}
+			// si le coût de la colonne de gauche est plus petit que la ligne du haut ou qu'ils sont égaux et que la séquence se trouve sur la colonne de gauche, prendre la colonne
+			else if (transformationMatrix[l][c-1] < transformationMatrix[l-1][c] || (transformationMatrix[l-1][c] == transformationMatrix[l][c-1] && s2[c-1]->isSequence())){
+				action = "c";
+				selection = s2[c-1]->clone();
+				// si on est sur un Call ou que la tête de la pile nous indique un chevauchement de séquence, on met la trace optionnelle
+				if (selection->isCall() || (stack.size() > 0 && std::get<2>(stack.back())))
+					selection->setOptional(true);
+				mergedSequence.push_back(selection);
+				c--;
+			}
+
+			// Gestion de la pile si la sélection est une séquence
+			if (selection && selection->isSequence()){
+				manageStack(stack, mergedSequence, action, selection);
+			}
+		}
+		// Ici les deux traces sont des séquences
+		else{
+			// Si la diagonale est le coût minimal et colonne c == ligne l privilégier la diagonale, sinon privilégier le min entre haut et gauche, si égalité et colonne c != ligne l privilégier le Begin sinon si égalité et colonne c == ligne l réduire en priorité la trace la plus longue, sinon à défaut prendre à gauche.
+
+			Trace::sp_trace selection;
+			std::string action;
+			// si les deux Séquences sont du même type et le coût minimal est la diagonale, prendre la diagonale
+			if (s1[l-1]->getInfo() == s2[c-1]->getInfo() && transformationMatrix[l-1][c-1] <= std::min(transformationMatrix[l-1][c], transformationMatrix[l][c-1])){
+				action = "d";
+				// fusionner les deux Sequences
+				selection = s1[l-1]->clone();
+				std::dynamic_pointer_cast<Sequence>(selection)->mergeIterationDescription(std::dynamic_pointer_cast<Sequence>(s2[c-1])->getIterationDescription());
+				// prise en compte des éventuelles traces optionnelles ou si la tête de la pile nous indique un chevauchement de séquence
+				selection->setOptional(s1[l-1]->isOptional() || s2[c-1]->isOptional() || (stack.size() > 0 && std::get<2>(stack.back())));
+				mergedSequence.push_back(selection);
+				l--;
+				c--;
+			}
+			// sinon si coût minimum sur la ligne d'en dessus ou coût égal et (les deux séquences sont différentes et celle de la ligne d'au dessus est un Begin OU les deux séquence sont de même nature et le nombre de ligne est plus grand que le nombre de colonne), prendre la ligne du dessus
+			else if (transformationMatrix[l-1][c] < transformationMatrix[l][c-1] ||
+					(transformationMatrix[l-1][c] == transformationMatrix[l][c-1] && 
+						((s1[l-1]->getInfo() != s2[c-1]->getInfo() && s1[l-1]->getInfo() == "Begin") ||
+						(s1.size() > s2.size())))){
+				Trace::sp_trace selection = s1[l-1]->clone();
+				selection->setOptional(stack.size() > 0 && std::get<2>(stack.back())); // on met une séquence en option uniquement en cas de chevauchement
+				mergedSequence.push_back(selection);
+				l--;
+			}
+			// sinon on prend la colonne de gauche
+			else{
+				Trace::sp_trace selection = s2[c-1]->clone();
+				selection->setOptional(stack.size() > 0 && std::get<2>(stack.back())); // on met une séquence en option uniquement en cas de chevauchement
+				mergedSequence.push_back(selection);
+				c--;
+			}
+
+			// Gestion de la pile si la sélection est une séquence
+			manageStack(stack, mergedSequence, action, selection);
+		}
+	}
+	// On met le vecteur de fusion dans le bon sens
+	std::reverse(mergedSequence.begin(), mergedSequence.end());
+	return mergedSequence;
 }
 
 int Sequence::getCallPosInLinearSequence (std::vector<Trace::sp_trace> & linearSequence, int num)

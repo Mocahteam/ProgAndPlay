@@ -362,7 +362,7 @@ std::vector<Scenario::sp_scenario> Scenario::simulateNewTraceIntegration(const T
 	Sequence::exportLinearSequenceAsString(pattern, std::cout);*/
 
 	std::vector<Scenario::sp_scenario> result;
-
+/*
 	if (nbRec == 0 && viewed == NULL)
 		viewed = new std::vector<Scenario::sp_scenario>();
 	
@@ -437,7 +437,7 @@ std::vector<Scenario::sp_scenario> Scenario::simulateNewTraceIntegration(const T
 				// vérifier si la distance entre la séquence du root et le pattern tke est égal à 0 (ce calcul de distance ignore les traces optionnelles si elles ne matchent pas)
 				if (Sequence::computeLinearSequenceDistance(linearRoot, pattern_tke) == 0){
 					addNewTkePattern = true;
-					newPos = pattern_tke.size(); // on se repositionnera à la fin du nouveau pattern inséré
+					newPos = -1; // on se repositionnera sur la trace précédente de manière à ce que sur le prochain simulateMoveToNextCall on retombe sur le Seq("Begin") et génèrer les scénarios pour rentrer dans le pattern ou le sauter
 				}
 			}
 			if (addNewTkePattern){
@@ -451,9 +451,9 @@ std::vector<Scenario::sp_scenario> Scenario::simulateNewTraceIntegration(const T
 	}
 	else
 	{
-		// Ici on est à l'intérieur du pattern, il faut maintenant voir si le Call du pattern est alignable avec celui du root
-		// Si le Call courrant du pattern == au Call du root
-		if (pattern[position]->operator==(rootCall.get()))
+		// Ici on est à l'intérieur du pattern, il faut maintenant voir si la Trace du pattern est alignable avec celle du root
+		// Si la Trace courrante du pattern == à la Trace du root
+		if (pattern[position]->operator==(rootTrace.get()))
 		{
 			// on travaille maintenant sur un clone
 			Scenario::sp_scenario tmpSc = clone();
@@ -577,11 +577,11 @@ std::vector<Scenario::sp_scenario> Scenario::simulateNewTraceIntegration(const T
 		}
 	}
 	if (nbRec == 0)
-		delete viewed;
+		delete viewed;*/
 	return result;
 }
 
-std::vector<Scenario::sp_scenario> Scenario::simulateNewSeqIntegration(const Sequence::sp_sequence & rootSeq, float maxRatio, int minLength, int nbRec = 0, std::vector<Scenario::sp_scenario> * viewed = NULL){
+//std::vector<Scenario::sp_scenario> Scenario::simulateNewSeqIntegration(const Sequence::sp_sequence & rootSeq, float maxRatio, int minLength, int nbRec = 0, std::vector<Scenario::sp_scenario> * viewed = NULL){
 	// Ici la position dans this->pattern est positionnée sur un Call. Ce call peut être le successeur d'un autre Call, le premier d'une séquence (prédécesseur "Seq(Begin)"), le premier à la suite d'une séquence (prédécesseur "Seq(End)"). Il faut donc chercher à aligner une séquence récupérée depuis le Root à partir de ce point là. Différents scénario sont possibles :
 	//  Cas 1 et 3 (successeur d'un autre Call ou successeur d'un "Seq(End)") - On va intercaller la séquence on la mettant optionnelle juste avant le Call pointé
 	//  Cas 2 (premier d'une séquence) - On va chercher à vérifier si on a un match entre les séquences :
@@ -592,7 +592,7 @@ std::vector<Scenario::sp_scenario> Scenario::simulateNewSeqIntegration(const Seq
 	//        2.2.1 : S'il y a reprise d'itération, insérer la séquence optionnelle en début et en fin de séquence en reprise d'itération.
 	//        2.2.2 : S'il n'y a pas de reprise d'itération, mettre la séquende du root en option OU mettre celle du pattern en option et tenter d'aligner avec la trace suivante.
 	
-	std::vector<Scenario::sp_scenario> result;
+/*	std::vector<Scenario::sp_scenario> result;
 
 	if (nbRec == 0 && viewed == NULL)
 		viewed = new std::vector<Scenario::sp_scenario>();
@@ -788,7 +788,7 @@ std::vector<Scenario::sp_scenario> Scenario::simulateNewSeqIntegration(const Seq
 	if (nbRec == 0)
 		delete viewed;
 	return result;
-}
+}*/
 
 bool Scenario::existsIn(std::vector<Scenario::sp_scenario> set, bool checkPosition){
 	bool found = false;

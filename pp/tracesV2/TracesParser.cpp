@@ -411,16 +411,67 @@ void TracesParser::offlineCompression()
 {
 	clock_t t0, dt;
 	t0 = clock();
-	std::vector<ScoredSequence> roots;
-
-	// enregistrement d'un premier root avec la trace brute
-	roots.push_back(ScoredSequence(std::dynamic_pointer_cast<Sequence>(root->clone())));
 
 	//créer un objet pour l'algorithme VariantTKE
 	VariantTKE tke = VariantTKE();
 
 	std::vector<Trace::sp_trace> bestPattern;
 	bool has_passed_limite = false;
+
+	
+	Episode::sp_episode best_episode;
+	do{
+		// Recherche du meilleur pattern avec notre adaptation de TKE
+		best_episode = tke.runAlgorithm(root);
+		if(best_episode	== 0 || best_episode->getSupport() <= 1) // cas d'arrêt de la boucle
+			break;
+		// couper si ça prend trop de temps
+		dt = clock() - t0;
+		if(TIME_LIMIT>0 && dt >= TIME_LIMIT*CLOCKS_PER_SEC){
+			has_passed_limite = true;
+			break;
+		}
+		
+		// transformer le meilleur pattern en une séquence linearisée
+		Sequence::sp_sequence seq = std::make_shared<Sequence>(0, false, false);
+		for(unsigned int i=0; i<best_episode->events.size(); ++i)
+			seq->addTrace(best_episode->events.at(i)->clone());
+		std::vector<Trace::sp_trace> bestPattern = seq->getLinearSequence();
+
+		std::vector<Trace::sp_trace> merge = Sequence::cloneLinearSequence(bestPattern);
+		// Parcourir tous les épisodes (du dernier au premier)
+		for (auto it = best_episode->boundlist.rbegin() ; it != best_episode->boundlist.rend() ; it++){
+			// conversion de l'épisode en une séquence linéarisée
+			std::vector<Trace::sp_trace> episode = root->getSubSequence(it->first, it->second+1)->getLinearSequence();
+			// calcule la fusion entre l'épisode et le meilleur pattern
+			merge = Sequence::mergeLinearSequences(episode, merge);
+
+			// TODO: si les épisodes sont contigues il faut les fusionner comme ça mais s'il y a des trous entre les épisodes, il faut déterminer si on les merge (insérer les traces intermédiaire dans le pattern pour qu'elles soient mises en option) ou les sauter et repartir du bestPattern. Utiliser le WAR ?
+		}
+		
+
+		// injection de cette fusion dans le root
+		// suppression de la partie du root devant être remplacé par le pattern
+		std::vector<Trace::sp_trace> & traces = root->getTraces();
+		traces.erase(traces.begin()+it->first, traces.begin()+it->second+1);
+		// Incrustation du pattern dans le clone
+		root->insertLinearSequence(merge, it->first);
+
+		root->exportAsCompressedString();
+	}while(true);
+
+
+
+
+
+
+
+
+/*	
+	std::vector<ScoredSequence> roots;
+
+	// enregistrement d'un premier root avec la trace brute
+	roots.push_back(ScoredSequence(std::dynamic_pointer_cast<Sequence>(root->clone())));
 	// parcourir tous les roots (ils sont ajoutés en queue de vecteur au fur et à mesure qu'ils sont découverts)
 	for (unsigned int r = 0 ; r < roots.size() && !has_passed_limite ; r++)
 	{
@@ -517,7 +568,7 @@ Sequence::exportLinearSequenceAsString(patterns[i]->pattern);
 			for (unsigned int i = 0 ; i < roots.size() ; i++){
 				roots[i].scenario->updateScore(minLength);
 			}
-		}
+		}*/
 
 		// Suite de Yufei...
 
@@ -573,9 +624,9 @@ Sequence::exportLinearSequenceAsString(patterns[i]->pattern);
 				// roots.back().sequence->insertTraces(1, vec_post);
 			}
 		}*/
-	}
+/*	}
 
-	std::sort(roots.begin(), roots.end(), sortFunction);
+	std::sort(roots.begin(), roots.end(), sortFunction);*/
 
 	if(has_passed_limite)
 		osParser << "Over Time!\n";
@@ -585,14 +636,15 @@ Sequence::exportLinearSequenceAsString(patterns[i]->pattern);
 	clock_t t_end = clock();
 	osParser << "Time used : " << ((float(t_end-t0)/float(CLOCKS_PER_SEC))*1000) << " (ms)" << std::endl;
 	osParser << "[1er] ";
-	osParser << roots.begin()->scenario->score << " " << roots.begin()->scenario->alignCount  << " " << roots.begin()->scenario->optCount << " " << roots.begin()->scenario->position;
-	roots.begin()->sequence->exportAsCompressedString(osParser);
+	//osParser << roots.begin()->scenario->score << " " << roots.begin()->scenario->alignCount  << " " << roots.begin()->scenario->optCount << " " << roots.begin()->scenario->position;
+	//roots.begin()->sequence->exportAsCompressedString(osParser);
+	root->exportAsCompressedString(osParser);
 
-	root = roots.begin()->sequence;
+	//root = roots.begin()->sequence;
 }
 
 void TracesParser::insertTraceInsidePatterns(std::vector<Scenario::sp_scenario> & patterns, const Trace::sp_trace & currentTrace){
-	if (TracesParser::outputLog){
+	/*if (TracesParser::outputLog){
 		std::cout << "Current trace :";
 		currentTrace->exportAsString();
 	}
@@ -707,7 +759,7 @@ void TracesParser::insertTraceInsidePatterns(std::vector<Scenario::sp_scenario> 
 				return;
 			}
 		}
-	}
+	}*/
 }
 
 void TracesParser::exportTracesAsString(std::ostream &os)

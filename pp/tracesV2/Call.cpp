@@ -135,7 +135,7 @@ unsigned int Call::length(int start, bool processOptions) const
 }
 
 
-std::vector<Trace::sp_trace> &Call::getLinearSequence(int start = 0, int end = -1){
+std::vector<Trace::sp_trace> &Call::getLinearSequence(int start, int end){
 	linearizedTraces.clear();
 	linearizedTraces.push_back(this->clone());
 	return linearizedTraces;

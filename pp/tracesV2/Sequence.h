@@ -582,16 +582,28 @@ public:
 	/**
 	 * \brief calcule la distance entre deux séquences linéarisée. Calcule une distance de Levenshtein entre deux séquences en considérant les coûts suivants :
 	 * Coût vertical, passage d'une ligne à l'autre l[i-1]c[j] -> l[i]c[j]
-	 *  - Si key(l[i]) est une option ou parent optionnel => 0
+	 *  - Si key(l[i]) est optionnelle ou une fin de séquence => 0
 	 *  - Sinon => 1
 	 * Coût horizontal, Passage d'une colonne à l'autre l[i]c[j-1] -> l[i]c[j]
-	 *  - Si key(c[j]) est une option ou parent optionnel => 0
+	 *  - Si key(c[j]) est optionnelle ou une fin de séquence => 0
 	 *  - Sinon => 1
 	 * Coût diagonale, Passage de l[i-1]c[j-1] -> l[i]c[j]
 	 *  - Si key(l[i]) != key(c[j]) => 0
 	 *  - Sinon => 1
+	 * 
+	 * Si l1 = ABC et l2 = AC, la matrice résultat sera
+	 *     - A C
+	 * - [[0 1 2],
+	 * A  [1 0 1],
+	 * B  [2 1 1],
+	 * C  [3 2 1]]
+	 * 
+	 * \param l1 la première liste de traces
+	 * \param l2 la seconde liste de traces
+	 * 
+	 * \return la matrice d'alignement indiquant comment les deux listes de traces ont été alignées. La valeur située en bas à droite de la matrice représente la distance entre l1 et l2
 	*/
-	static int computeLinearSequenceDistance(std::vector<Trace::sp_trace> & l1, std::vector<Trace::sp_trace> & l2);
+	static std::vector<std::vector<int>> computeLinearSequenceDistance(std::vector<Trace::sp_trace> & l1, std::vector<Trace::sp_trace> & l2);
 
 	/**
 	  * \brief Détection des paramètres non robustes et nombre d'itération différent.
@@ -612,6 +624,25 @@ public:
 	 * \param newIterDesc : nouvelle iterDesc souhaitée
 	 */
 	void setIterDesc(std::map<unsigned int, unsigned int> newIterDesc);
+
+	/**
+	 * \brief Fusionne deux séquences linéarisées
+	 *
+	 * Cette fonction permet de construire une nouvelle séquence linéarisée la plus générale possible à partir de deux séquences \p s1 et \p s2.
+	 *
+	 * Exemple de cas singuliers :
+	 *  1 - [AB[C]] et [[A]BC] => [[A]B[C]]
+	 *  2 - A[C] et AB => A[*C]B
+	 *  3 - A[BC] et [AB]C => [*A[B]*C]
+	 *  4 - A[B] et [AB] => [A[B]]
+	 *  5 - [A]B et [AB] => [[A]B]
+	 *  
+	 * \param s1 la première séquence linéarisée passée en entrée de la fusion.
+	 * \param s2 la seconde séquence linéarisée passée en entrée de la fusion.
+	 *
+	 * \return la nouvelle séquence créée résultante de la fusion de \p s1 et \p s2.
+	 */
+	static std::vector<Trace::sp_trace> mergeLinearSequences(std::vector<Trace::sp_trace> & s1, std::vector<Trace::sp_trace> & s2);
 
 protected:
 	/**
@@ -791,8 +822,8 @@ protected:
 	  */
 	int processInclusiveSequences(int seqPos);
 
-
-
+	static void unstackSequence(std::vector<std::tuple<std::string, Trace::sp_trace, bool>> & stack, std::vector<Trace::sp_trace> & mergedSequence, std::string action, Trace::sp_trace trace);
+	static void manageStack(std::vector<std::tuple<std::string, Trace::sp_trace, bool>> & stack, std::vector<Trace::sp_trace> & mergedSequence, std::string action, Trace::sp_trace selection);
 };
 
 #endif
