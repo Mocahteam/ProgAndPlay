@@ -83,9 +83,14 @@ public:
 	static int CANDIDATE_LIMIT;
 
 	/**
-	 * ENtier correspondant à nombre de fois autorisé maximale pour un scénario qui baisse son score successivement
+	 * Entier correspondant à nombre de fois autorisé maximale pour un scénario qui baisse son score successivement
 	 */ 
 	static int DESCEND_LIMIT; 
+
+	/**
+	 * Flotant contrôlant la taille des trous entre épisodes par rapport à la longueur de la trace
+	*/
+	static float GAP_RATIO; 
 
 
 	/*

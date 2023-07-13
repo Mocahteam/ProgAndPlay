@@ -1,22 +1,10 @@
 	PP_Open
-	Sequence < 3:1 >
+	Sequence < 0:0.2,1:0.2,2:0.6 >
 		PP_GetNumUnits - 11.000000
 		PP_GetUnitAt - 1350.000000
 		PP_Unit_GetType - 4.000000
 	EndSequence
-	PP_GetNumUnits - 11.000000
-	PP_GetUnitAt - 1350.000000
-	PP_Unit_GetType - 4.000000
-	PP_GetNumUnits - 11.000000
-	PP_GetUnitAt - 1350.000000
-	PP_Unit_GetType - 4.000000
-	PP_GetNumUnits - 11.000000
-	PP_GetUnitAt - 1350.000000
-	PP_Unit_GetType - 4.000000
-	PP_GetNumUnits - 11.000000
-	PP_GetUnitAt - 1350.000000
-	PP_Unit_GetType - 4.000000
-	Sequence < 4:1 >
+	Sequence < 0:0.25,1:0.25,2:0.5 >
 		PP_Unit_ActionOnPosition
 		PP_Unit_ActionOnUnit
 		PP_Unit_GetPosition - 1864.530029 1358.939941

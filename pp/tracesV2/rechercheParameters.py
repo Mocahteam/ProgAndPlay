@@ -78,7 +78,7 @@ def getBestResultPosEqualToSolution(resultFile, l_solution):
 				# Extraction de ce résultat sous la forme d'une liste de tokens
 				tokens = line.split(" ")
 				best = []
-				for t in tokens[6:-1]:
+				for t in tokens[2:-1]:
 					if ("Sequence(" in t):
 						best.append("Sequence()")
 					else:
@@ -150,7 +150,7 @@ def get_from_map(point, targetFileName, l_solution=None):
 		ws = point.ws
 		pb = point.pb
 		print("Call parser with parameters\twar: "+str(war)+"   \tws: "+str(ws)+"   \tpb: "+str(pb))
-		file_exe = "myParserTest.exe "+ targetFileName+".log -sc 0.2 -cl 10 -tl 10 -war " +str(war) + " -ws "+str(ws) + " -pb "+str(pb)+" -disableLogs"
+		file_exe = "myParserTest.exe "+ targetFileName+".log -sc 0.2 -cl 10 -tl 10 -gr " +str(war) + " -ws "+str(ws) + " -pb "+str(pb)+" -disableLogs"
 		child = subprocess.Popen(file_exe,shell=True)
 		child.wait()
 		# copy du résultat
@@ -241,7 +241,7 @@ def search_war_ws_by_rect(targetFileName, l_solution=None):
 		if (sol1 == sol2 and sol1 == sol3 and sol1 == sol4 and sol1 == sol5 and sol1 == sol6 and sol1 == sol7 and sol1 == sol8):
 			continue
 		# si la face devant est homogène mais différente d'un point en arrière ET qu'on peut encore découper sur l'axe de la profondeur
-		if (sol1 == sol2 and sol1 == sol3 and sol1 == sol4 and (sol1 != sol5 or sol3 != sol7 or sol2 != sol6 or sol4 != sol8) and pb_halfGap >= decimal_episilon):
+		if (sol1 == sol2 and sol1 == sol3 and sol1 == sol4 and (sol1 != sol5 or sol3 != sol7 or sol2 != sol6 or sol4 != sol8) and pb_halfGap >= decimal_episilon*2):
 			# Construction d'un cube pour l'avant
 			#     p7--------p8
 			#    /|         /|
@@ -254,9 +254,9 @@ def search_war_ws_by_rect(targetFileName, l_solution=None):
 			# |          | +
 			# |          |/
 			# p1--------p2
-			queue.append(Cube(p1.war, p2.war, p1.ws, p3.ws, p1.pb, round_to_multiple(p1.pb + pb_halfGap)))
+			queue.append(Cube(p1.war, p2.war, p1.ws, p3.ws, round_to_multiple(p1.pb + decimal_episilon), round_to_multiple(p1.pb + pb_halfGap)))
 		# si la face arrière est homogène mais différente d'un point en avant ET qu'on peut encore découper sur l'axe de la profondeur
-		if (sol5 == sol6 and sol5 == sol7 and sol5 == sol8 and (sol1 != sol5 or sol3 != sol7 or sol2 != sol6 or sol4 != sol8) and pb_halfGap >= decimal_episilon):
+		if (sol5 == sol6 and sol5 == sol7 and sol5 == sol8 and (sol1 != sol5 or sol3 != sol7 or sol2 != sol6 or sol4 != sol8) and pb_halfGap >= decimal_episilon*2):
 			# Construction d'un cube pour l'arrière
 			#     p7--------p8
 			#    /          /|
@@ -269,9 +269,9 @@ def search_war_ws_by_rect(targetFileName, l_solution=None):
 			# | +--------|-+
 			# |/         |/
 			# p1--------p2
-			queue.append(Cube(p5.war, p6.war, p5.ws, p7.ws, round_to_multiple(p3.pb + pb_halfGap + decimal_episilon), p7.pb))
+			queue.append(Cube(p5.war, p6.war, p5.ws, p7.ws, round_to_multiple(p3.pb + pb_halfGap + decimal_episilon), round_to_multiple(p7.pb - decimal_episilon)))
 		# si la face de dessous est homogène mais différente d'un point en dessus ET qu'on peut encore découper sur l'axe vertical
-		if (sol1 == sol2 and sol1 == sol5 and sol1 == sol6 and (sol1 != sol3 or sol2 != sol4 or sol5 != sol7 or sol6 != sol8) and ws_halfGap >= decimal_episilon):
+		if (sol1 == sol2 and sol1 == sol5 and sol1 == sol6 and (sol1 != sol3 or sol2 != sol4 or sol5 != sol7 or sol6 != sol8) and ws_halfGap >= decimal_episilon*2):
 			# Construction d'un cube pour le dessous
 			#     p7--------p8
 			#    /|         /|
@@ -284,9 +284,9 @@ def search_war_ws_by_rect(targetFileName, l_solution=None):
 			# |          | /
 			# |          |/
 			# p1--------p2
-			queue.append(Cube(p1.war, p2.war, p1.ws, round_to_multiple(p1.ws + ws_halfGap), p1.pb, p5.pb))
+			queue.append(Cube(p1.war, p2.war, round_to_multiple(p1.ws + decimal_episilon), round_to_multiple(p1.ws + ws_halfGap), p1.pb, p5.pb))
 		# si la face de dessus est homogène mais différente d'un point en dessous ET qu'on peut encore découper sur l'axe vertical
-		if (sol3 == sol4 and sol3 == sol7 and sol3 == sol8 and (sol1 != sol3 or sol2 != sol4 or sol5 != sol7 or sol6 != sol8) and ws_halfGap >= decimal_episilon):
+		if (sol3 == sol4 and sol3 == sol7 and sol3 == sol8 and (sol1 != sol3 or sol2 != sol4 or sol5 != sol7 or sol6 != sol8) and ws_halfGap >= decimal_episilon*2):
 			# Construction d'un cube pour le dessus
 			#     p7--------p8
 			#    /          /|
@@ -299,9 +299,9 @@ def search_war_ws_by_rect(targetFileName, l_solution=None):
 			# | /        | /
 			# |/         |/
 			# p1--------p2
-			queue.append(Cube(p3.war, p4.war, round_to_multiple(p1.ws + ws_halfGap + decimal_episilon), p3.ws, p3.pb, p7.pb))
+			queue.append(Cube(p3.war, p4.war, round_to_multiple(p1.ws + ws_halfGap + decimal_episilon), round_to_multiple(p3.ws - decimal_episilon), p3.pb, p7.pb))
 		# si la face de gauche est homogène mais différente d'un point à droite ET qu'on peut encore découper sur l'axe horizontal
-		if (sol1 == sol3 and sol1 == sol5 and sol1 == sol7 and (sol1 != sol2 or sol3 != sol4 or sol5 != sol6 or sol7 != sol8) and war_halfGap >= decimal_episilon):
+		if (sol1 == sol3 and sol1 == sol5 and sol1 == sol7 and (sol1 != sol2 or sol3 != sol4 or sol5 != sol6 or sol7 != sol8) and war_halfGap >= decimal_episilon*2):
 			# Construction d'un cube pour la gauche
 			#     p7---+----p8
 			#    /    /|    /|
@@ -314,9 +314,9 @@ def search_war_ws_by_rect(targetFileName, l_solution=None):
 			# |    | /   | /  
 			# |    |/    |/
 			# p1---+----p2
-			queue.append(Cube(p1.war, round_to_multiple(p1.war + war_halfGap), p1.ws, p3.ws, p1.pb, p5.pb))
+			queue.append(Cube(round_to_multiple(p1.war + decimal_episilon), round_to_multiple(p1.war + war_halfGap), p1.ws, p3.ws, p1.pb, p5.pb))
 		# si la face de droite est homogène mais différente d'un point à gauche ET qu'on peut encore découper sur l'axe horizontal
-		if (sol2 == sol4 and sol2 == sol6 and sol2 == sol8 and (sol1 != sol2 or sol3 != sol4 or sol5 != sol6 or sol7 != sol8) and war_halfGap >= decimal_episilon):
+		if (sol2 == sol4 and sol2 == sol6 and sol2 == sol8 and (sol1 != sol2 or sol3 != sol4 or sol5 != sol6 or sol7 != sol8) and war_halfGap >= decimal_episilon*2):
 			# Construction d'un cube pour la droite
 			#     p7----+---p8
 			#    /|    /    /|
@@ -329,7 +329,7 @@ def search_war_ws_by_rect(targetFileName, l_solution=None):
 			# | /   |    | /  
 			# |/    |    |/
 			# p1----+---p2
-			queue.append(Cube(round_to_multiple(p1.war + war_halfGap + decimal_episilon), p2.war, p2.ws, p4.ws, p2.pb, p6.pb))
+			queue.append(Cube(round_to_multiple(p1.war + war_halfGap + decimal_episilon), round_to_multiple(p2.war - decimal_episilon), p2.ws, p4.ws, p2.pb, p6.pb))
 		# si l'arête avant/bas est homogène mais différente d'un point en dessus et en arrière ET qu'on peut encore découper sur l'axe de la profondeur ou vertical
 		if (sol1 == sol2 and (sol1 != sol3 or sol2 != sol4) and (sol1 != sol5 or sol2 != sol6) and (ws_halfGap >= decimal_episilon or pb_halfGap >= decimal_episilon)):
 			# Construction d'un cube en bas devant
@@ -655,6 +655,8 @@ def run(dichotomique=True, verification=False):
 if __name__ == "__main__":
 	test_file = []
 	argv = sys.argv
+	if(not os.path.exists("./files_npy/")):
+		os.makedirs("./files_npy/")
 	if(len(argv)>2):
 		test_file.append(argv[1])
 		if(sys.argv[2]=="aveugle" and sys.argv[3]=="verification"):
@@ -672,5 +674,5 @@ if __name__ == "__main__":
 		run(dichotomique=True,verification=True)
 	else:
 		print("Lancement des tests...\n")
-		test_file = ["1_rienAFaire", "2_simpleBoucle", "3_simpleBoucleAvecDebut", "4_simpleBoucleAvecFin", "5_simpleBoucleAvecDebutEtFin", "6.01_simpleBoucleAvecIf", "6.02_simpleBoucleAvecIf", "6.03_simpleBoucleAvecIf", "6.04_simpleBoucleAvecIf", "6.05_simpleBoucleAvecIf", "6.06_simpleBoucleAvecIf", "6.07_simpleBoucleAvecIf", "6.08_simpleBoucleAvecIf", "6.09_simpleBoucleAvecIf", "6.10_simpleBoucleAvecIf", "6.11_simpleBoucleAvecIf", "6.12_simpleBoucleAvecIf", "6.13_simpleBoucleAvecIf", "6.14_simpleBoucleAvecIf", "7.01_bouclesEnSequence", "7.02_bouclesEnSequence", "8_bouclesEnSequenceAvecIf", "9.01_bouclesImbriquees", "9.02_bouclesImbriquees", "9_bouclesImbriquees"]
+		test_file = ["1_rienAFaire", "2_simpleBoucle", "3_simpleBoucleAvecDebut", "4_simpleBoucleAvecFin", "5_simpleBoucleAvecDebutEtFin", "6.01_simpleBoucleAvecIf", "6.02_simpleBoucleAvecIf", "6.03_simpleBoucleAvecIf", "6.04_simpleBoucleAvecIf", "6.05_simpleBoucleAvecIf", "6.06_simpleBoucleAvecIf", "6.07_simpleBoucleAvecIf", "6.08_simpleBoucleAvecIf", "6.09_simpleBoucleAvecIf", "6.10_simpleBoucleAvecIf", "6.11_simpleBoucleAvecIf", "6.12_simpleBoucleAvecIf", "6.13_simpleBoucleAvecIf", "6.14_simpleBoucleAvecIf", "7.01_bouclesEnSequence", "7.02_bouclesEnSequence", "8_bouclesEnSequenceAvecIf", "9.01_bouclesImbriquees", "9.02_bouclesImbriquees", "9.03_bouclesImbriquees"]
 		run(dichotomique=True,verification=True)

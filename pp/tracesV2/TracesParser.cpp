@@ -13,6 +13,7 @@
 int TracesParser::TIME_LIMIT = 300;
 int TracesParser::CANDIDATE_LIMIT = 200;
 int TracesParser::DESCEND_LIMIT = 3;
+float TracesParser::GAP_RATIO = 0.5;
 bool TracesParser::outputLog = false;
 
 
@@ -417,7 +418,6 @@ void TracesParser::offlineCompression()
 
 	std::vector<Trace::sp_trace> bestPattern;
 	bool has_passed_limite = false;
-
 	
 	Episode::sp_episode best_episode;
 	do{
@@ -438,26 +438,45 @@ void TracesParser::offlineCompression()
 			seq->addTrace(best_episode->events.at(i)->clone());
 		std::vector<Trace::sp_trace> bestPattern = seq->getLinearSequence();
 
-		std::vector<Trace::sp_trace> merge = Sequence::cloneLinearSequence(bestPattern);
-		// Parcourir tous les épisodes (du dernier au premier)
-		for (auto it = best_episode->boundlist.rbegin() ; it != best_episode->boundlist.rend() ; it++){
-			// conversion de l'épisode en une séquence linéarisée
-			std::vector<Trace::sp_trace> episode = root->getSubSequence(it->first, it->second+1)->getLinearSequence();
-			// calcule la fusion entre l'épisode et le meilleur pattern
-			merge = Sequence::mergeLinearSequences(episode, merge);
+		std::pair<int, int> mergedEpisode = best_episode->boundlist.back();
+		std::vector<Trace::sp_trace> merge = Sequence::mergeLinearSequences(root->getSubSequence(mergedEpisode.first, mergedEpisode.second+1)->getLinearSequence(), bestPattern);
+		unsigned int mergeCount = 0;
+		int rootSize = root->getLinearSequence().size();
+		// Parcourir tous les épisodes (de l'avant dernier au premier)
+		for (int i = best_episode->boundlist.size()-2 ; i >= 0 ; i--){
+			std::pair<int, int> currentEpisode = best_episode->boundlist[i];
+			// vérifier si l'écart entre cet épisode et le précédent est inférieur au seuil
+			if ((float)(mergedEpisode.first - currentEpisode.second - 1)/rootSize <= GAP_RATIO){
+				// conversion de l'épisode courant en une séquence linéarisée (on inclus toutes les traces intercallées entre la fin de l'épisode courrant et le début des épisodes précédement fusionnés)
+				std::vector<Trace::sp_trace> episode = root->getSubSequence(currentEpisode.first, mergedEpisode.first)->getLinearSequence();
+				// calcule la fusion entre le dernier état de fusion et ce nouvel épisode
+				merge = Sequence::mergeLinearSequences(episode, merge);
+				mergedEpisode.first = currentEpisode.first; // on étend la plage de la fusion pour englober ce nouvel épisode
+			} else {
+				// injection de cette fusion dans le root
+				// suppression de la partie du root devant être remplacé par le pattern
+				std::vector<Trace::sp_trace> & traces = root->getTraces();
+				traces.erase(traces.begin()+mergedEpisode.first, traces.begin()+mergedEpisode.second+1);
+				// Incrustation du pattern dans le clone
+				root->insertLinearSequence(merge, mergedEpisode.first);
 
-			// TODO: si les épisodes sont contigues il faut les fusionner comme ça mais s'il y a des trous entre les épisodes, il faut déterminer si on les merge (insérer les traces intermédiaire dans le pattern pour qu'elles soient mises en option) ou les sauter et repartir du bestPattern. Utiliser le WAR ?
+				// on réinitialise la fusion au pattern fournit par TKE
+				merge = Sequence::cloneLinearSequence(bestPattern);
+				mergedEpisode = currentEpisode;
+				// on comptabilise une integration supplémentaire
+				mergeCount++;
+			}
 		}
-		
-
-		// injection de cette fusion dans le root
+		// injection de la dernière fusion dans le root
 		// suppression de la partie du root devant être remplacé par le pattern
 		std::vector<Trace::sp_trace> & traces = root->getTraces();
-		traces.erase(traces.begin()+it->first, traces.begin()+it->second+1);
+		traces.erase(traces.begin()+mergedEpisode.first, traces.begin()+mergedEpisode.second+1);
 		// Incrustation du pattern dans le clone
-		root->insertLinearSequence(merge, it->first);
+		root->insertLinearSequence(merge, mergedEpisode.first);
 
-		root->exportAsCompressedString();
+		// si le nombre d'intégration au root est égal au nombre d'épisode c'est qu'on n'a pas réussi à faire du fusion entre épisodes. Chaque épisode a été réinjecté dans le root. Donc on s'arrête.
+		if (mergeCount == best_episode->boundlist.size())
+			break;
 	}while(true);
 
 
@@ -635,7 +654,7 @@ Sequence::exportLinearSequenceAsString(patterns[i]->pattern);
 	
 	clock_t t_end = clock();
 	osParser << "Time used : " << ((float(t_end-t0)/float(CLOCKS_PER_SEC))*1000) << " (ms)" << std::endl;
-	osParser << "[1er] ";
+	osParser << "[1er]";
 	//osParser << roots.begin()->scenario->score << " " << roots.begin()->scenario->alignCount  << " " << roots.begin()->scenario->optCount << " " << roots.begin()->scenario->position;
 	//roots.begin()->sequence->exportAsCompressedString(osParser);
 	root->exportAsCompressedString(osParser);

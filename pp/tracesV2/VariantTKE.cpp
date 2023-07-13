@@ -92,10 +92,10 @@ Episode::sp_episode VariantTKE::runAlgorithm(Sequence::sp_sequence data){
 			saveEpisode(*it);
 	}
 
-	/*for (auto it = kEpisodes.begin() ; it != kEpisodes.end() ; it++){
+	for (auto it = kEpisodes.begin() ; it != kEpisodes.end() ; it++){
 		std::cout << "new top-K : sc:" << (*it)->getScore() << " sup:" << (*it)->getSupport() << " pi:" << (*it)->getInsideProximity() << " po:" << (*it)->getOutsideProximity() << " : ";
 		Sequence::exportLinearSequenceAsString((*it)->events);
-	}*/
+	}
 
 	// Le meilleur pattern est le premier des kEpisodes
 	Episode::sp_episode bestPattern = *kEpisodes.begin();

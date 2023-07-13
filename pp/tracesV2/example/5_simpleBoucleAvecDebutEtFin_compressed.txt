@@ -1,5 +1,5 @@
 	PP_Open
-	Sequence < 5:1 >
+	Sequence < 0:0.25,2:0.75 >
 		PP_GetNumUnits - 10.000000
 		PP_GetUnitAt - ?
 		PP_Unit_ActionOnPosition

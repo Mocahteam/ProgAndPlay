@@ -202,6 +202,7 @@ int main(int argc, char *argv[])
 		std::cout << "\tOptions for episode integration:";
 		std::cout << "\t\t-sc n: SCORE_TOLERENCE  (default 0.2) define minimal score required to keep a pattern (a pattern with a score lesser than n will be ignored)\n";
 		std::cout << "\t\t-war n: WEIGHT_ALIGN_RATIO (default 0.6) define weight of aligned tokens over scenario length in scenario score computing. Must be included between [0, 1]. 0 means alignement ratio is ignored (only scenario length is considered). 1 means only alignement ratio is considered (scenario length is ignored)\n";
+		std::cout << "\t\t-gr n: GAP_RATIO  (default 0.5) controls the size of gaps between episodes in relation to the length of the trace. Must be included between [0, 1]. 0 means episodes will be merge if no gap exists between them. 1 means episodes will be merge even if they are separated by te entire trace.\n";
 		std::cout << "\t\t-cl n: CANDIDATE_LIMIT (default 50) number maximun of candidates for process compression.\n";
 		std::cout << "\t\t-dl n: DESCEND_LIMIT (default 3) number of consecutive drops that can allow a scenario's score. If scenario's score drops more than n, the scenario is deleted.\n";
 		std::cout << "\t\t-tl n: TIME_LIMIT (default 10 seconds) max time to process compression (if give a negative number algorithm will not consider time).\n";
@@ -275,6 +276,12 @@ int main(int argc, char *argv[])
 			Scenario::WEIGHT_ALIGN_RATIO = 0.6;
 			Scenario::WEIGHT_MINIMIZE_LENGTH = 0.4;
 		}
+		
+		paramPos = getParamPos(argc, argv, "-gr");
+		if (paramPos != -1 && paramPos+1 < argc)
+			TracesParser::GAP_RATIO = strtof(argv[paramPos+1], NULL);
+		else
+			TracesParser::GAP_RATIO = 0.5;
 
 		paramPos = getParamPos(argc, argv, "-cl");
 		if (paramPos != -1 && paramPos+1 < argc)
