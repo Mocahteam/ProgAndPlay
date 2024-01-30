@@ -1,13 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <trace>
 	<call label="PP_Open" info="PP_Open"/>
-	<call label="PP_GetNumUnits" return="11.000000" info="PP_GetNumUnits"/>
+	<sequence num_map="0:1" info="" nb_iteration_fixed="true">
+		<call label="PP_GetNumUnits" return="11.000000" info="PP_GetNumUnits"/>
+	</sequence>
 	<sequence num_map="0:1,2:6" info="" nb_iteration_fixed="true">
 		<call label="PP_GetUnitAt" return="?" info="PP_GetUnitAt"/>
 		<call label="PP_Unit_ActionOnPosition" info="PP_Unit_ActionOnPosition"/>
 		<call label="PP_Unit_GetType" return="?" info="PP_Unit_GetType"/>
-		<call label="PP_GetNumUnits" return="11.000000" info="PP_GetNumUnits"/>
-		<call label="PP_GetNumUnits" return="11.000000" info="PP_GetNumUnits"/>
+		<sequence num_map="0:13,1:1,2:7" info="" nb_iteration_fixed="true">
+			<call label="PP_GetNumUnits" return="11.000000" info="PP_GetNumUnits"/>
+		</sequence>
 	</sequence>
 	<call label="PP_Close" info="PP_Close"/>
 </trace>

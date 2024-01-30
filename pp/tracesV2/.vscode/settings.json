@@ -60,7 +60,18 @@
         "valarray": "cpp",
         "memory": "cpp",
         "rope": "cpp",
-        "random": "cpp"
+        "random": "cpp",
+        "algorithm": "cpp",
+        "cassert": "cpp",
+        "cerrno": "cpp",
+        "climits": "cpp",
+        "map": "cpp",
+        "set": "cpp",
+        "iterator": "cpp",
+        "ios": "cpp",
+        "locale": "cpp",
+        "queue": "cpp",
+        "stack": "cpp"
     },
     "editor.wordWrap": "on",
     "C_Cpp.errorSquiggles": "Enabled"

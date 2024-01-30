@@ -69,33 +69,11 @@ public:
 
 
 	/**
-	  * \brief Augmenter le supprot de l'épisode.
-	  *
-	  * 
-	  */
-	void increaseSupport();
-
-
-	/**
 	  * \brief Getter pour la variable \p info.
 	  *
 	  * \return la chaîne de caractères \p info de l'épisode.
 	  */
-	std::string toString(); 
-
-
-	/**
-	  * \brief Fonction static pour fixer la valeur de paramètre PoidsSupport(PSP). 
-	  *
-	  *
-	  */
-	static void setPoidSupport(float input_ps);
-
-
-	/**
-	 * \brief Affecte un nouvelle fenêtre à cet épisode
-	*/
-	void setBounds(std::vector<std::pair<int, int>> newBoundList);
+	std::string toString();
 
 	/**
 	 * \brief Retourne le support de cet épisode
@@ -122,10 +100,6 @@ struct ComparatorEpisode : public std::binary_function<Episode::sp_episode, Epis
 {
     bool operator() (const Episode::sp_episode a,const Episode::sp_episode b)
     {
-		std::stringstream aSS;
-		Sequence::exportLinearSequenceAsString(a->events, aSS, false);
-		std::stringstream bSS;
-		Sequence::exportLinearSequenceAsString(b->events, bSS, false);
         /*return a->getSupport() > b->getSupport() || // privilégier le support
 				(a->getSupport() == b->getSupport() && (a->events.size() > b->events.size() || // en cas d'égalité privilégier la longueur de l'épisode
 					(a->events.size() == b->events.size() && (a->getInsideProximity() > b->getInsideProximity() || // en cas d'égalité, privilégier la proximité interne
@@ -133,8 +107,17 @@ struct ComparatorEpisode : public std::binary_function<Episode::sp_episode, Epis
 							(a->getOutsideProximity() == b->getOutsideProximity() && aSS.str().compare(bSS.str()) < 0))))))) ; // en cas d'égalité, trier par ordre alphabétique*/
 		float aScore = a->getScore();
 		float bScore = b->getScore();
-		return aScore > bScore || // privilégier le score
-				 (aScore == bScore && aSS.str().compare(bSS.str()) < 0) ; // en cas d'égalité, trier par ordre alphabétique
+		// privilégier le score
+		if (aScore > bScore) return true;
+		if (aScore < bScore) return false;
+		// si le score est égal on compare le contenu des séquences (trier par ordre alphabétique)
+		std::stringstream aSS;
+		for (auto it = a->events.begin() ; it != a->events.end() ; it++)
+				Sequence::exportLinearSequenceAsString((*it)->getLinearSequence(), aSS, false);
+		std::stringstream bSS;
+		for (auto it = b->events.begin() ; it != b->events.end() ; it++)
+				Sequence::exportLinearSequenceAsString((*it)->getLinearSequence(), bSS, false);
+		return aSS.str().compare(bSS.str()) < 0 ;
     }
 };
 #endif

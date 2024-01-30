@@ -24,10 +24,7 @@
 #include <rapidxml/rapidxml_utils.hpp>
 
 #include "Trace.h"
-#include "Call.h"
-#include "CallDef.h"
 #include "Sequence.h"
-#include "Scenario.h"
 
 /**
  * \class TracesParser
@@ -78,16 +75,6 @@ public:
 	static int TIME_LIMIT;
 
 	/**
-	  * Entier correspondant à nombre maximale de candidates pendant la processus de offline compress, l'algorithme va explorer plus de cas possibles si cet entier augmente .
-	  */
-	static int CANDIDATE_LIMIT;
-
-	/**
-	 * Entier correspondant à nombre de fois autorisé maximale pour un scénario qui baisse son score successivement
-	 */ 
-	static int DESCEND_LIMIT; 
-
-	/**
 	 * Flotant contrôlant la taille des trous entre épisodes par rapport à la longueur de la trace
 	*/
 	static float GAP_RATIO; 
@@ -97,11 +84,6 @@ public:
 	 * Contient le résultat de la dernière compression sous une forme XML
 	 */
 	rapidxml::xml_document<> lastCompressionXML;
-
-	/**
-		* \brief Set human langage
-		*/
-	static void setLang(std::string lang);
 
 	/**
 	  * \brief Importation de traces à partir d'un document XML.
@@ -124,15 +106,6 @@ public:
 	  * \param traces le vecteur de traces dans lequel les nouvelles traces créées sont ajoutées.
 	  */
 	static void importTraceFromNode(rapidxml::xml_node<> *node, std::vector<Trace::sp_trace> &traces);
-
-	/**
-	  * \brief Détermination du nombre de noeuds fils d'un noeud dans un document XML.
-	  *
-	  * \param node le noeud dont l'on souhaite connaître le nombre de noeuds fils.
-	  *
-	  * \return le nombre de noeuds fils de \p node.
-	  */
-	static unsigned int getNodeChildCount(rapidxml::xml_node<> *node);
 
 	/**
 	  * \brief Analyse la chaine de caractère passée en paramètre et peut : (1) initialiser TracesParser::mission_name si le token GAME_START est detecté, (2) initialiser TracesParser::mission_end_time si le token MISSION_END_TIME est detecté, (3) initialiser TracesParser::execution_start_time si le token EXECUTION_START_TIME est detecté, (4) construire un objet Trace et le retourner (les objets Trace construits peuvent être des objets de type Call, StartMissionEvent, NewExecutionEvent, EndExecutionEvent, EndMissionEvent ou Event). A noter que pour les cas 1 à 3 NULL est retourné.
@@ -164,36 +137,8 @@ public:
 	  * Paramètres de compressions
 		*/
 	static std::string params_json;
-	
-
-	/**
-		* \brief Calcul du meilleur alignement possible entre deux vecteurs de traces.
-		*
-		* Cette fonction est la fonction permettant de déterminer le meilleur alignement possible entre les traces de \p l et les traces de \p e. Le traitement est effectué de façon récursive, i.e. que le meilleur alignement possible pour le contenu des séquences et de leurs sous-séquences est également cherché. Enfin, cette fonction permet également de calculer le score du joueur.
-		*
-		* \param l un vecteur de traces correspondant à l'apprenant
-		* \param e un vecteur de traces correspondant à l'expert
-		* \param align booléen permettant d'indiquer si le meilleur alignement trouvé doit être conservé, i.e. si les champs Trace::aligned doivent être modifiés. Sa valeur par défaut est vrai.
-		*
-		* \return un couple (gs,nv) où gs est le score de similarité brut (non normalisé) obtenu à partir du meilleur alignement trouvé et nv est la valeur de normalisation qui doit être utilisée pour ramener ce score dans l'intervalle [0,1].
-		*/
-	static std::pair<double, double> findBestAlignment(const std::vector<Trace::sp_trace> &l, const std::vector<Trace::sp_trace> &e, bool align = true);
 
 private:
-	/**
-	  * La valeur du timestamp de fin de mission.
-	  */
-	static int mission_end_time;
-
-	/**
-	  * La valeur du timestamp de début d'exécution d'une tentative de résolution.
-	  */
-	static int execution_start_time;
-
-	/**
-		* Language utilisé
-		*/
-	static std::string lang;
 
 	/**
 	  * Une séquence contenant les objets Trace créés lors du parsage du fichier de traces brutes. Lors de l'étape de compression, cette séquence est modifiée. A la fin de la compression, elle contient l'ensemble des traces compressées.
@@ -213,29 +158,12 @@ private:
 	void saveCompression();
 
 	/**
-	  * \brief Fonction de pré-compression
-	  *
-	  * Cette fonction est utilisée pour compacter directement (i.e. avant tout appel à TracesParser::offlineCompression) les appels qui se répètent dans la trace de façon contiguë. Elle permet ainsi de gagner un temps considérable dans certains cas comparé au temps de traitement qui serait requis par la fonction TracesParser::offlineCompression.
-	  *
-	  * \param spt une nouvelle trace à ajouter dans le vecteur TracesParser::traces.
-	  */
-	void inlineCompression(Trace::sp_trace &spt);
-
-	/**
 	  * \brief Fonction de compression
 	  *
 	  * Cette fonction est utilisée pour compacter la trace et appliqué plusieurs étapes de compression et de corrections
 	  *
 	  */
 	void offlineCompression();
-
-	/**
-	 * \brief Intègre une trace dans un ensemble de patterns. En sortie de cette fonction la liste des patterns peut être mise à jour
-	 * 
-	 * \param patterns liste des patterns dans lesquels insérer la trace. Suite à cet ajout de nouveaux scénarios peuvent être créés voir supprimés
-	 * \param currentTrace trace à insérer à la liste des patterns
-	*/
-	void insertTraceInsidePatterns(std::vector<Scenario::sp_scenario> & patterns, const Trace::sp_trace & currentTrace);
 
 	/**
 	  * \brief Export des traces contenues dans le vecteur TracesParser::traces sous la forme d'une chaîne de caractère.

@@ -60,11 +60,12 @@ class CallWithNoParam : public Call
 		return std::make_shared<CallWithNoParam>(this);
 	}
 
-  private:
-	virtual bool compare(const Call *c) const
+	bool compare(Trace *t)
 	{
-		return true;
+		return t->isCall(); 
 	}
+
+  private:
 
 	virtual void filter(const Call *c) {}
 
@@ -106,19 +107,22 @@ class CallWithIntParam : public Call
 		return std::make_shared<CallWithIntParam>(this);
 	}
 
+	bool compare(Trace *t)
+	{
+		if (t->isCall()){
+			const CallWithIntParam *cc = dynamic_cast<const CallWithIntParam *>(t);
+			if ((Call::callMaps.contains(key, "specialAreaId") ||
+				Call::callMaps.contains(key, "resourceId") ||
+				Call::callMaps.contains(key, "coalition")) &&
+				param != cc->param)
+				return false;
+			return true;
+		} else
+			return false;
+	}
+
   private:
 	int param;
-
-	virtual bool compare(const Call *c) const
-	{
-		const CallWithIntParam *cc = dynamic_cast<const CallWithIntParam *>(c);
-		if ((Call::callMaps.contains(key, "specialAreaId") ||
-			 Call::callMaps.contains(key, "resourceId") ||
-			 Call::callMaps.contains(key, "coalition")) &&
-			param != cc->param)
-			return false;
-		return true;
-	}
 
 	virtual void filter(const Call *c)
 	{
@@ -197,19 +201,23 @@ class CallWithIntIntParams : public Call
 		return std::make_shared<CallWithIntIntParams>(this);
 	}
 
+	bool compare(Trace *t)
+	{
+		if (t->isCall()){
+			const CallWithIntIntParams *cc = dynamic_cast<const CallWithIntIntParams *>(t);
+			if ((Call::callMaps.contains(key, "coalitionFirst") && param1 != cc->param1) || (Call::callMaps.contains(key, "indexSecond") && param2 != cc->param2))
+				return false;
+			if ((Call::callMaps.contains(key, "indexFirst") && param1 != cc->param1) || (Call::callMaps.contains(key, "coalitionSecond") && param2 != cc->param2))
+				return false;
+			return true;
+		}
+		else
+			return false;
+	}
+
   private:
 	int param1;
 	int param2;
-
-	virtual bool compare(const Call *c) const
-	{
-		const CallWithIntIntParams *cc = dynamic_cast<const CallWithIntIntParams *>(c);
-		if ((Call::callMaps.contains(key, "coalitionFirst") && param1 != cc->param1) || (Call::callMaps.contains(key, "indexSecond") && param2 != cc->param2))
-			return false;
-		if ((Call::callMaps.contains(key, "indexFirst") && param1 != cc->param1) || (Call::callMaps.contains(key, "coalitionSecond") && param2 != cc->param2))
-			return false;
-		return true;
-	}
 
 	virtual void filter(const Call *c)
 	{
@@ -302,16 +310,19 @@ class CallWithUnitParam : public Call
 		return std::make_shared<CallWithUnitParam>(this);
 	}
 
+	bool compare(Trace *t)
+	{
+		if (t->isCall()){
+			const CallWithUnitParam *cc = dynamic_cast<const CallWithUnitParam *>(t);
+			if ((Call::callMaps.contains(key, "unitId") && unit.id != cc->unit.id) || (Call::callMaps.contains(key, "unitType") && unit.type != cc->unit.type))
+				return false;
+			return true;
+		} else
+			return false;
+	}
+
   private:
 	CallMisc::Unit unit;
-
-	virtual bool compare(const Call *c) const
-	{
-		const CallWithUnitParam *cc = dynamic_cast<const CallWithUnitParam *>(c);
-		if ((Call::callMaps.contains(key, "unitId") && unit.id != cc->unit.id) || (Call::callMaps.contains(key, "unitType") && unit.type != cc->unit.type))
-			return false;
-		return true;
-	}
 
 	virtual void filter(const Call *c)
 	{
@@ -390,27 +401,30 @@ class CallWithUnitIntParams : public Call
 		return std::make_shared<CallWithUnitIntParams>(this);
 	}
 
+	bool compare(Trace *t)
+	{
+		if (t->isCall()){
+			const CallWithUnitIntParams *cc = dynamic_cast<const CallWithUnitIntParams *>(t);
+			if ((Call::callMaps.contains(key, "unitId") && unit.id != cc->unit.id) ||
+				(Call::callMaps.contains(key, "unitType") && unit.type != cc->unit.type) ||
+				(Call::callMaps.contains(key, "groupId") && param != cc->param))
+				return false;
+			if ((Call::callMaps.contains(key, "unitId") && unit.id != cc->unit.id) ||
+				(Call::callMaps.contains(key, "unitType") && unit.type != cc->unit.type) ||
+				(Call::callMaps.contains(key, "coalition") && param != cc->param))
+				return false;
+			if ((Call::callMaps.contains(key, "unitId") && unit.id != cc->unit.id) ||
+				(Call::callMaps.contains(key, "unitType") && unit.type != cc->unit.type) ||
+				(Call::callMaps.contains(key, "typeToCheck") && param != cc->param))
+				return false;
+			return true;
+		} else
+			return false;
+	}
+
   private:
 	CallMisc::Unit unit;
 	int param;
-
-	virtual bool compare(const Call *c) const
-	{
-		const CallWithUnitIntParams *cc = dynamic_cast<const CallWithUnitIntParams *>(c);
-		if ((Call::callMaps.contains(key, "unitId") && unit.id != cc->unit.id) ||
-			(Call::callMaps.contains(key, "unitType") && unit.type != cc->unit.type) ||
-			(Call::callMaps.contains(key, "groupId") && param != cc->param))
-			return false;
-		if ((Call::callMaps.contains(key, "unitId") && unit.id != cc->unit.id) ||
-			(Call::callMaps.contains(key, "unitType") && unit.type != cc->unit.type) ||
-			(Call::callMaps.contains(key, "coalition") && param != cc->param))
-			return false;
-		if ((Call::callMaps.contains(key, "unitId") && unit.id != cc->unit.id) ||
-			(Call::callMaps.contains(key, "unitType") && unit.type != cc->unit.type) ||
-			(Call::callMaps.contains(key, "typeToCheck") && param != cc->param))
-			return false;
-		return true;
-	}
 
 	virtual void filter(const Call *c)
 	{
@@ -517,20 +531,23 @@ class CallWithUnitIntIntParams : public Call
 		return std::make_shared<CallWithUnitIntIntParams>(this);
 	}
 
+	bool compare(Trace *t)
+	{
+		if (t->isCall()){
+			const CallWithUnitIntIntParams *cc = dynamic_cast<const CallWithUnitIntIntParams *>(t);
+			if ((Call::callMaps.contains(key, "unitId") && unit.id != cc->unit.id) ||
+				(Call::callMaps.contains(key, "unitType") && unit.type != cc->unit.type) ||
+				(Call::callMaps.contains(key, "action") && param1 != cc->param1) ||
+				(Call::callMaps.contains(key, "synchronized") && param2 != cc->param2))
+				return false;
+			return true;
+		} else
+			return false;
+	}
+
   private:
 	CallMisc::Unit unit;
 	int param1, param2;
-
-	virtual bool compare(const Call *c) const
-	{
-		const CallWithUnitIntIntParams *cc = dynamic_cast<const CallWithUnitIntIntParams *>(c);
-		if ((Call::callMaps.contains(key, "unitId") && unit.id != cc->unit.id) ||
-			(Call::callMaps.contains(key, "unitType") && unit.type != cc->unit.type) ||
-			(Call::callMaps.contains(key, "action") && param1 != cc->param1) ||
-			(Call::callMaps.contains(key, "synchronized") && param2 != cc->param2))
-			return false;
-		return true;
-	}
 
 	virtual void filter(const Call *c)
 	{
@@ -627,19 +644,22 @@ class CallWithIntUnitParams : public Call
 		return std::make_shared<CallWithIntUnitParams>(this);
 	}
 
+	bool compare(Trace *t)
+	{
+		if (t->isCall()){
+			const CallWithIntUnitParams *cc = dynamic_cast<const CallWithIntUnitParams *>(t);
+			if ((Call::callMaps.contains(key, "index") && param != cc->param) ||
+				(Call::callMaps.contains(key, "unitId") && unit.id != cc->unit.id) ||
+				(Call::callMaps.contains(key, "unitType") && unit.type != cc->unit.type))
+				return false;
+			return true;
+		} else
+			return false;
+	}
+
   private:
 	CallMisc::Unit unit;
 	int param;
-
-	virtual bool compare(const Call *c) const
-	{
-		const CallWithIntUnitParams *cc = dynamic_cast<const CallWithIntUnitParams *>(c);
-		if ((Call::callMaps.contains(key, "index") && param != cc->param) ||
-			(Call::callMaps.contains(key, "unitId") && unit.id != cc->unit.id) ||
-			(Call::callMaps.contains(key, "unitType") && unit.type != cc->unit.type))
-			return false;
-		return true;
-	}
 
 	virtual void filter(const Call *c)
 	{
@@ -727,21 +747,24 @@ class CallWithIntIntUnitParams : public Call
 		return std::make_shared<CallWithIntIntUnitParams>(this);
 	}
 
-  private:
-	CallMisc::Unit unit;
-	int param1;
-	int param2;
-
-	virtual bool compare(const Call *c) const
+	bool compare(Trace *t)
 	{
-		const CallWithIntIntUnitParams *cc = dynamic_cast<const CallWithIntIntUnitParams *>(c);
+		if (t->isCall()){
+		const CallWithIntIntUnitParams *cc = dynamic_cast<const CallWithIntIntUnitParams *>(t);
 		if ((Call::callMaps.contains(key, "paramIndex") && param1 != cc->param1) ||
 			(Call::callMaps.contains(key, "cmdIndex") && param2 != cc->param2) ||
 			(Call::callMaps.contains(key, "unitId") && unit.id != cc->unit.id) ||
 			(Call::callMaps.contains(key, "unitType") && unit.type != cc->unit.type))
 			return false;
 		return true;
+		} else
+			return false;
 	}
+
+  private:
+	CallMisc::Unit unit;
+	int param1;
+	int param2;
 
 	virtual void filter(const Call *c)
 	{
@@ -841,21 +864,24 @@ class CallWithIntUnitIntParams : public Call
 		return std::make_shared<CallWithIntUnitIntParams>(this);
 	}
 
+	bool compare(Trace *t)
+	{
+		if (t->isCall()){
+			const CallWithIntUnitIntParams *cc = dynamic_cast<const CallWithIntUnitIntParams *>(t);
+			if ((Call::callMaps.contains(key, "index") && param1 != cc->param1) ||
+				(Call::callMaps.contains(key, "unitId") && unit.id != cc->unit.id) ||
+				(Call::callMaps.contains(key, "unitType") && unit.type != cc->unit.type) ||
+				(Call::callMaps.contains(key, "action") && param3 != cc->param3))
+				return false;
+			return true;
+		} else
+			return false;
+	}
+
   private:
 	CallMisc::Unit unit;
 	int param1;
 	int param3;
-
-	virtual bool compare(const Call *c) const
-	{
-		const CallWithIntUnitIntParams *cc = dynamic_cast<const CallWithIntUnitIntParams *>(c);
-		if ((Call::callMaps.contains(key, "index") && param1 != cc->param1) ||
-			(Call::callMaps.contains(key, "unitId") && unit.id != cc->unit.id) ||
-			(Call::callMaps.contains(key, "unitType") && unit.type != cc->unit.type) ||
-			(Call::callMaps.contains(key, "action") && param3 != cc->param3))
-			return false;
-		return true;
-	}
 
 	virtual void filter(const Call *c)
 	{
@@ -960,23 +986,26 @@ class CallWithUnitIntUnitIntParams : public Call
 		return std::make_shared<CallWithUnitIntUnitIntParams>(this);
 	}
 
+	bool compare(Trace *t)
+	{
+		if (t->isCall()){
+			const CallWithUnitIntUnitIntParams *cc = dynamic_cast<const CallWithUnitIntUnitIntParams *>(t);
+			if ((Call::callMaps.contains(key, "unitId") && unit.id != cc->unit.id) ||
+				(Call::callMaps.contains(key, "unitType") && unit.type != cc->unit.type) ||
+				(Call::callMaps.contains(key, "action") && param1 != cc->param1) ||
+				(Call::callMaps.contains(key, "targetId") && target.id != cc->target.id) ||
+				(Call::callMaps.contains(key, "targetType") && target.type != cc->target.type) ||
+				(Call::callMaps.contains(key, "synchronized") && param2 != cc->param2))
+				return false;
+			return true;
+		} else
+			return false;
+	}
+
   private:
 	CallMisc::Unit unit;
 	int param1, param2;
 	CallMisc::Unit target;
-
-	virtual bool compare(const Call *c) const
-	{
-		const CallWithUnitIntUnitIntParams *cc = dynamic_cast<const CallWithUnitIntUnitIntParams *>(c);
-		if ((Call::callMaps.contains(key, "unitId") && unit.id != cc->unit.id) ||
-			(Call::callMaps.contains(key, "unitType") && unit.type != cc->unit.type) ||
-			(Call::callMaps.contains(key, "action") && param1 != cc->param1) ||
-			(Call::callMaps.contains(key, "targetId") && target.id != cc->target.id) ||
-			(Call::callMaps.contains(key, "targetType") && target.type != cc->target.type) ||
-			(Call::callMaps.contains(key, "synchronized") && param2 != cc->param2))
-			return false;
-		return true;
-	}
 
 	virtual void filter(const Call *c)
 	{
@@ -1114,22 +1143,25 @@ class CallWithUnitIntPosIntParams : public Call
 		return std::make_shared<CallWithUnitIntPosIntParams>(this);
 	}
 
+	bool compare(Trace *t)
+	{
+		if (t->isCall()){
+			const CallWithUnitIntPosIntParams *cc = dynamic_cast<const CallWithUnitIntPosIntParams *>(t);
+			if ((Call::callMaps.contains(key, "unitId") && unit.id != cc->unit.id) ||
+				(Call::callMaps.contains(key, "unitType") && unit.type != cc->unit.type) ||
+				(Call::callMaps.contains(key, "action") && param1 != cc->param1) ||
+				(Call::callMaps.contains(key, "position") && pos != cc->pos) ||
+				(Call::callMaps.contains(key, "synchronized") && param2 != cc->param2))
+				return false;
+			return true;
+		} else
+			return false;
+	}
+
   private:
 	CallMisc::Unit unit;
 	int param1, param2;
 	CallMisc::Position pos;
-
-	virtual bool compare(const Call *c) const
-	{
-		const CallWithUnitIntPosIntParams *cc = dynamic_cast<const CallWithUnitIntPosIntParams *>(c);
-		if ((Call::callMaps.contains(key, "unitId") && unit.id != cc->unit.id) ||
-			(Call::callMaps.contains(key, "unitType") && unit.type != cc->unit.type) ||
-			(Call::callMaps.contains(key, "action") && param1 != cc->param1) ||
-			(Call::callMaps.contains(key, "position") && pos != cc->pos) ||
-			(Call::callMaps.contains(key, "synchronized") && param2 != cc->param2))
-			return false;
-		return true;
-	}
 
 	virtual void filter(const Call *c)
 	{
@@ -1267,23 +1299,26 @@ class CallWithUnitIntFloatIntParams : public Call
 		return std::make_shared<CallWithUnitIntFloatIntParams>(this);
 	}
 
+	bool compare(Trace *t)
+	{
+		if (t-> isCall()){
+			const CallWithUnitIntFloatIntParams *cc = dynamic_cast<const CallWithUnitIntFloatIntParams *>(t);
+			if ((Call::callMaps.contains(key, "unitId") && unit.id != cc->unit.id) ||
+				(Call::callMaps.contains(key, "unitType") && unit.type != cc->unit.type) ||
+				(Call::callMaps.contains(key, "action") && param1 != cc->param1) ||
+				(Call::callMaps.contains(key, "param") && param2 != cc->param2) ||
+				(Call::callMaps.contains(key, "synchronized") && param3 != cc->param3))
+				return false;
+			return true;
+		} else
+			return false;
+	}
+
   private:
 	CallMisc::Unit unit;
 	int param1;
 	float param2;
 	int param3;
-
-	virtual bool compare(const Call *c) const
-	{
-		const CallWithUnitIntFloatIntParams *cc = dynamic_cast<const CallWithUnitIntFloatIntParams *>(c);
-		if ((Call::callMaps.contains(key, "unitId") && unit.id != cc->unit.id) ||
-			(Call::callMaps.contains(key, "unitType") && unit.type != cc->unit.type) ||
-			(Call::callMaps.contains(key, "action") && param1 != cc->param1) ||
-			(Call::callMaps.contains(key, "param") && param2 != cc->param2) ||
-			(Call::callMaps.contains(key, "synchronized") && param3 != cc->param3))
-			return false;
-		return true;
-	}
 
 	virtual void filter(const Call *c)
 	{

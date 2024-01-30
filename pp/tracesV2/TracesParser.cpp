@@ -1,30 +1,15 @@
 #include "TracesParser.h"
+#include "Sequence.h"
 #include "TraceConstantList.h"
-#include "Scenario.h"
 #include "VariantTKE.h"
+#include "CallDef.h"
 #include <cerrno>
 #include <utility>
 
-/**
-  * Doit être mis à 1 pour prendre en compte les événements de Event::concatEventsArr rencontrés lors du parsage de fichier de traces brutes.
-  */
-#define INCLUDE_EVENTS 0
-
 int TracesParser::TIME_LIMIT = 300;
-int TracesParser::CANDIDATE_LIMIT = 200;
-int TracesParser::DESCEND_LIMIT = 3;
 float TracesParser::GAP_RATIO = 0.5;
 bool TracesParser::outputLog = false;
 
-
-/**
-  * Seuil utilisé pour stopper et éviter toute future recherche de répétitions d'un groupe de traces à partir d'une trace.
-  */
-#define MAX_END_SEARCH 5
-
-int TracesParser::mission_end_time = 0;
-int TracesParser::execution_start_time = 0;
-std::string TracesParser::lang = "";
 std::string TracesParser::mission_name = "";
 std::string TracesParser::params_json = "";
 
@@ -321,93 +306,6 @@ Trace::sp_trace TracesParser::parseLine(const std::string &s)
 	return spt;
 }
 
-void TracesParser::inlineCompression(Trace::sp_trace &spt)
-{
-	bool add = false;
-	if (root->size() > 1)
-	{
-		// Get the last trace into this last sequence and look for the last Call
-		Sequence::sp_sequence parent_seq = root;
-		// Check if the last trace is a sequence
-		if (root->getTraces().back()->isSequence())
-		{
-			// While the last trace of this sequence is a sequence, we continue to progress inside
-			while (parent_seq->getTraces().back()->isSequence())
-				parent_seq = std::dynamic_pointer_cast<Sequence>(parent_seq->getTraces().back());
-			// Now "parent_seq" don't finish by a sequence
-		}
-		// Check if the last trace of this sequence is equal to the new trace
-		Trace::sp_trace lastTrace = parent_seq->getTraces().back();
-		if (spt->isCall() && lastTrace->operator==(spt.get()))
-		{
-			if (parent_seq->size() == 1)
-			{
-				// We include new trace in the sequence
-				parent_seq->addOne();
-			}
-			else
-			{
-				// We filter newCall with the previous one
-				Call::sp_call newCall = std::dynamic_pointer_cast<Call>(spt);
-				newCall->filterCall(std::dynamic_pointer_cast<Call>(lastTrace).get());
-				// We create a new sequence to store merge result
-				Sequence::sp_sequence new_seq = std::make_shared<Sequence>(2);
-				// Add this new filtered trace into the new sequence
-				new_seq->addTrace(newCall);
-				// Remove the last trace of the parent sequence and we replace it by the new sequence
-				parent_seq->getTraces().pop_back();
-				parent_seq->addTrace(new_seq);
-			}
-			add = true;
-		}
-	}
-	// If no direct compression occurs we add the new trace at the end of traces
-	if (!add)
-		root->addTrace(spt);
-}
-
-class ScoredSequence {
-	public:
-		Scenario::sp_scenario scenario;
-		Sequence::sp_sequence sequence;
-		
-		ScoredSequence(Sequence::sp_sequence newRoot){
-			sequence = newRoot;
-			scenario = std::make_shared<Scenario>(newRoot->getLinearSequence(), 0, 0);
-		};
-		
-		ScoredSequence(Scenario::sp_scenario newscenario, Sequence::sp_sequence newsequence){
-			scenario = newscenario;
-			sequence = newsequence;
-		};
-};
-
-bool sortFunction2 (Scenario::sp_scenario a, Scenario::sp_scenario b) { return ((a->score > b->score) || (a->score==b->score && a->getLength()<b->getLength())) ; }
-bool sortFunction (ScoredSequence a, ScoredSequence b) { return sortFunction2(a.scenario, b.scenario); }
-
-double calculer_kieme(std::vector<Scenario::sp_scenario> patterns, int k){
-	if(k>=(int)patterns.size()){
-		return 0.0;
-	}
-	std::vector<double> tab;
-	for(unsigned int i=0; i<patterns.size(); i++){
-		tab.push_back(patterns[i]->score);
-	}
-	std::sort(tab.begin(), tab.end());
-	return tab[k];
-}
-
-bool vectorTracesSame(std::vector<Trace::sp_trace> v1, std::vector<Trace::sp_trace> v2){
-	if(v1.size()!=v2.size())
-		return false;
-	for(unsigned int i=0; i<v1.size(); ++i)
-	{
-		if(!v1[i]->operator==(v2[i].get()))
-			return false;
-	}
-	return true;
-}
-
 void TracesParser::offlineCompression()
 {
 	clock_t t0, dt;
@@ -421,8 +319,9 @@ void TracesParser::offlineCompression()
 	
 	Episode::sp_episode best_episode;
 	do{
+		Sequence::sp_sequence rootCopy = std::dynamic_pointer_cast<Sequence>(root->clone());
 		// Recherche du meilleur pattern avec notre adaptation de TKE
-		best_episode = tke.runAlgorithm(root);
+		best_episode = tke.runAlgorithm(rootCopy);
 		if(best_episode	== 0 || best_episode->getSupport() <= 1) // cas d'arrêt de la boucle
 			break;
 		// couper si ça prend trop de temps
@@ -439,26 +338,26 @@ void TracesParser::offlineCompression()
 		std::vector<Trace::sp_trace> bestPattern = seq->getLinearSequence();
 
 		std::pair<int, int> mergedEpisode = best_episode->boundlist.back();
-		std::vector<Trace::sp_trace> merge = Sequence::mergeLinearSequences(root->getSubSequence(mergedEpisode.first, mergedEpisode.second+1)->getLinearSequence(), bestPattern);
-		unsigned int mergeCount = 0;
-		int rootSize = root->getLinearSequence().size();
+		std::vector<Trace::sp_trace> merge = Sequence::mergeLinearSequences(rootCopy->getSubSequence(mergedEpisode.first, mergedEpisode.second+1)->getLinearSequence(), bestPattern);
+		unsigned int mergeCount = 1;
+		int rootSize = rootCopy->getLinearSequence().size();
 		// Parcourir tous les épisodes (de l'avant dernier au premier)
 		for (int i = best_episode->boundlist.size()-2 ; i >= 0 ; i--){
 			std::pair<int, int> currentEpisode = best_episode->boundlist[i];
 			// vérifier si l'écart entre cet épisode et le précédent est inférieur au seuil
 			if ((float)(mergedEpisode.first - currentEpisode.second - 1)/rootSize <= GAP_RATIO){
 				// conversion de l'épisode courant en une séquence linéarisée (on inclus toutes les traces intercallées entre la fin de l'épisode courrant et le début des épisodes précédement fusionnés)
-				std::vector<Trace::sp_trace> episode = root->getSubSequence(currentEpisode.first, mergedEpisode.first)->getLinearSequence();
+				std::vector<Trace::sp_trace> episode = rootCopy->getSubSequence(currentEpisode.first, mergedEpisode.first)->getLinearSequence();
 				// calcule la fusion entre le dernier état de fusion et ce nouvel épisode
 				merge = Sequence::mergeLinearSequences(episode, merge);
 				mergedEpisode.first = currentEpisode.first; // on étend la plage de la fusion pour englober ce nouvel épisode
 			} else {
-				// injection de cette fusion dans le root
-				// suppression de la partie du root devant être remplacé par le pattern
-				std::vector<Trace::sp_trace> & traces = root->getTraces();
+				// injection de cette fusion dans le rootCopy
+				// suppression de la partie du rootCopy devant être remplacé par le pattern
+				std::vector<Trace::sp_trace> & traces = rootCopy->getTraces();
 				traces.erase(traces.begin()+mergedEpisode.first, traces.begin()+mergedEpisode.second+1);
 				// Incrustation du pattern dans le clone
-				root->insertLinearSequence(merge, mergedEpisode.first);
+				rootCopy->insertLinearSequence(merge, mergedEpisode.first);
 
 				// on réinitialise la fusion au pattern fournit par TKE
 				merge = Sequence::cloneLinearSequence(bestPattern);
@@ -467,185 +366,21 @@ void TracesParser::offlineCompression()
 				mergeCount++;
 			}
 		}
-		// injection de la dernière fusion dans le root
-		// suppression de la partie du root devant être remplacé par le pattern
-		std::vector<Trace::sp_trace> & traces = root->getTraces();
+		// injection de la dernière fusion dans le rootCopy
+		// suppression de la partie du rootCopy devant être remplacé par le pattern
+		std::vector<Trace::sp_trace> & traces = rootCopy->getTraces();
 		traces.erase(traces.begin()+mergedEpisode.first, traces.begin()+mergedEpisode.second+1);
 		// Incrustation du pattern dans le clone
-		root->insertLinearSequence(merge, mergedEpisode.first);
+		rootCopy->insertLinearSequence(merge, mergedEpisode.first);
 
-		// si le nombre d'intégration au root est égal au nombre d'épisode c'est qu'on n'a pas réussi à faire du fusion entre épisodes. Chaque épisode a été réinjecté dans le root. Donc on s'arrête.
+		// si le nombre d'intégration au rootCopy est égal au nombre d'épisode c'est qu'on n'a pas réussi à faire de fusion entre épisodes. Chaque épisode a été réinjecté dans le rootCopy. Donc on s'arrête.
 		if (mergeCount == best_episode->boundlist.size())
 			break;
-	}while(true);
-
-
-
-
-
-
-
-
-/*	
-	std::vector<ScoredSequence> roots;
-
-	// enregistrement d'un premier root avec la trace brute
-	roots.push_back(ScoredSequence(std::dynamic_pointer_cast<Sequence>(root->clone())));
-	// parcourir tous les roots (ils sont ajoutés en queue de vecteur au fur et à mesure qu'ils sont découverts)
-	for (unsigned int r = 0 ; r < roots.size() && !has_passed_limite ; r++)
-	{
-		// récupération du root courant
-		Sequence::sp_sequence rootSequence = roots[r].sequence;
-		if (TracesParser::outputLog){
-			std::cout << "NEW PASS (" << (r+1) << "/" << roots.size() << ")" << std::endl;
-			rootSequence->exportAsString();
-		}
-
-		// Réinitialiser le flag qui permet de savoir si on est en train de tourner dans une boucle, par sécurité on reset toutes les séquences du pattern
-		for (int i = 0 ; i < (signed)roots[r].scenario->pattern.size() ; i++)
-			if (roots[r].scenario->pattern[i]->isSequence() && roots[r].scenario->pattern[i]->getInfo().compare("Begin") == 0)
-				std::dynamic_pointer_cast<Sequence>(roots[r].scenario->pattern[i])->newIter = false;
-
-		// Recherche du meilleur pattern avec notre adaptation de TKE
-		Episode::sp_episode best_episode = tke.runAlgorithm(rootSequence);
-		// si on n'a pas de best pattern ou que son support est de 1 (pas de répétitions) => passer au root suivant
-		if(best_episode	== 0 || best_episode->getSupport() <= 1){
-			continue;
-		}
-
-		std::vector<Scenario::sp_scenario> patterns;
-
-		// transform best episode into a sequence
-		Sequence::sp_sequence seq = std::make_shared<Sequence>(0, false, false);
-		for(unsigned int i=0; i<best_episode->events.size(); ++i)
-			seq->addTrace(best_episode->events.at(i)->clone());
-		// add this sequence to the patterns to merge
-		patterns.push_back(std::make_shared<Scenario>(seq->getLinearSequence()));
-
-		// parcours du meilleur episode de la position de sa première apparition à la position de sa dernière apparition et fusion de chaque évènement dans chacun des patterns
-		for (int currentPos = best_episode->boundlist[0].first; currentPos <= best_episode->boundlist.back().second; currentPos++)
-		{	// récupération de la trace courante
-			Trace::sp_trace currentTrace = rootSequence->at(currentPos);
-
-			dt = clock() - t0;
-			if(TIME_LIMIT>0 && dt >= TIME_LIMIT*CLOCKS_PER_SEC){
-				has_passed_limite = true;
-				break;
-			}
-
-			if (TracesParser::outputLog){
-				std::cout<<"Scenario "<< (r+1) << "/" << roots.size() << ": merge trace "<<currentPos<<"/"<<best_episode->boundlist.back().second<<" inside "<<patterns.size()<<" patterns (time elapsed:"<<dt/CLOCKS_PER_SEC<<")"<<std::endl;
-			}
-
-			insertTraceInsidePatterns(patterns, currentTrace);
-
-			if(patterns.size()==0){
-				// plus de pattern disponible
-				break;
-			}
-		} // fin boucle : descente dans la trace
-
-		// ne pas retenir les patterns qui n'ont pas permis de réduire la trace
-		for (int i = (signed)patterns.size()-1 ; i >= 0 ; i--)
-		{
-			if (patterns[i]->getLength() >= best_episode->boundlist.back().second - best_episode->boundlist[0].first)
-				patterns.erase(patterns.begin()+i);
-		}
 		
-		int minLength = INT_MAX;
-
-		// Maintenant qu'on a terminé de parcourir la trace, on créé autant de nouveaux roots que de patterns conservés pour poursuivre leur exploration
-		int nbInsertion = 0;
-		for (unsigned int i = 0 ; i < patterns.size() ; i++)
-		{
-			// On ignore tous les patterns qui contiendraient des calls non optionnelles au delà de la position du dernier ajout. En effet si le dernier call du root a été intégré en plein milieu d'un scénario et que ce scénario inclus dans la suite des calls obligatoires (non optionnels), cela signifierait que ce pattern produirait des calls au dela de la dernière trace du root... Ce qui n'est pas possible vue que le root est terminé, donc ce pattern est faux
-			if (Sequence::getNonOptCallInLinearSequence(patterns[i]->pattern, patterns[i]->position+1) > 0)
-				continue;
-
-			// Vérifier que ce pattern n'a pas déjà été traité dans les scénarios déjà enregistrés
-			bool found = false;
-			for (unsigned int j = 0 ; j < roots.size() && !found ; j++)
-				found = roots[j].scenario->isEqualWith(patterns[i]);
-			if (!found){
-				ScoredSequence ss = ScoredSequence(patterns[i], std::dynamic_pointer_cast<Sequence>(rootSequence->clone()));
-Sequence::exportLinearSequenceAsString(patterns[i]->pattern);
-				roots.insert(roots.begin()+r+nbInsertion+1, ss); // insertion pour une analyse en profondeur d'abord
-				nbInsertion++;
-				// Prise en compte de la qualité du pattern inclus
-				ss.scenario->alignCount += roots[r].scenario->alignCount;
-				ss.scenario->optCount += roots[r].scenario->optCount;
-				// suppression de la partie du root devant être remplacé par le pattern
-				std::vector<Trace::sp_trace> & traces = ss.sequence->getTraces();
-				traces.erase(traces.begin() +best_episode->boundlist[0].first, traces.begin()+best_episode->boundlist.back().second+1);
-				// Incrustation du pattern dans le clone
-				ss.sequence->insertLinearSequence(patterns[i]->pattern, best_episode->boundlist[0].first);
-				minLength = (signed)ss.sequence->length() < minLength ? ss.sequence->length() : minLength;
-			}
-		}
-		if (minLength != INT_MAX){
-			// mis à jour du scrore de tous les scénarios
-			for (unsigned int i = 0 ; i < roots.size() ; i++){
-				roots[i].scenario->updateScore(minLength);
-			}
-		}*/
-
-		// Suite de Yufei...
-
-		/*int maxAligned = 0;
-		// Récupération de la longeur de la trace la plus courte
-		int minLength = INT_MAX;
-		for (unsigned int i = 0 ; i < patterns.size() ; i++){
-			int len = patterns[i]->getLength();
-			minLength = len < minLength ? len : minLength;
-		}
-
-		// Récupération des traces du root en cours de compression
-		std::vector<Trace::sp_trace> vec_traces = rootSequence->getTraces();
-		// Récupération de la portion comprise dans la fenêtre du meilleur des épisodes 
-		std::vector<Trace::sp_trace> sub_traces(vec_traces.begin()+best_episode->boundlist[0].first, vec_traces.begin()+best_episode->boundlist.back().second+1);
-
-		patterns.push_back(std::make_shared<Scenario>(sub_traces, 0, 0, (best_episode->boundlist.back().second+1 - best_episode->boundlist[0].first), 0, 0 ));
-		patterns.back()->position = patterns.back()->pattern.size()-1;
-		for (unsigned int i = 0 ; i < patterns.size() ; i++){
-			patterns[i]->updateScore( minLength, maxAligned	);
-		}
-		std::sort(patterns.begin(), patterns.end(), sortFunction2);
-		for (int i = (signed)patterns.size()-1 ; i>=0 ; --i){
-			if(patterns[i]->checkEnd() == 0){
-				patterns.erase(patterns.begin()+i);
-			}
-		}
-
-		Scenario::sp_scenario sps = patterns[0];
-
-		//remplacement la trace brute avec le meilleur scénario que nous avons trouvé 
-		if(!vectorTracesSame(sps->pattern, sub_traces)){
-			roots.push_back(ScoredSequence(sps, std::dynamic_pointer_cast<Sequence>(rootSequence->clone())));
-			std::vector <Trace::sp_trace> &traces = roots.back().sequence->getTraces();
-	        traces.erase(traces.begin() +best_episode->boundlist[0].first, traces.begin()+best_episode->boundlist.back().second+1);
-			roots.back().sequence->insertLinearSequence(patterns[0]->pattern, best_episode->boundlist[0].first);
-
-
-			//std::vector<Trace::sp_trace> vec_traces = rootSequence->getTraces();
-			std::vector<Trace::sp_trace> vec_prev, vec_post;
-			for(int prev_pos=0; prev_pos<best_episode->boundlist[0].first; ++prev_pos){
-				vec_prev.push_back(vec_traces[prev_pos]);
-			}
-			for(int post_pos=best_episode->boundlist.back().second+1; post_pos<(int)vec_traces.size(); ++post_pos){
-				vec_post.push_back(vec_traces[post_pos]);
-			}
-			if(vec_prev.size()>0){
-				roots.back().scenario->insertTraces(0, vec_prev);
-				// roots.back().sequence->insertTraces(0, vec_prev);
-			}
-			if(vec_post.size()>0){
-				roots.back().scenario->insertTraces(1, vec_post);
-				// roots.back().sequence->insertTraces(1, vec_post);
-			}
-		}*/
-/*	}
-
-	std::sort(roots.begin(), roots.end(), sortFunction);*/
+		// validation du rootCopy
+		root = rootCopy;
+		
+	}while(true);
 
 	if(has_passed_limite)
 		osParser << "Over Time!\n";
@@ -660,125 +395,6 @@ Sequence::exportLinearSequenceAsString(patterns[i]->pattern);
 	root->exportAsCompressedString(osParser);
 
 	//root = roots.begin()->sequence;
-}
-
-void TracesParser::insertTraceInsidePatterns(std::vector<Scenario::sp_scenario> & patterns, const Trace::sp_trace & currentTrace){
-	/*if (TracesParser::outputLog){
-		std::cout << "Current trace :";
-		currentTrace->exportAsString();
-	}
-	// calcul du meilleur score parmis les patterns
-	float maxScore = 0;
-	// Positionner chaque pattern sur son prochain Call et enregistrer les nouveaux patterns générés en conséquence
-	std::vector<Scenario::sp_scenario> new_patterns;
-	for (unsigned int i = 0 ; i < patterns.size() ; i++){
-		if (patterns[i]->score > maxScore)
-			maxScore = patterns[i]->score;
-		std::vector<Scenario::sp_scenario> results = patterns[i]->simulateMoveToNextCall();
-		new_patterns.insert(new_patterns.end(), results.begin(), results.end());
-	}
-	patterns = std::move(new_patterns);
-	if(patterns.size()==0){
-		// plus de pattern disponible
-		return;
-	}
-
-	// Récupération de la longeur de la trace la plus courte
-	int minLength = INT_MAX;
-	for (unsigned int i = 0 ; i < patterns.size() ; i++){
-		int len = patterns[i]->getLength();
-		minLength = len < minLength ? len : minLength;
-	}
-
-	// Fusion du Call courrant du root dans chaque pattern et enregistrer les nouveaux patterns générés en conséquence et non encore explorés
-	std::vector<Scenario::sp_scenario> results;
-	for (unsigned int i = 0 ; i < patterns.size() ; i++){
-		std::vector<Scenario::sp_scenario> sim = patterns[i]->simulateNewTraceIntegration(std::dynamic_pointer_cast<Call>(currentTrace), maxScore, minLength); reprendre là
-		// déterminer si ces nouvelles simulations sont à explorer
-		for (unsigned int j = 0 ; j < sim.size() ; j++){
-			// Supprimer les anciens résultats qui seraient plus large (inclusion) que la nouvelle simulation donc plus compacte
-			for (int k = (signed)results.size()-1 ; k >= 0 ; k--){
-				if (sim[j]->isIncludedIn(results[k]))
-					results.erase(results.begin()+k); // cet ancien résultat inclut la nouvelle simulation => il est donc plus large => on le supprime
-			}
-			// Vérifier que la nouvelle simulation n'est pas incluse dans un ancien résultat
-			bool included = false;
-			for (int k = (signed)results.size()-1 ; k >= 0 && !included; k--){
-				if (results[k]->isIncludedIn(sim[j]))
-					included = true; // cet ancien résultat est inclus dans la nouvelle simulation => il est donc plus compact => on saute cette nouvelle simulation
-			}
-			//if (!sim[j]->existsIn(results))
-			if (!included)
-				results.push_back(sim[j]); // on ajoute cette nouvelle simulation que si elle n'est pas incluse dans un ancien résultat
-		}
-	}
-	patterns = std::move(results);
-	if(patterns.size()==0){
-		// plus de pattern disponible
-		return;
-	}
-	
-	// Mise à jour de la longeur de la trace la plus courte
-	for (unsigned int i = 0 ; i < patterns.size() ; i++){
-		int len = patterns[i]->getLength();
-		minLength = len < minLength ? len : minLength;
-	}
-
-	// Mise à jour du score de chaque pattern et calcul du score maximum
-	patterns[0]->updateScore(minLength);
-	maxScore = patterns[0]->score;
-	for (unsigned int i = 1 ; i < patterns.size() ; i++){
-		patterns[i]->updateScore( minLength	);
-		if (patterns[i]->score > maxScore){
-			maxScore = patterns[i]->score;
-		}
-	}
-
-	// Suppression de tous les patterns qui ont un score qui ne cesse de diminuer ou trop faible
-	for (int i = (signed)patterns.size()-1 ; i >= 0 ; i--){
-		if (patterns[i]->num_descend >= DESCEND_LIMIT || patterns[i]->score < maxScore - Scenario::SCORE_TOLERENCE * maxScore){
-			patterns.erase(patterns.begin()+i);
-		}
-	}
-
-	std::sort(patterns.begin(), patterns.end(), sortFunction2);
-	// On ne garde que les CANDIDATE_LIMIT meilleurs patterns
-	if((int)patterns.size()>CANDIDATE_LIMIT){
-		patterns.erase(patterns.begin()+CANDIDATE_LIMIT, patterns.end());
-	}
-	
-	else{
-		// Ici on doit insérer une séquence dans tous les patterns
-		// Positionner chaque pattern sur sa prochaine Trace
-
-		// 2 cas possibles :
-		//   1 - mettre cette séquence en optionnel et donc la sauter
-		//   2 - entrer dans cette séquence pour tenter de s'aligner avec son contenu
-
-		Sequence::sp_sequence currentSeq = std::dynamic_pointer_cast<Sequence>(currentTrace);
-		
-		// cas 1 
-		// Cloner le pattern
-		Sequence::sp_sequence clonedSq = currentSeq->clone();
-		// Mettre la séquence en optionnelle
-		clonedSq->setOptional(true);
-		// On insère cette séquence optionnelle dans le pattern
-		tmpSc->pattern.insert(tmpSc->pattern.begin()+endSeqPos, rootCall->clone());
-
-
-		// On positionne ce clone sur la fin de la séquence
-		clonedSc->position = endSeqPos;
-		// Et on fait un appel récursif pour atteindre le prochain Call
-		std::vector<Scenario::sp_scenario> res = clonedSc->simulateMoveToNextCall();
-		results.insert(results.end(), res.begin(), res.end());
-		while (!currentSeq->isEndReached()){
-			insertTraceInsidePatterns(patterns, currentSeq->next());
-			if(patterns.size()==0){
-				// plus de pattern disponible
-				return;
-			}
-		}
-	}*/
 }
 
 void TracesParser::exportTracesAsString(std::ostream &os)
@@ -899,19 +515,6 @@ void TracesParser::importTraceFromNode(rapidxml::xml_node<> *node, std::vector<T
 	}
 }
 
-unsigned int TracesParser::getNodeChildCount(rapidxml::xml_node<> *node)
-{
-	unsigned int i = 0;
-	for (rapidxml::xml_node<> *child = node->first_node(); child; child = child->next_sibling())
-		i++;
-	return i;
-}
-
-void TracesParser::setLang(std::string lang)
-{
-	TracesParser::lang = lang;
-}
-
 std::vector<std::string> TracesParser::splitLine(const std::string &s, char delim)
 {
 	std::vector<std::string> buf;
@@ -966,221 +569,4 @@ float TracesParser::stof(const std::string &s)
 		exit(EXIT_FAILURE);
 	}
 	return res;
-}
-
-
-/**
-  * Cette valeur comprise dans l'intervalle [1,+inf] est utilisée pour définir l'intervalle de définition du bonus ajouté au score de similarité dans le cas de la tentative d'alignement entre deux séquences.
-  */
-#define IND_SEQ_NUM_CONST 4
-/**
-  * Score utilisé pour l'alignement. Correspond au pire score possible pour l'alignement. Les deux traces comparées ne seront jamais alignées.
-  */
-#define ALIGN_MISMATCH_SCORE -1
-/**
-  * Score utilisé pour l'alignement. Correpond au score obtenu si on aligne la trace avec rien (introduction d'un trou).
-  */
-#define ALIGN_GAP_SCORE 0
-#define INF -1
-#define SUP 1
-/**
-  * Macro utilisée pour changer l'intervalle de définition du score de [0,1] à [TracesAnalyser::INF,TracesAnalyser::SUP].
-  */
-#define TRANSFORM_SCORE(val) ((SUP - INF) * val + INF)
-
-std::pair<double, double> TracesParser::findBestAlignment(const std::vector<Trace::sp_trace> &l, const std::vector<Trace::sp_trace> &e, bool align)
-{
-	int cpt_path = 0;
-	unsigned int lsize = l.size() + 1, esize = e.size() + 1;
-	double score = 0, norm = 0;
-	std::pair<double, double> **val = new std::pair<double, double> *[lsize];
-	std::pair<int, int> **ind = new std::pair<int, int> *[lsize];
-	char **help = new char *[lsize];
-#ifdef DEBUG_PARSER
-	osParser << "begin findBestAlignment" << std::endl;
-#endif
-	for (unsigned int i = 0; i < l.size(); i++)
-	{
-#ifdef DEBUG_PARSER
-		l.at(i)->exportAsString(osParser);
-#endif
-		if (align)
-			l.at(i)->resetAligned();
-	}
-#ifdef DEBUG_PARSER
-	osParser << std::endl;
-#endif
-	for (unsigned int j = 0; j < e.size(); j++)
-	{
-#ifdef DEBUG_PARSER
-		e.at(j)->exportAsString(osParser);
-#endif
-		if (align)
-			e.at(j)->resetAligned();
-	}
-#ifdef DEBUG_PARSER
-	osParser << std::endl;
-#endif
-	for (unsigned int i = 0; i < lsize; i++)
-	{
-		val[i] = new std::pair<double, double>[esize];
-		ind[i] = new std::pair<int, int>[esize];
-		help[i] = new char[esize];
-	}
-	for (unsigned int i = 0; i < lsize; i++)
-	{
-		val[i][0] = std::pair<double, double>(ALIGN_GAP_SCORE * i, 0);
-		ind[i][0] = std::pair<int, int>(i - 1, 0);
-		help[i][0] = 'h';
-	}
-	for (unsigned int j = 1; j < esize; j++)
-	{
-		val[0][j] = std::pair<double, double>(ALIGN_GAP_SCORE * j, 0);
-		ind[0][j] = std::pair<int, int>(0, j - 1);
-		help[0][j] = 'g';
-	}
-	for (unsigned int i = 1; i < lsize; i++)
-	{
-		for (unsigned int j = 1; j < esize; j++)
-		{
-			val[i][j] = std::pair<double, double>(0, 0);
-			ind[i][j] = std::pair<int, int>(i - 1, j - 1);
-			double match_score = 0;
-			if (l.at(i - 1)->isCall() && e.at(j - 1)->isCall())
-			{
-				Call::sp_call learner_spc = std::dynamic_pointer_cast<Call>(l.at(i - 1));
-				Call::sp_call expert_spc = std::dynamic_pointer_cast<Call>(e.at(j - 1));
-				match_score = 1 - learner_spc->getEditDistance(expert_spc.get());
-				val[i][j].second = match_score;
-				match_score = TRANSFORM_SCORE(match_score);
-			}
-			else if (l.at(i - 1)->isSequence() && e.at(j - 1)->isSequence())
-			{
-				Sequence::sp_sequence learner_sps = std::dynamic_pointer_cast<Sequence>(l.at(i - 1));
-				Sequence::sp_sequence expert_sps = std::dynamic_pointer_cast<Sequence>(e.at(j - 1));
-				std::pair<double, double> res = findBestAlignment(learner_sps->getTraces(), expert_sps->getTraces(), false);
-				match_score = res.first;
-				val[i][j].second = match_score;
-				if (expert_sps->hasNumberIterationFixed() && !learner_sps->isImplicit() && !expert_sps->isImplicit())
-				{
-					double mean_dis = learner_sps->getIterationDescriptionMeanDistance(expert_sps);
-					val[i][j].second += (1 - mean_dis) * (res.second / IND_SEQ_NUM_CONST);
-				}
-				match_score /= res.second;
-				match_score = TRANSFORM_SCORE(match_score);
-			}
-			else
-				match_score = ALIGN_MISMATCH_SCORE;
-			val[i][j].first = val[i - 1][j - 1].first + match_score;
-			help[i][j] = 'd';
-			if (val[i - 1][j].first + ALIGN_GAP_SCORE > val[i][j].first && val[i - 1][j].first + ALIGN_GAP_SCORE > val[i][j - 1].first + ALIGN_GAP_SCORE)
-			{
-				val[i][j].first = val[i - 1][j].first + ALIGN_GAP_SCORE;
-				val[i][j].second = 0;
-				ind[i][j].second++;
-				help[i][j] = 'h';
-			}
-			else if (val[i][j - 1].first + ALIGN_GAP_SCORE > val[i][j].first)
-			{
-				val[i][j].first = val[i][j - 1].first + ALIGN_GAP_SCORE;
-				val[i][j].second = 0;
-				ind[i][j].first++;
-				help[i][j] = 'g';
-			}
-			if ((val[i][j].first == val[i - 1][j].first + ALIGN_GAP_SCORE && val[i][j].first >= val[i][j - 1].first + ALIGN_GAP_SCORE) || (val[i][j].first == val[i][j - 1].first + ALIGN_GAP_SCORE && val[i][j].first > val[i - 1][j].first + ALIGN_GAP_SCORE) || (val[i - 1][j].first + ALIGN_GAP_SCORE == val[i][j - 1].first + ALIGN_GAP_SCORE && val[i][j - 1].first + ALIGN_GAP_SCORE > val[i][j].first))
-				cpt_path++;
-		}
-	}
-#ifdef DEBUG_PARSER
-	for (unsigned int i = 0; i < lsize; i++)
-	{
-		for (unsigned int j = 0; j < esize; j++)
-			osParser << "(" << val[i][j].first << "," << val[i][j].second << ")\t";
-		osParser << std::endl;
-	}
-	osParser << std::endl;
-	for (unsigned int i = 0; i < lsize; i++)
-	{
-		for (unsigned int j = 0; j < esize; j++)
-			osParser << "(" << ind[i][j].first << "," << ind[i][j].second << ")\t";
-		osParser << std::endl;
-	}
-	osParser << std::endl;
-	for (unsigned int i = 0; i < lsize; i++)
-	{
-		for (unsigned int j = 0; j < esize; j++)
-			osParser << help[i][j] << "\t";
-		osParser << std::endl;
-	}
-	osParser << std::endl;
-#endif
-	std::vector< std::pair<int, int> > p;
-	std::pair<int, int> pind = ind[lsize - 1][esize - 1];
-	score += val[lsize - 1][esize - 1].second;
-	while (pind.first >= 0 && pind.second >= 0)
-	{
-		p.push_back(pind);
-		score += val[pind.first][pind.second].second;
-		pind = ind[pind.first][pind.second];
-	}
-	std::reverse(p.begin(), p.end());
-
-#ifdef DEBUG_PARSER
-	osParser << "path : ";
-	for (unsigned int i = 0; i < p.size(); i++)
-		osParser << "(" << p.at(i).first << "," << p.at(i).second << ") ";
-	osParser << std::endl;
-#endif
-
-	for (unsigned int i = 0; i < p.size(); i++)
-	{
-		double norm_val = 1;
-		int indi = p.at(i).first, indj = p.at(i).second;
-		if ((i < p.size() - 1 && indi == p.at(i + 1).first) || indi >= (int)l.size())
-		{
-			if (align)
-				e.at(indj)->resetAligned();
-		}
-		else if ((i < p.size() - 1 && indj == p.at(i + 1).second) || indj >= (int)e.size())
-		{
-			if (align)
-				l.at(indi)->resetAligned();
-		}
-		else
-		{
-			if (l.at(indi)->isSequence() && e.at(indj)->isSequence())
-			{
-				Sequence::sp_sequence learner_sps = std::dynamic_pointer_cast<Sequence>(l.at(indi));
-				Sequence::sp_sequence expert_sps = std::dynamic_pointer_cast<Sequence>(e.at(indj));
-				std::pair<double, double> res = findBestAlignment(learner_sps->getTraces(), expert_sps->getTraces(), align);
-				norm_val = res.second;
-				if (expert_sps->hasNumberIterationFixed() && !learner_sps->isImplicit() && !expert_sps->isImplicit())
-					norm_val += res.second / IND_SEQ_NUM_CONST;
-			}
-			if (align)
-			{
-				l.at(indi)->setAligned(e.at(indj));
-				e.at(indj)->setAligned(l.at(indi));
-			}
-		}
-		norm += norm_val;
-	}
-
-	for (unsigned int i = 0; i < lsize; i++)
-	{
-		delete[] val[i];
-		delete[] ind[i];
-		delete[] help[i];
-	}
-	delete[] val;
-	delete[] ind;
-	delete[] help;
-#ifdef DEBUG_PARSER
-	if (cpt_path == 0)
-		osParser << "only one path" << std::endl;
-	else
-		osParser << "more than one path" << std::endl;
-	osParser << "end findBestAlignment " << score << "/" << norm << std::endl;
-#endif
-	return std::pair<double, double>(score, norm);
 }

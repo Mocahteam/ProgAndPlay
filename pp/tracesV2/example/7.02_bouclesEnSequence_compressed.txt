@@ -1,10 +1,13 @@
 	PP_Open
-	PP_GetNumUnits - 11.000000
+	Sequence < 0:1 >
+		PP_GetNumUnits - 11.000000
+	EndSequence
 	Sequence < 0:0.142857,2:0.857143 >
 		PP_GetUnitAt - ?
 		optional PP_Unit_ActionOnPosition
 		optional PP_Unit_GetType - ?
-		PP_GetNumUnits - 11.000000
-		optional PP_GetNumUnits - 11.000000
+		Sequence < 0:0.619048,1:0.047619,2:0.333333 >
+			PP_GetNumUnits - 11.000000
+		EndSequence
 	EndSequence
 	PP_Close

@@ -1,7 +1,7 @@
 	PP_Open
 	Sequence < 0:0.2,2:0.8 >
 		PP_GetNumUnits - 11.000000
-		Sequence < 0:0.391304,2:0.608696 >
+		optional Sequence < 0:0.285714,1:0.142857,2:0.571429 >
 			PP_Unit_ActionOnPosition
 			PP_Unit_ActionOnUnit
 			PP_Unit_GetPosition - 1864.530029 1358.939941

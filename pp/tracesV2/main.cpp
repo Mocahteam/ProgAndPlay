@@ -5,7 +5,6 @@
 #include <fstream>
 
 #include "TracesParser.h"
-#include "Scenario.h"
 #include "constantList_KP4.1.h"
 #include "VariantTKE.h"
 
@@ -180,18 +179,13 @@ int getParamPos(int argc, char *argv[], const char *param){
 
 int main(int argc, char *argv[])
 {
-	// reset static fields
-	Scenario::SCORE_TOLERENCE = 0.1;
-	Scenario::WEIGHT_ALIGN_RATIO = 0.6;
-	Scenario::WEIGHT_MINIMIZE_LENGTH = 0.4;
-
 	if (strcmp(argv[1], "-h") == 0 || strcmp(argv[1], "--help") == 0)
 	{
 		std::cout << "Usage: parser all [-d dir_path] [-disableLogs]\n";
 		std::cout << "\tall: all complete traces files present in dir_path directory and its subdirectories (recursively) will be compressed\n";
 		std::cout << "\tdir_path: path to the directory containing complete traces files (default ./example/)\n\n";
 		std::cout << "\tdisableLogs: if set no log will be written in std::cout\n\n";
-		std::cout << "Usage: parser filename [-d dir_path] [-k n] [-alpha n] [-sc n] [-war n] [-cl n] [-dl n] [-tl n] [-o output]\n";
+		std::cout << "Usage: parser filename [-d dir_path] [-topk n] [-alpha n] [-ws n] [-pb n] [-gr n] [-tl n] [-o output] [-disableLogs]\n";
 		std::cout << "\tfilename: the complete traces file named filename will be compressed. This file must have the extension .log\n";
 		std::cout << "\t-d dir_path: path to the directory containing complete traces files (default ./example/)\n";
 		std::cout << "\tOptions for episode identification:";
@@ -200,11 +194,7 @@ int main(int argc, char *argv[])
 		std::cout << "\t\t-ws n: WEIGHT_SUPPORT (default 0.5) weight of the support in relation to proximity parameter. Must be included between [0, 1]. 0 means the support is ignored (only proximity). 1 means the proximity is ignored (only support)";
 		std::cout << "\t\t-pb n: PROXIMITY_BALANCING (default 0.5) control balancing between inside and outside proximity of episodes. Must be included between [0, 1]. 0 means take only inside proximity in consideration (no outside proximity). 1 means take only outside proximity in consideration (no inside proximity). If WEIGH_SUPPORT is set to 1, PROXIMITY_BALANCING is useless.";
 		std::cout << "\tOptions for episode integration:";
-		std::cout << "\t\t-sc n: SCORE_TOLERENCE  (default 0.2) define minimal score required to keep a pattern (a pattern with a score lesser than n will be ignored)\n";
-		std::cout << "\t\t-war n: WEIGHT_ALIGN_RATIO (default 0.6) define weight of aligned tokens over scenario length in scenario score computing. Must be included between [0, 1]. 0 means alignement ratio is ignored (only scenario length is considered). 1 means only alignement ratio is considered (scenario length is ignored)\n";
 		std::cout << "\t\t-gr n: GAP_RATIO  (default 0.5) controls the size of gaps between episodes in relation to the length of the trace. Must be included between [0, 1]. 0 means episodes will be merge if no gap exists between them. 1 means episodes will be merge even if they are separated by te entire trace.\n";
-		std::cout << "\t\t-cl n: CANDIDATE_LIMIT (default 50) number maximun of candidates for process compression.\n";
-		std::cout << "\t\t-dl n: DESCEND_LIMIT (default 3) number of consecutive drops that can allow a scenario's score. If scenario's score drops more than n, the scenario is deleted.\n";
 		std::cout << "\t\t-tl n: TIME_LIMIT (default 10 seconds) max time to process compression (if give a negative number algorithm will not consider time).\n";
 		std::cout << "\tOther options:";
 		std::cout << "\t\t-o output: the output file name (without extension) to write results (default ./exemple/[filename]_compressed.txt)\n\n";
@@ -261,39 +251,11 @@ int main(int argc, char *argv[])
 		else
 			Episode::PROXIMITY_BALANCING = 0.5;
 		
-		paramPos = getParamPos(argc, argv, "-sc");
-		if (paramPos != -1 && paramPos+1 < argc)
-			Scenario::SCORE_TOLERENCE = strtof(argv[paramPos+1], NULL);
-		else
-			Scenario::SCORE_TOLERENCE = 0.2;
-		
-		paramPos = getParamPos(argc, argv, "-war");
-		if (paramPos != -1 && paramPos+1 < argc){
-			Scenario::WEIGHT_ALIGN_RATIO = strtof(argv[paramPos+1], NULL);
-			Scenario::WEIGHT_MINIMIZE_LENGTH = float(1 - Scenario::WEIGHT_ALIGN_RATIO);
-		}
-		else{
-			Scenario::WEIGHT_ALIGN_RATIO = 0.6;
-			Scenario::WEIGHT_MINIMIZE_LENGTH = 0.4;
-		}
-		
 		paramPos = getParamPos(argc, argv, "-gr");
 		if (paramPos != -1 && paramPos+1 < argc)
 			TracesParser::GAP_RATIO = strtof(argv[paramPos+1], NULL);
 		else
 			TracesParser::GAP_RATIO = 0.5;
-
-		paramPos = getParamPos(argc, argv, "-cl");
-		if (paramPos != -1 && paramPos+1 < argc)
-			TracesParser::CANDIDATE_LIMIT = strtof(argv[paramPos+1], NULL);
-		else
-			TracesParser::CANDIDATE_LIMIT = 50;
-
-		paramPos = getParamPos(argc, argv, "-dl");
-		if (paramPos != -1 && paramPos+1 < argc)
-			TracesParser::DESCEND_LIMIT = strtof(argv[paramPos+1], NULL);
-		else
-			TracesParser::DESCEND_LIMIT = 3;
 
 		paramPos = getParamPos(argc, argv, "-tl");
 		if (paramPos != -1 && paramPos+1 < argc)
@@ -321,9 +283,6 @@ int main(int argc, char *argv[])
 		if (TracesParser::outputLog)
 			std::cout << "traces compressed" << std::endl;
 		saveCompressedTraces(filename);
-
-		if (TracesParser::outputLog)
-			std::cout << Scenario::SCORE_TOLERENCE << " " << Scenario::WEIGHT_ALIGN_RATIO << " " << Scenario::WEIGHT_MINIMIZE_LENGTH << std::endl;
 	}
 	return 0;
 }

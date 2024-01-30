@@ -31,10 +31,6 @@ std::string Episode::toString()
 	return ret;
 }
 
-void Episode::setBounds(std::vector<std::pair<int, int>> newBoundList){
-	this->boundlist = newBoundList;
-}
-
 int Episode::getSupport(){
 	return this->boundlist.size();
 }

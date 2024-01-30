@@ -66,7 +66,9 @@ Episode::sp_episode VariantTKE::runAlgorithm(Sequence::sp_sequence data){
 
 	/*for (auto it = kEpisodes.begin() ; it != kEpisodes.end() ; it++){
 		std::cout << "starting top-K : sc:" << (*it)->getScore() << " sup:" << (*it)->getSupport() << " pi:" << (*it)->getInsideProximity() << " po:" << (*it)->getOutsideProximity() << " : ";
-		Sequence::exportLinearSequenceAsString((*it)->events);
+		for (auto it2 = (*it)->events.begin() ; it2 != (*it)->events.end() ; it2++)
+			(*it2)->exportAsCompressedString();
+		std::cout << std::endl;
 	}*/
 	
 	while (needEpisodeExploration()){
@@ -92,10 +94,12 @@ Episode::sp_episode VariantTKE::runAlgorithm(Sequence::sp_sequence data){
 			saveEpisode(*it);
 	}
 
-	for (auto it = kEpisodes.begin() ; it != kEpisodes.end() ; it++){
+	/*for (auto it = kEpisodes.begin() ; it != kEpisodes.end() ; it++){
 		std::cout << "new top-K : sc:" << (*it)->getScore() << " sup:" << (*it)->getSupport() << " pi:" << (*it)->getInsideProximity() << " po:" << (*it)->getOutsideProximity() << " : ";
-		Sequence::exportLinearSequenceAsString((*it)->events);
-	}
+		for (auto it2 = (*it)->events.begin() ; it2 != (*it)->events.end() ; it2++)
+			(*it2)->exportAsCompressedString();
+		std::cout << std::endl;
+	}*/
 
 	// Le meilleur pattern est le premier des kEpisodes
 	Episode::sp_episode bestPattern = *kEpisodes.begin();
@@ -190,7 +194,7 @@ std::vector<std::pair<int, int>> VariantTKE::temporalJoin(std::vector<std::pair<
 			j++;
 		}
 		// éviter la superposition de bounds => sinon le support augmente mais ne reflète pas bien la future compression possible car un event ne peut être inclus que dans un et un seul bound
-		// episode : [... <?,4> ...] => onfait avancer l'épisode pour tenter de trouver un bound après le dernier bound de la nouvelle bound list
+		// episode : [... <?,4> ...] => on fait avancer l'épisode pour tenter de trouver un bound après le dernier bound de la nouvelle bound list
 		// new     : [... <6,?>]
 		else if(newBoundlist.size()>0 && episodeBoundlist[i].first <= newBoundlist.back().second){
 			i++;

@@ -3,7 +3,7 @@
 	<call label="PP_Open" info="PP_Open"/>
 	<sequence num_map="0:1,2:4" info="" nb_iteration_fixed="true">
 		<call label="PP_GetNumUnits" return="11.000000" info="PP_GetNumUnits"/>
-		<sequence num_map="0:9,2:14" info="" nb_iteration_fixed="true">
+		<sequence num_map="0:2,1:1,2:4" info="" nb_iteration_fixed="true">
 			<call label="PP_Unit_ActionOnPosition" info="PP_Unit_ActionOnPosition"/>
 			<call label="PP_Unit_ActionOnUnit" info="PP_Unit_ActionOnUnit"/>
 			<call label="PP_Unit_GetPosition" return="1864.530029 1358.939941" info="PP_Unit_GetPosition"/>

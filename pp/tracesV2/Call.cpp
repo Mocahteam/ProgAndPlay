@@ -20,14 +20,14 @@ Call::Call(const Call *c) : Trace(c)
 		ret[i] = c->ret[i];
 }
 
-bool Call::operator==(Trace *t) const
+bool Call::operator==(Trace *t)
 {
 	bool res = false;
 	// chech if t is a call (probably an event)
 	if (t->isCall())
 	{
 		// cast trace into call
-		const Call *c = dynamic_cast<const Call *>(t);
+		Call *c = dynamic_cast<Call *>(t);
 		// check if we have the same key ("PP_Open" for instance)
 		if (key.compare(c->key) == 0)
 		{

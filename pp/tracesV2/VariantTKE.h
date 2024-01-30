@@ -19,7 +19,6 @@
 #include <set>
 #include <algorithm>
 #include "Sequence.h"
-#include "Scenario.h"
 #include "Episode.h"
 
 
@@ -87,8 +86,6 @@ private:
 	 */
 	void saveEpisode(Episode::sp_episode pattern);
 
-
-
 	/**
 	 * \brief Calcule un nouvel episode en étendant un episode donné avec un event
 	 * 
@@ -99,7 +96,6 @@ private:
 	 */
 	Episode::sp_episode tryToExtendEpisodeWithEvent(Episode::sp_episode episode, Episode::sp_episode event, int maxWindowSize);
 
-
 	/**
 	 * \brief Calcule les bounds en fusionnant un épisode avec un event en respectant la fenêtre maximale acceptée
 	 * 
@@ -109,7 +105,6 @@ private:
 	 * \return l'ensemble de bound possibles en joignant l'event à l'épisode
 	 */
 	std::vector<std::pair<int, int>> temporalJoin(std::vector<std::pair<int, int>> episodeBoundlist, std::vector<std::pair<int, int>> eventBoundlist, int max_window_size);
-
 
 	/**
 	 * \brief recherche dans le kEpisode s'il en reste à explorer

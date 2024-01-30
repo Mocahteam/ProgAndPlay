@@ -249,24 +249,6 @@ public:
 	static CallMaps callMaps;
 
 	/**
-	  * \brief Récupération de la valeur d'une énumération à partir d'une chaîne de caractères.
-	  *
-	  * La chaîne \p ch est recherchée dans le tableau \p arr et l'indice de sa position est utilisée pour récupérér la bonne valeur d'énumération.
-	  *
-	  * \param ch : la chaîne de caractères.
-	  * \param arr : le tableau de chaînes de caractères dans lequel \p ch est recherchée.
-	  *
-	  * \return la valeur de l'énumération associée à \p ch.
-	  *
-	  * \see Call::getEnumLabel
-	  */
-	template <typename E>
-	static E getEnumType(const char *ch, const char **arr)
-	{
-		return static_cast<E>(Trace::inArray(ch, arr));
-	}
-
-	/**
 	  * \brief Récupération d'une chaîne de caractères à partir de la valeur d'une énumération.
 	  *
 	  * On utilise l'entier associé à la valeur de l'énumération pour récupérer la chaîne de caractères contenu dans \p arr.
@@ -300,13 +282,22 @@ public:
 	virtual std::vector<Trace::sp_trace> &getLinearSequence(int start = 0, int end = -1);
 
 	/**
-	  * \brief Comparaison de l'objet Call avec une trace \p t.
+	  * \brief Comparaison stricte de l'objet Call avec une trace \p t.
 	  *
 	  * \param t : la trace utilisée pour la comparaison.
 	  *
-	  * \return vrai si la trace \p t est également un appel et qu'elle a les mêmes paramètres (clé, type d'erreur, valeur de retour, et paramètres pris en considération lors de la compression) que cet appel.
+	  * \return vrai si la trace \p t est également un appel et qu'elle a les mêmes paramètres (clé, type d'erreur, valeur de retour, et paramètres) que cet appel.
 	  */
-	virtual bool operator==(Trace *t) const;
+	virtual bool operator==(Trace *t);
+
+	/**
+	  * \brief Comparaison souple entre deux appels.
+	  *
+	  * \param t : un pointeur vers l'objet Call utilisé pour la comparaison.
+	  *
+	  * \return vrai si les deux appels sont "égaux" (Se sont des appels de même type), et faux sinon.
+	  */
+	virtual bool compare(Trace *t) = 0;
 
 	/**
 	  * \brief Détection des paramètres non robustes.
@@ -430,17 +421,6 @@ protected:
 		* \return vrai si l'appel a un retour (robuste ou non), et faux sinon.
 		*/
 	bool hasReturn() const;
-
-	/**
-	  * \brief Comparaison entre deux appels.
-	  *
-	  * \param c : un pointeur vers l'objet Call utilisé pour la comparaison.
-	  *
-	  * \return vrai si les deux appels sont égaux, et faux sinon.
-	  *
-	  * \see Call::operator==
-	  */
-	virtual bool compare(const Call *c) const = 0;
 
 	/**
 	  * \brief Détection des paramètres non robustes.
