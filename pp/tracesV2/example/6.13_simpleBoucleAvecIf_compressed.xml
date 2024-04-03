@@ -1,21 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <trace>
 	<call label="PP_Open" info="PP_Open"/>
-	<sequence num_map="0:1,1:1,2:1" info="" nb_iteration_fixed="true">
+	<sequence num_map="0:1,1:1,2:5" info="" nb_iteration_fixed="true">
 		<call label="PP_GetNumUnits" return="11.000000" info="PP_GetNumUnits"/>
 		<call label="PP_GetUnitAt" return="?" info="PP_GetUnitAt"/>
-		<call label="PP_Unit_GetType" return="4.000000" info="PP_Unit_GetType"/>
-	</sequence>
-	<call label="PP_GetUnitAt" return="2179.000000" info="PP_GetUnitAt"/>
-	<call label="PP_Unit_ActionOnPosition" info="PP_Unit_ActionOnPosition"/>
-	<call label="PP_Unit_ActionOnUnit" info="PP_Unit_ActionOnUnit"/>
-	<call label="PP_Unit_GetPosition" return="1864.530029 1358.939941" info="PP_Unit_GetPosition"/>
-	<call label="PP_Unit_GetType" return="2.000000" info="PP_Unit_GetType"/>
-	<sequence num_map="0:1,2:4" info="" nb_iteration_fixed="true">
-		<call label="PP_GetNumUnits" return="11.000000" info="PP_GetNumUnits"/>
-		<call label="PP_GetUnitAt" return="?" info="PP_GetUnitAt"/>
+		<call label="PP_Unit_ActionOnPosition" info="PP_Unit_ActionOnPosition"/>
+		<call label="PP_Unit_ActionOnUnit" info="PP_Unit_ActionOnUnit"/>
+		<call label="PP_Unit_GetPosition" return="1864.530029 1358.939941" info="PP_Unit_GetPosition"/>
 		<call label="PP_Unit_GetType" return="?" info="PP_Unit_GetType"/>
 	</sequence>
+	<call label="PP_GetNumUnits" return="11.000000" info="PP_GetNumUnits"/>
 	<call label="PP_Close" info="PP_Close"/>
 </trace>
 

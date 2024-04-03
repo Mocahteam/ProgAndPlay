@@ -50,8 +50,8 @@ public:
 
 
 /**
- * \class Trace
- * \brief La classe Trace est une classe abstraite servant de classe mère aux classes Sequence, Call et Event.
+ * \class VariantTKE
+ * \brief La classe VariantTKE est l'adaptation de l'algorithme TKE
  */
 class VariantTKE
 {

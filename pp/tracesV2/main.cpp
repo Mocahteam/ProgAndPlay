@@ -194,7 +194,7 @@ int main(int argc, char *argv[])
 		std::cout << "\t\t-ws n: WEIGHT_SUPPORT (default 0.5) weight of the support in relation to proximity parameter. Must be included between [0, 1]. 0 means the support is ignored (only proximity). 1 means the proximity is ignored (only support)";
 		std::cout << "\t\t-pb n: PROXIMITY_BALANCING (default 0.5) control balancing between inside and outside proximity of episodes. Must be included between [0, 1]. 0 means take only inside proximity in consideration (no outside proximity). 1 means take only outside proximity in consideration (no inside proximity). If WEIGH_SUPPORT is set to 1, PROXIMITY_BALANCING is useless.";
 		std::cout << "\tOptions for episode integration:";
-		std::cout << "\t\t-gr n: GAP_RATIO  (default 0.5) controls the size of gaps between episodes in relation to the length of the trace. Must be included between [0, 1]. 0 means episodes will be merge if no gap exists between them. 1 means episodes will be merge even if they are separated by te entire trace.\n";
+		std::cout << "\t\t-gr n: GAP_RATIO  (default 0.5) controls the size of gaps between episodes in relation to the length of the trace. Must be included between [0, 1]. 0 means episodes will be merge if no gap exists between them. 1 means episodes will be merge even if they are separated by the entire trace.\n";
 		std::cout << "\t\t-tl n: TIME_LIMIT (default 10 seconds) max time to process compression (if give a negative number algorithm will not consider time).\n";
 		std::cout << "\tOther options:";
 		std::cout << "\t\t-o output: the output file name (without extension) to write results (default ./exemple/[filename]_compressed.txt)\n\n";
@@ -279,7 +279,7 @@ int main(int argc, char *argv[])
 				std::cout << "error opening file: " << strerror(errno) << std::endl;
 			return -1;
 		}
-		tp.parseLogs(ifs);
+		tp.parseLogs(ifs); // lancement de l'analyse et de la compression du fichier de log => point de départ 
 		if (TracesParser::outputLog)
 			std::cout << "traces compressed" << std::endl;
 		saveCompressedTraces(filename);

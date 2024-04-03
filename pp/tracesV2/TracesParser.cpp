@@ -131,7 +131,7 @@ void TracesParser::saveCompression()
 void TracesParser::parseLogs(std::istream &logs)
 {
 	std::string line;
-	// we pop all new line included into the input file stream
+	// we pop all new line included into the input file stream and we build the root sequence of traces
 	int cpt = 0;
 	while (std::getline(logs, line))
 	{
@@ -143,7 +143,8 @@ void TracesParser::parseLogs(std::istream &logs)
 		if (spt)
 			root->addTrace(spt);
 	} // End loop: read next line
-	// No more lines to read
+
+	// No more lines to read, now it's time to compress the root sequence
 	offlineCompression();
 	saveCompression();
     CloseResources();

@@ -9,14 +9,15 @@ import sys
 from decimal import Decimal, getcontext
 
 
-global g_exploredMap, g_episilon, g_tab_parametersToBestResultPos, g_tab_parametersToColorId, g_map_bestSolutionToColorId, g_colorId
+global g_exploredMap, g_episilon, g_tab_parametersToBestResultPos, g_tab_parametersToColorId, g_map_compressionToColorId, g_colorId, g_tab_filledMap
 
 g_episilon = 0.1
 
 g_exploredMap = {}
-g_tab_parametersToBestResultPos = np.zeros((int(1+(1/g_episilon)), int(1+(1/g_episilon))))
-g_tab_parametersToColorId = np.zeros((int(1+(1/g_episilon)), int(1+(1/g_episilon))))
-g_map_bestSolutionToColorId = {}
+g_tab_parametersToBestResultPos = []
+g_tab_parametersToColorId = []
+g_tab_filledMap = []
+g_map_compressionToColorId = {}
 g_colorId = 1
 
 # la classe Point
@@ -32,6 +33,9 @@ class Point:
 
 	def __eq__(self, other):
 		return abs(self.gr-other.gr) < 0.001 and abs(self.ws-other.ws) < 0.001 and abs(self.pb-other.pb) < 0.001
+	
+	def __str__(self):
+		return "("+str(self.gr)+", "+str(self.ws)+", "+str(self.pb)+")"
 
 # la classe Cube
 # un objet Cube représente un zone rectangle avec deux pointes en diagonale
@@ -61,47 +65,32 @@ def tokenizeFile(file):
 			ret.append(line[0:-1]) # exclure le \n à la fin de la ligne
 	return ret
 
-# \brief explore le fichier "resultFile" et recherche une compression à la solution "l_solution". Si elle existe retourne le numéro de la compression ou 20000 si elle n'est pas trouvée ou 100000 si le log contient un "Over Time"
+# \brief Vérifie si "compression" est égale à la solution "l_solution". Retourne -1 si la compression n'est pas définie (OverTime par exemple). Retourne 1 si la compression est égale à la compression ou 2 sinon
 #
-# @resultFile : nom du fichier contenant des résultats de compression
+# @compression : une chaine de caractère contenant la trace compressée
 # @l_solution : représente la solution de référence sous la forme d'une liste
-def getBestResultPosEqualToSolution(resultFile, l_solution):
-	num=0
-	last_score = "***"
-	overTime = False
-	with open(resultFile) as f:
-		for line in f:
-			if "Over Time" in line:
-				# On arrive sur un "Over Time" qui signifie que le processus de compression a avorté par manque de temps. Le fichier log est donc incomplet
-				overTime = True
-			if (line[0]=="["):
-				# Extraction de ce résultat sous la forme d'une liste de tokens
-				tokens = line.split(" ")
-				best = []
-				for t in tokens[2:-1]:
-					if ("*Sequence(" in t):
-						best.append("*Sequence()")
-					elif ("Sequence(" in t):
-						best.append("Sequence()")
-					else:
-						best.append(t)
-				# Vérifier si l'id de ce résultat est différent du précédent. Si oui enregistrer son id
-				if(tokens[1]!=last_score):
-					num += 1
-					last_score = tokens[1]
-				# Si ce résultat est égale à la solution, on retourne son id et on stoppe la recherche
-				if (best == l_solution):
-					return num
-		if overTime:
-			return 100000
+def isEqualToSolution(compression, l_solution):
+	if (compression == None):
+		return -1
+	# Trasformation de la compression en une liste de tokens
+	tokens = []
+	for t in compression.split(" "):
+		if ("*Sequence(" in t):
+			tokens.append("*Sequence()")
+		elif ("Sequence(" in t):
+			tokens.append("Sequence()")
 		else:
-			# Aucun résultat identique à la solution n'a été trouvé
-			return 20000
+			tokens.append(t)
+	# Si ce résultat est égale à la solution, on retourne 1 et 0 sinon
+	if (tokens == l_solution):
+		return 1
+	else:
+		return 2
 
-# \brief Lire la solution et retoune la meilleure solution
+# \brief Extrait la compression depuis un fichier
 #
 # @resultFile : nom du fichier contenant des résultats de compression
-def get_bestSolution(resultFile):
+def get_compressionResult(resultFile):
 	with open(resultFile) as f:
 		for line in f:
 			# dans le cas où on dépasse le temps maximale autorisé nous retounons None
@@ -111,24 +100,9 @@ def get_bestSolution(resultFile):
 				return ' '.join(line.split(' ')[2:-1]) # extraction du résultat initialement contenu entre Root et EndRoot
 	return None
 
-# \brief Lire la solution et retouner les meilleures solutions sous la forme d'un liste
-#
-# @resultFile : nom du fichier contenant des résultats de compression
-def get_allSolutions(resultFile):
-	ret = []
-	with open(resultFile) as f:
-		for line in f:
-			# dans le cas où on dépasse le temps maximale autorisé nous retounons None
-			if "Over Time" in line:
-				break
-			if (line[0]=="["):
-				ret.append(' '.join(line.split(' ')[2:-1])) # extraction du résultat initialement contenu entre Root et EndRoot
-	return ret
-
 # \brief arroundi un nombre à un nombre de chiffre après la virgule fixe
-def round_to_multiple(number):
-    global g_episilon
-    return Decimal(g_episilon * round(number / Decimal(g_episilon)))
+def round_to_multiple(number, episilon):
+    return Decimal(episilon * round(number / Decimal(episilon)))
 
 # \brief Essayer d'obtenir la solution avec un objet Point, si nous avons déjà eu la solution de ce point nous retournons directement la solution, sinon nous allons exécuter myTestParser avec les paramètres du point et enregistrer la solution dans un map
 #
@@ -136,57 +110,57 @@ def round_to_multiple(number):
 # @targetFileName : nom du fichier log à analyser
 # @l_solution : représente la solution de référence sous la forme d'une liste. Si égale à None le résultat de la compression n'est pas comparé à la solution.
 def get_from_map(point, targetFileName, l_solution=None):
-	global g_exploredMap, g_map_bestSolutionToColorId, g_colorId, g_episilon, g_tab_parametersToBestResultPos, g_tab_parametersToColorId
+	global g_exploredMap, g_map_compressionToColorId, g_colorId, g_episilon, g_tab_parametersToBestResultPos, g_tab_parametersToColorId
+	gr = point.gr
+	ws = point.ws
+	pb = point.pb
 	# dans le cas les paramètres ne sont plus légitimes
-	if(point.gr>1 or point.ws>1 or point.pb>1 or point.gr<0 or point.ws<0 or point.pb<0):
+	if(gr>1 or ws>1 or pb>1 or gr<0 or ws<0 or pb<0):
 		return None
 	# si nous avons déjà eu la solution nous la retounons directement
-	if point in g_exploredMap.keys():
-		return g_exploredMap[point]
+	if str(gr)+str(ws)+str(pb) in g_exploredMap.keys():
+		return g_exploredMap[str(gr)+str(ws)+str(pb)]
 	# sinon nous faisons l'essaie avec les paramètres du point
 	else:
-		i = round(float(point.gr)/g_episilon)
-		j = round(float(point.ws)/g_episilon)
-		k = round(float(point.pb)/g_episilon)
-		gr = point.gr
-		ws = point.ws
-		pb = point.pb
+		i = round(float(gr)/(g_episilon/2))
+		j = round(float(ws)/g_episilon)
+		k = round(float(pb)/g_episilon)
 		print("Call parser with parameters\tgr: "+str(gr)+"   \tws: "+str(ws)+"   \tpb: "+str(pb))
 		# Fait tourner l'algo de compression sur le fichier targetFileName+".log" (ce fichier est cherché par dafaut dans le dossier "example")
-		file_exe = "myParserTest.exe "+ targetFileName+".log -sc 0.2 -cl 10 -tl 10 -gr " +str(gr) + " -ws "+str(ws) + " -pb "+str(pb)+" -disableLogs"
+		file_exe = "myParserTest.exe "+ targetFileName+".log -tl 10 -gr " +str(gr) + " -ws "+str(ws) + " -pb "+str(pb)+" -disableLogs"
 		child = subprocess.Popen(file_exe,shell=True)
 		child.wait()
 		# copy du résultat
 		shutil.copyfile("./debugParser.log", "./result/rectangle/"+targetFileName+"/debugParser_"+targetFileName+"_gr"+str(gr) + "_ws"+str(ws) + "_pb"+str(pb)+".log")
 		
+		compression = get_compressionResult("./debugParser.log")
+
 		# si nous voulons vérifier la correction de solution
 		if(l_solution != None):
-			g_tab_parametersToBestResultPos[i][j][k]=getBestResultPosEqualToSolution("./debugParser.log",l_solution)
-
-		allSolutions = get_allSolutions("./debugParser.log")
-		bestSolution = get_bestSolution("./debugParser.log")
+			g_tab_parametersToBestResultPos[i][j][k]=isEqualToSolution(compression,l_solution)
 
 		# si nous avons déjà eu cette solution compresée, nous mettons la même couleur pour signifier que ces deux solutions sont identiques
-		if(bestSolution in g_map_bestSolutionToColorId.keys()):
-			g_tab_parametersToColorId[i][j][k] = g_map_bestSolutionToColorId[bestSolution]
+		if(compression in g_map_compressionToColorId.keys()):
+			g_tab_parametersToColorId[i][j][k] = g_map_compressionToColorId[compression]
 		# sinon nous mettons la valeur de nouveau g_colorId qui représente l'identique de solution courrant et nous augmentons la valeur g_colorId
 		else:
-			g_map_bestSolutionToColorId[bestSolution] = g_colorId
+			g_map_compressionToColorId[compression] = g_colorId
 			g_tab_parametersToColorId[i][j][k] = g_colorId
 			g_colorId += 1
-		g_exploredMap[point] = allSolutions
-		return allSolutions
+		g_exploredMap[str(gr)+str(ws)+str(pb)] = compression
+		return compression
 
 # \brief Compresse les logs contenus dans le fichier "targetFileName" en explorant les paramètres gr, ws et pb de manière dichotomique.
 #
 # @targetFileName : Nom du fichier log à compresser
 # @l_solution : représente la solution de référence sous la forme d'une liste. Si égale à None le résultat de la compression n'est pas comparé à la solution.
 def search_gr_ws_by_rect(targetFileName, l_solution=None):
-	global  g_exploredMap, g_episilon, g_tab_parametersToBestResultPos, g_tab_parametersToColorId, g_map_bestSolutionToColorId, g_colorId
+	global  g_exploredMap, g_episilon, g_tab_parametersToBestResultPos, g_tab_parametersToColorId, g_map_compressionToColorId, g_colorId, g_tab_filledMap
 	g_exploredMap = {}
 	g_tab_parametersToBestResultPos = np.zeros((int(1+(1/g_episilon)), int(1+(1/g_episilon)), int(1+(1/g_episilon))))
 	g_tab_parametersToColorId = np.zeros((int(1+(1/g_episilon)), int(1+(1/g_episilon)), int(1+(1/g_episilon))))
-	g_map_bestSolutionToColorId = {}
+	g_tab_filledMap = np.zeros((int(1+(1/g_episilon)), int(1+(1/g_episilon)), int(1+(1/g_episilon))))
+	g_map_compressionToColorId = {}
 	g_colorId = 1
 
 	if(not os.path.exists("./result/rectangle/"+targetFileName)):
@@ -196,25 +170,24 @@ def search_gr_ws_by_rect(targetFileName, l_solution=None):
 			os.remove(os.path.join("./result/rectangle/"+targetFileName, f))
 
 	queue = []
-	queue.append(Cube(0, 0.5, 0, 0.5, 0, 0.5))
-	queue.append(Cube(0, 0.5, 0, 0.5, 0.5, 1))
-	queue.append(Cube(0, 0.5, 0.5, 1, 0, 0.5))
-	queue.append(Cube(0, 0.5, 0.5, 1, 0.5, 1))
-	queue.append(Cube(0.5, 1, 0, 0.5, 0, 0.5))
-	queue.append(Cube(0.5, 1, 0, 0.5, 0.5, 1))
-	queue.append(Cube(0.5, 1, 0.5, 1, 0, 0.5))
-	queue.append(Cube(0.5, 1, 0.5, 1, 0.5, 1))
-	decimal_episilon = round_to_multiple(Decimal(g_episilon))
+	queue.append(Cube(0, 0.25, 0, 0.5, 0, 0.5))
+	queue.append(Cube(0, 0.25, 0, 0.5, 0.5, 1))
+	queue.append(Cube(0, 0.25, 0.5, 1, 0, 0.5))
+	queue.append(Cube(0, 0.25, 0.5, 1, 0.5, 1))
+	queue.append(Cube(0.25, 0.5, 0, 0.5, 0, 0.5))
+	queue.append(Cube(0.25, 0.5, 0, 0.5, 0.5, 1))
+	queue.append(Cube(0.25, 0.5, 0.5, 1, 0, 0.5))
+	queue.append(Cube(0.25, 0.5, 0.5, 1, 0.5, 1))
 	while(len(queue)>0):
-		r = queue.pop(0)
+		r = queue.pop(len(queue)-1)
 		# Récupération des 8 points à analyser en coordonnées gr, ws et pb
 		#     p7--------p8
 		#    /|         /|
 		#   / |        / |
-		#  /  |       /  |  ws 
-		# p3--------p4   |   x
-		# |   |      |   |   |  x pb
-		# |   p5-----|--p6   | /
+		#  /  |       /  |  pb 
+		# p5--------p6   |   x
+		# |   |      |   |   |  x ws
+		# |   p3-----|--p4   | /
 		# |  /       |  /    |/
 		# | /        | /     +------x gr
 		# |/         |/
@@ -236,345 +209,441 @@ def search_gr_ws_by_rect(targetFileName, l_solution=None):
 		sol6 = get_from_map(p6,targetFileName,l_solution)
 		sol7 = get_from_map(p7,targetFileName,l_solution)
 		sol8 = get_from_map(p8,targetFileName,l_solution)
-		if (len(sol1) > 1 or len(sol1) > 1 or len(sol1) > 1 or len(sol1) > 1 or len(sol1) > 1 or len(sol1) > 1 or len(sol1) > 1 or len(sol1) > 1):
-			print("TRRRROUOUOUOUOUOUVEEEEEEEEEEEEEEEEEEEEEEE!!!!!!!!!!!!!!!!!!!!")
 		# calcul des positions intermédiaires
-		gr_halfGap = round_to_multiple((p2.gr-p1.gr)/2)
-		ws_halfGap = round_to_multiple((p3.ws-p1.ws)/2)
-		pb_halfGap = round_to_multiple((p5.pb-p1.pb)/2)
+		gr_halfGap = round_to_multiple(abs(p2.gr-p1.gr)/2, g_episilon/2)
+		ws_halfGap = round_to_multiple(abs(p3.ws-p1.ws)/2, g_episilon)
+		pb_halfGap = round_to_multiple(abs(p5.pb-p1.pb)/2, g_episilon)
 		# si toutes les solution sont égales, il suffit de passer au cube suivant dans la queue
 		if (sol1 == sol2 and sol1 == sol3 and sol1 == sol4 and sol1 == sol5 and sol1 == sol6 and sol1 == sol7 and sol1 == sol8):
+			isEqual = isEqualToSolution(sol1,l_solution)
+			i = r.gr_from
+			while (i <= r.gr_to):
+				j = r.ws_from
+				while (j <= r.ws_to):
+					k = r.pb_from
+					while (k <= r.pb_to):
+						g_tab_filledMap[round(float(i)/(g_episilon/2))][round(float(j)/g_episilon)][round(float(k)/g_episilon)] = isEqual
+						k += Decimal(g_episilon).quantize(Decimal('1.00'))
+					j += Decimal(g_episilon).quantize(Decimal('1.00'))
+				i += Decimal(g_episilon/2).quantize(Decimal('1.00'))
 			continue
-		# si la face devant est homogène mais différente d'un point en arrière ET qu'on peut encore découper sur l'axe de la profondeur
-		if (sol1 == sol2 and sol1 == sol3 and sol1 == sol4 and (sol1 != sol5 or sol3 != sol7 or sol2 != sol6 or sol4 != sol8) and pb_halfGap >= decimal_episilon*2):
+		#print (str(p1), str(p2), str(p3), str(p4), str(p5), str(p6), str(p7), str(p8))
+		# si la face devant est homogène mais différente d'un point en arrière
+		if (sol1 == sol2 and sol1 == sol5 and sol1 == sol6 and (sol1 != sol3 or sol2 != sol4 or sol5 != sol7 or sol6 != sol8)):
 			# Construction d'un cube pour l'avant
 			#     p7--------p8
 			#    /|         /|
 			#   +----------+ |
-			#  /          /| |
-			# p3--------p4 | |
-			# |          | | |
-			# |          | |p6
-			# |          | |/
-			# |          | +
+			#  /          /| | pb
+			# p5--------p6 | |  x
+			# |          | | |  |  x ws
+			# |          | |p4  | /
+			# |          | |/   |/
+			# |          | +    +------x gr
 			# |          |/
 			# p1--------p2
-			queue.append(Cube(p1.gr, p2.gr, p1.ws, p3.ws, round_to_multiple(p1.pb + decimal_episilon), round_to_multiple(p1.pb + pb_halfGap)))
-		# si la face arrière est homogène mais différente d'un point en avant ET qu'on peut encore découper sur l'axe de la profondeur
-		if (sol5 == sol6 and sol5 == sol7 and sol5 == sol8 and (sol1 != sol5 or sol3 != sol7 or sol2 != sol6 or sol4 != sol8) and pb_halfGap >= decimal_episilon*2):
+			queue.append(Cube(p1.gr, p2.gr, p1.ws, round_to_multiple(p1.ws + ws_halfGap, g_episilon), p1.pb, p5.pb))
+			#print("F")
+		# si la face arrière est homogène mais différente d'un point en avant
+		if (sol3 == sol4 and sol3 == sol7 and sol3 == sol8 and (sol1 != sol3 or sol2 != sol4 or sol5 != sol7 or sol6 != sol8)):
 			# Construction d'un cube pour l'arrière
 			#     p7--------p8
 			#    /          /|
 			#   +----------+ |
-			#  /|         /| |
-			# p3--------p4 | |
-			# | |        | | |
-			# | |        | |p6
-			# | |        | |/
-			# | +--------|-+
+			#  /|         /| | pb
+			# p5--------p6 | |  x
+			# | |        | | |  |  x ws
+			# | |        | |p4  | /
+			# | |        | |/   |/
+			# | +--------|-+    +------x gr
 			# |/         |/
 			# p1--------p2
-			queue.append(Cube(p5.gr, p6.gr, p5.ws, p7.ws, round_to_multiple(p3.pb + pb_halfGap + decimal_episilon), round_to_multiple(p7.pb - decimal_episilon)))
-		# si la face de dessous est homogène mais différente d'un point en dessus ET qu'on peut encore découper sur l'axe vertical
-		if (sol1 == sol2 and sol1 == sol5 and sol1 == sol6 and (sol1 != sol3 or sol2 != sol4 or sol5 != sol7 or sol6 != sol8) and ws_halfGap >= decimal_episilon*2):
+			queue.append(Cube(p3.gr, p4.gr, round_to_multiple(p3.ws - ws_halfGap, g_episilon), p3.ws, p3.pb, p7.pb))
+			#print("B")
+		# si la face de dessous est homogène mais différente d'un point en dessus
+		if (sol1 == sol2 and sol1 == sol3 and sol1 == sol4 and (sol1 != sol5 or sol2 != sol6 or sol3 != sol7 or sol4 != sol8)):
 			# Construction d'un cube pour le dessous
 			#     p7--------p8
 			#    /|         /|
 			#   / |        / |
-			#  /  +-------/--+
-			# p3--------p4  /|
-			# | /        | / |
-			# |/         |/ p6
-			# +----------+  /
-			# |          | /
+			#  /  +-------/--+ pb
+			# p5--------p6  /|  x
+			# | /        | / |  |  x ws
+			# |/         |/ p4  | /
+			# +----------+  /   |/
+			# |          | /    +------x gr
 			# |          |/
 			# p1--------p2
-			queue.append(Cube(p1.gr, p2.gr, round_to_multiple(p1.ws + decimal_episilon), round_to_multiple(p1.ws + ws_halfGap), p1.pb, p5.pb))
-		# si la face de dessus est homogène mais différente d'un point en dessous ET qu'on peut encore découper sur l'axe vertical
-		if (sol3 == sol4 and sol3 == sol7 and sol3 == sol8 and (sol1 != sol3 or sol2 != sol4 or sol5 != sol7 or sol6 != sol8) and ws_halfGap >= decimal_episilon*2):
+			queue.append(Cube(p1.gr, p2.gr, p1.ws, p3.ws, p1.pb, round_to_multiple(p1.pb + pb_halfGap, g_episilon)))
+			#print("D")
+		# si la face de dessus est homogène mais différente d'un point en dessous
+		if (sol5 == sol6 and sol5 == sol7 and sol5 == sol8 and (sol1 != sol5 or sol2 != sol6 or sol3 != sol7 or sol4 != sol8)):
 			# Construction d'un cube pour le dessus
 			#     p7--------p8
 			#    /          /|
 			#   /          / |
-			#  /          /  +
-			# p3--------p4  /|
-			# |          | / |
-			# |          |/-p6
-			# +----------+  /
-			# | /        | /
+			#  /          /  + pb
+			# p5--------p6  /|  x
+			# |          | / |  |  x ws
+			# |          |/-p4  | /
+			# +----------+  /   |/
+			# | /        | /    +------x gr
 			# |/         |/
 			# p1--------p2
-			queue.append(Cube(p3.gr, p4.gr, round_to_multiple(p1.ws + ws_halfGap + decimal_episilon), round_to_multiple(p3.ws - decimal_episilon), p3.pb, p7.pb))
-		# si la face de gauche est homogène mais différente d'un point à droite ET qu'on peut encore découper sur l'axe horizontal
-		if (sol1 == sol3 and sol1 == sol5 and sol1 == sol7 and (sol1 != sol2 or sol3 != sol4 or sol5 != sol6 or sol7 != sol8) and gr_halfGap >= decimal_episilon*2):
+			queue.append(Cube(p5.gr, p6.gr, p5.ws, p7.ws, round_to_multiple(p5.pb - pb_halfGap, g_episilon), p5.pb))
+			#print("U")
+		# si la face de gauche est homogène mais différente d'un point à droite
+		if (sol1 == sol3 and sol1 == sol5 and sol1 == sol7 and (sol1 != sol2 or sol3 != sol4 or sol5 != sol6 or sol7 != sol8)):
 			# Construction d'un cube pour la gauche
 			#     p7---+----p8
 			#    /    /|    /|
 			#   /    / |   / |
-			#  /    /  |  /  |
-			# p3---+----p4   |
-			# |    |   | |   |
-			# |    |   +-|--p6
-			# |    |  /  |  / 
-			# |    | /   | /  
+			#  /    /  |  /  | pb
+			# p5---+----p6   |  x
+			# |    |   | |   |  |  x ws
+			# |    |   +-|--p4  | /
+			# |    |  /  |  /   |/
+			# |    | /   | /    +------x gr
 			# |    |/    |/
 			# p1---+----p2
-			queue.append(Cube(round_to_multiple(p1.gr + decimal_episilon), round_to_multiple(p1.gr + gr_halfGap), p1.ws, p3.ws, p1.pb, p5.pb))
-		# si la face de droite est homogène mais différente d'un point à gauche ET qu'on peut encore découper sur l'axe horizontal
-		if (sol2 == sol4 and sol2 == sol6 and sol2 == sol8 and (sol1 != sol2 or sol3 != sol4 or sol5 != sol6 or sol7 != sol8) and gr_halfGap >= decimal_episilon*2):
+			queue.append(Cube(p1.gr, round_to_multiple(p1.gr + gr_halfGap, g_episilon/2), p1.ws, p3.ws, p1.pb, p5.pb))
+			#print("L")
+		# si la face de droite est homogène mais différente d'un point à gauche
+		if (sol2 == sol4 and sol2 == sol6 and sol2 == sol8 and (sol1 != sol2 or sol3 != sol4 or sol5 != sol6 or sol7 != sol8)):
 			# Construction d'un cube pour la droite
 			#     p7----+---p8
 			#    /|    /    /|
 			#   / |   /    / |
-			#  /  |  /    /  |
-			# p3----+---p4   |
-			# |   | |    |   |
-			# |   p5|    |  p6
-			# |  /  |    |  / 
-			# | /   |    | /  
+			#  /  |  /    /  | pb
+			# p5----+---p6   |  x
+			# |   | |    |   |  |  x ws
+			# |   p3|    |  p4  | /
+			# |  /  |    |  /   |/
+			# | /   |    | /    +------x gr
 			# |/    |    |/
 			# p1----+---p2
-			queue.append(Cube(round_to_multiple(p1.gr + gr_halfGap + decimal_episilon), round_to_multiple(p2.gr - decimal_episilon), p2.ws, p4.ws, p2.pb, p6.pb))
-		# si l'arête avant/bas est homogène mais différente d'un point en dessus et en arrière ET qu'on peut encore découper sur l'axe de la profondeur ou vertical
-		if (sol1 == sol2 and (sol1 != sol3 or sol2 != sol4) and (sol1 != sol5 or sol2 != sol6) and (ws_halfGap >= decimal_episilon or pb_halfGap >= decimal_episilon)):
+			queue.append(Cube(round_to_multiple(p2.gr - gr_halfGap, g_episilon/2), p2.gr, p2.ws, p4.ws, p2.pb, p6.pb))
+			#print("R")
+		# si l'arête avant/bas est homogène mais différente d'un point en dessus et en arrière
+		if (sol1 == sol2 and (sol1 != sol3 or sol2 != sol4) and (sol1 != sol5 or sol2 != sol6)):
 			# Construction d'un cube en bas devant
 			#     p7--------p8
 			#    /|         /|
 			#   / |        / |
-			#  /  |       /  |
-			# p3--------p4   |
-			# | +--------|-+ |
-			# |/         |/|p6
-			# +----------+ |/ 
-			# |          | +  
+			#  /  |       /  | pb
+			# p5--------p6   |  x
+			# | +--------|-+ |  |  x ws
+			# |/         |/|p4  | /
+			# +----------+ |/   |/
+			# |          | +    +------x gr
 			# |          |/
 			# p1--------p2
-			queue.append(Cube(p1.gr, p2.gr, p1.ws, round_to_multiple(p1.ws + ws_halfGap), p1.pb, round_to_multiple(p1.pb + pb_halfGap)))
-		# si l'arête arrière/bas est homogène mais différente d'un point en dessus et en avant ET qu'on peut encore découper sur l'axe de la profondeur et vertical
-		if (sol5 == sol6 and (sol5 != sol7 or sol6 != sol8) and (sol5 != sol1 or sol6 != sol2) and (ws_halfGap >= decimal_episilon or pb_halfGap >= decimal_episilon)):
+			queue.append(Cube(p1.gr, p2.gr, p1.ws, round_to_multiple(p1.ws + ws_halfGap, g_episilon), p1.pb, round_to_multiple(p1.pb + pb_halfGap, g_episilon)))
+			#print("FD")
+		# si l'arête arrière/bas est homogène mais différente d'un point en dessus et en avant
+		if (sol3 == sol4 and (sol3 != sol7 or sol4 != sol8) and (sol3 != sol1 or sol4 != sol2)):
 			# Construction d'un cube en bas devant
 			#     p7--------p8
 			#    /|         /|
 			#   / |        / |
-			#  /  +-------/--+
-			# p3--------p4  /|
-			# | +--------|-+ |
-			# | |        | |p6
-			# | |        | |/ 
-			# | +--------|-+  
+			#  /  +-------/--+ pb
+			# p5--------p6  /|  x
+			# | +--------|-+ |  |  x ws
+			# | |        | |p4  | /
+			# | |        | |/   |/
+			# | +--------|-+    +------x gr
 			# |/         |/
 			# p1--------p2
-			queue.append(Cube(p5.gr, p6.gr, p5.ws, round_to_multiple(p5.ws + ws_halfGap), round_to_multiple(p1.pb + pb_halfGap + decimal_episilon), p5.pb))
-		# si l'arête arrière/haut est homogène mais différente d'un point en dessous et en avant ET qu'on peut encore découper sur l'axe de la profondeur et vertical
-		if (sol7 == sol8 and (sol7 != sol5 or sol8 != sol6) and (sol7 != sol3 or sol8 != sol4) and (ws_halfGap >= decimal_episilon or pb_halfGap >= decimal_episilon)):
+			queue.append(Cube(p3.gr, p4.gr, round_to_multiple(p3.ws - ws_halfGap, g_episilon), p3.ws, p3.pb, round_to_multiple(p3.pb + pb_halfGap, g_episilon)))
+			#print("BD")
+		# si l'arête arrière/haut est homogène mais différente d'un point en dessous et en avant
+		if (sol7 == sol8 and (sol7 != sol5 or sol8 != sol6) and (sol7 != sol3 or sol8 != sol4)):
 			# Construction d'un cube en haut arrière
 			#     p7--------p8
 			#    /          /|
 			#   +----------+ |
-			#  /|         /| +
-			# p3--------p4 |/|
-			# | +--------|-+ |
-			# |   p5-----|--p6
-			# |  /       |  / 
-			# | /        | /  
+			#  /|         /| + pb
+			# p5--------p6 |/|  x
+			# | +--------|-+ |  |  x ws
+			# |   p3-----|--p4  | /
+			# |  /       |  /   |/
+			# | /        | /    +------x gr
 			# |/         |/
 			# p1--------p2
-			queue.append(Cube(p7.gr, p8.gr, round_to_multiple(p5.ws + ws_halfGap + decimal_episilon), p7.ws, round_to_multiple(p3.pb + pb_halfGap + decimal_episilon), p7.pb))
-		# si l'arête avant/haut est homogène mais différente d'un point en dessous et en arrière ET qu'on peut encore découper sur l'axe de la profondeur et vertical
-		if (sol3 == sol4 and (sol1 != sol3 or sol2 != sol4) and (sol3 != sol7 or sol4 != sol8) and (ws_halfGap >= decimal_episilon or pb_halfGap >= decimal_episilon)):
+			queue.append(Cube(p7.gr, p8.gr, round_to_multiple(p7.ws - ws_halfGap, g_episilon), p7.ws, round_to_multiple(p7.pb - pb_halfGap, g_episilon), p7.pb))
+			#print("BU")
+		# si l'arête avant/haut est homogène mais différente d'un point en dessous et en arrière
+		if (sol5 == sol6 and (sol5 != sol1 or sol6 != sol2) and (sol5 != sol7 or sol6 != sol8)):
 			# Construction d'un cube en haut devant
 			#     p7--------p8
 			#    /|         /|
 			#   +----------+ |
-			#  /          /| |
-			# p3--------p4 | |
-			# |          | + |
-			# |          |/-p6
-			# +----------+  / 
-			# | /        | /  
+			#  /          /| | pb
+			# p5--------p6 | |  x
+			# |          | + |  |  x ws
+			# |          |/-p4  | /
+			# +----------+  /   |/
+			# | /        | /    +------x gr
 			# |/         |/
 			# p1--------p2
-			queue.append(Cube(p3.gr, p4.gr, round_to_multiple(p1.ws + ws_halfGap + decimal_episilon), p3.ws, p3.pb, round_to_multiple(p3.pb + pb_halfGap)))
-		# si l'arête gauche/bas est homogène mais différente d'un point en dessus et à droite ET qu'on peut encore découper sur l'axe horizontal et vertical
-		if (sol1 == sol5 and (sol1 != sol2 or sol5 != sol6) and (sol1 != sol3 or sol5 != sol7) and (gr_halfGap >= decimal_episilon or ws_halfGap >= decimal_episilon)):
+			queue.append(Cube(p5.gr, p6.gr, p5.ws, round_to_multiple(p5.ws + ws_halfGap, g_episilon), round_to_multiple(p5.pb - pb_halfGap, g_episilon), p5.pb))
+			#print("FU")
+		# si l'arête gauche/bas est homogène mais différente d'un point en dessus et à droite
+		if (sol1 == sol3 and (sol1 != sol2 or sol3 != sol4) and (sol1 != sol5 or sol3 != sol7)):
 			# Construction d'un cube en bas à gauche
 			#     p7--------p8
 			#    /|         /|
 			#   / |        / |
-			#  /  +----+  /  |
-			# p3--------p4   |
-			# | /    / | |   |
-			# |/    /  +-|--p6
-			# +----+  /  |  / 
-			# |    | /   | /  
+			#  /  +----+  /  | pb
+			# p5--------p6   |  x
+			# | /    / | |   |  |  x ws
+			# |/    /  +-|--p4  | /
+			# +----+  /  |  /   |/
+			# |    | /   | /    +------x gr
 			# |    |/    |/
 			# p1---+----p2
-			queue.append(Cube(p1.gr, round_to_multiple(p1.gr + gr_halfGap), p1.ws, round_to_multiple(p1.ws + ws_halfGap), p1.pb, p5.pb))
-		# si l'arête droite/bas est homogène mais différente d'un point en dessus et à gauche ET qu'on peut encore découper sur l'axe horizontal et vertical
-		if (sol2 == sol6 and (sol1 != sol2 or sol5 != sol6) and (sol2 != sol4 or sol6 != sol8) and (gr_halfGap >= decimal_episilon or ws_halfGap >= decimal_episilon)):
+			queue.append(Cube(p1.gr, round_to_multiple(p1.gr + gr_halfGap, g_episilon/2), p1.ws, p3.ws, p1.pb, round_to_multiple(p1.pb + pb_halfGap, g_episilon)))
+			#print("LD")
+		# si l'arête droite/bas est homogène mais différente d'un point en dessus et à gauche
+		if (sol2 == sol4 and (sol1 != sol2 or sol3 != sol4) and (sol2 != sol6 or sol4 != sol8)):
 			# Construction d'un cube en bas à droite
 			#     p7--------p8
 			#    /|         /|
 			#   / |        / |
-			#  /  |     +-/--+
-			# p3--------p4  /|
-			# |   |   /  | / |
-			# |   p5-/   |/ p6
-			# |  /  +----+  / 
-			# | /   |    | /  
+			#  /  |     +-/--+ pb
+			# p5--------p6  /|  x
+			# |   |   /  | / |  |  x ws
+			# |   p3-/   |/ p4  | /
+			# |  /  +----+  /   |/
+			# | /   |    | /    +------x gr
 			# |/    |    |/
 			# p1----+---p2
-			queue.append(Cube(round_to_multiple(p1.gr + gr_halfGap + decimal_episilon), p2.gr, p2.ws, round_to_multiple(p2.ws + ws_halfGap), p2.pb, p6.pb))
-		# si l'arête droite/haut est homogène mais différente d'un point en dessous et à gauche ET qu'on peut encore découper sur l'axe horizontal et vertical
-		if (sol4 == sol8 and (sol4 != sol3 or sol8 != sol7) and (sol2 != sol4 or sol6 != sol8) and (gr_halfGap >= decimal_episilon or ws_halfGap >= decimal_episilon)):
+			queue.append(Cube(round_to_multiple(p2.gr - gr_halfGap, g_episilon/2), p2.gr, p2.ws, p4.ws, p2.pb, round_to_multiple(p2.pb + ws_halfGap, g_episilon)))
+			#print("LR")
+		# si l'arête droite/haut est homogène mais différente d'un point en dessous et à gauche
+		if (sol6 == sol8 and (sol6 != sol5 or sol8 != sol7) and (sol2 != sol6 or sol4 != sol8)):
 			# Construction d'un cube en haut à droite
 			#     p7----+---p8
 			#    /|    /    /|
 			#   / |   /    / |
-			#  /  |  /    /  +
-			# p3----+---p4  /|
-			# |   | |    | / |
-			# |   p5|    |/-p6
-			# |  /  +----+  / 
-			# | /        | /  
+			#  /  |  /    /  + pb
+			# p5----+---p6  /|  x
+			# |   | |    | / |  |  x ws
+			# |   p3|    |/-p4  | /
+			# |  /  +----+  /   |/
+			# | /        | /    +------x gr
 			# |/         |/
 			# p1--------p2
-			queue.append(Cube(round_to_multiple(p3.gr + gr_halfGap + decimal_episilon), p4.gr, round_to_multiple(p2.ws + ws_halfGap + decimal_episilon), p4.ws, p4.pb, p8.pb))
-		# si l'arête gauche/haut est homogène mais différente d'un point en dessous et à droite ET qu'on peut encore découper sur l'axe horizontal et vertical
-		if (sol3 == sol7 and (sol4 != sol3 or sol8 != sol7) and (sol1 != sol3 or sol5 != sol7) and (gr_halfGap >= decimal_episilon or ws_halfGap >= decimal_episilon)):
+			queue.append(Cube(round_to_multiple(p6.gr - gr_halfGap, g_episilon/2), p6.gr, p6.ws, p8.ws, round_to_multiple(p6.pb - pb_halfGap, g_episilon), p6.pb))
+			#print("UR")
+		# si l'arête gauche/haut est homogène mais différente d'un point en dessous et à droite
+		if (sol5 == sol7 and (sol5 != sol6 or sol7 != sol8) and (sol1 != sol5 or sol3 != sol7)):
 			# Construction d'un cube en haut à gauche
 			#     p7---+----p8
 			#    /    /|    /|
 			#   /    / |   / |
-			#  /    /  +  /  |
-			# p3---+----p4   |
-			# |    | /   |   |
-			# |    |/----|--p6
-			# +----+     |  / 
-			# | /        | /  
+			#  /    /  +  /  | pb
+			# p5---+----p6   |  x
+			# |    | /   |   |  |  x ws
+			# |    |/----|--p4  | /
+			# +----+     |  /   |/
+			# | /        | /    +------x gr
 			# |/         |/
 			# p1--------p2
-			queue.append(Cube(p3.gr, round_to_multiple(p3.gr + gr_halfGap), round_to_multiple(p1.ws + ws_halfGap + decimal_episilon), p3.ws, p3.pb, p7.pb))
-		# si le coin avant/bas/gauche est isolé et qu'on peut encore découper sur au moins un des axes
-		if(sol1 != sol2 and sol1 != sol3 and sol1 != sol5 and (gr_halfGap >= decimal_episilon or ws_halfGap >= decimal_episilon or pb_halfGap >= decimal_episilon)):
+			queue.append(Cube(p5.gr, round_to_multiple(p5.gr + gr_halfGap, g_episilon/2), p5.ws, p7.ws, round_to_multiple(p5.pb - pb_halfGap, g_episilon), p5.pb))
+			#print("UL")
+		# si l'arête avant/gauche est homogène mais différente d'un point en arrière et à droite
+		if (sol1 == sol5 and (sol1 != sol2 or sol5 != sol6) and (sol1 != sol3 or sol5 != sol7)):
+			# Construction d'un cube devant à gauche
+			#     p7--------p8
+			#    /|         /|
+			#   +----+     / |
+			#  /    /|    /  | pb
+			# p5---+----p6   |  x
+			# |    | |   |   |  |  x ws
+			# |    | |---|--p4  | /
+			# |    | |   |  /   |/
+			# |    | +   | /    +------x gr
+			# |    |/    |/
+			# p1---+----p2
+			queue.append(Cube(p1.gr, round_to_multiple(p1.gr + gr_halfGap, g_episilon/2), p1.ws, round_to_multiple(p1.ws + ws_halfGap, g_episilon), p1.pb, p5.pb))
+			#print("FL")
+		# si l'arête avant/droite est homogène mais différente d'un point en arrière et à gauche
+		if (sol2 == sol6 and (sol1 != sol2 or sol5 != sol6) and (sol2 != sol4 or sol6 != sol8)):
+			# Construction d'un cube devant à droite
+			#     p7--------p8
+			#    /|         /|
+			#   / |  +-----+ |
+			#  /  | /     /| | pb
+			# p5---+----p6 | |  x
+			# |   ||     | | |  |  x ws
+			# |   p|     | |p4  | /
+			# |  / |     | |/   |/
+			# | /  |     | +    +------x gr
+			# |/   |     |/
+			# p1---+----p2
+			queue.append(Cube(round_to_multiple(p2.gr - gr_halfGap, g_episilon/2), p2.gr, p2.ws, round_to_multiple(p2.ws + ws_halfGap, g_episilon), p2.pb, p6.pb))
+			#print("FR")
+		# si l'arête arrière/droite est homogène mais différente d'un point en avant et à gauche
+		if (sol4 == sol8 and (sol3 != sol4 or sol7 != sol8) and (sol2 != sol4 or sol6 != sol8)):
+			# Construction d'un cube en arrière à droite
+			#     p7---+----p8
+			#    /|   /     /|
+			#   / |  +-----+ |
+			#  /  |  |    /| | pb
+			# p5--------p6 | |  x
+			# |   |  |   | | |  |  x ws
+			# |   p3-|   | |p4  | /
+			# |  /   |   | |/   |/
+			# | /    +---|-+    +------x gr
+			# |/         |/
+			# p1--------p2
+			queue.append(Cube(round_to_multiple(p4.gr - gr_halfGap, g_episilon/2), p4.gr, round_to_multiple(p4.ws - ws_halfGap, g_episilon), p4.ws, p4.pb, p8.pb))
+			#print("BR")
+		# si l'arête arrière/gauche est homogène mais différente d'un point en avant et à droite
+		if (sol3 == sol7 and (sol3 != sol4 or sol7 != sol8) and (sol3 != sol1 or sol7 != sol5)):
+			# Construction d'un cube en arrière à gauche
+			#     p7---+----p8
+			#    /    /|    /|
+			#   +----+ |   / |
+			#  /|    | |  /  | pb
+			# p5--------p6   |  x
+			# | |    | | |   |  |  x ws
+			# | |    | +-|--p4  | /
+			# | |    |/  |  /   |/
+			# | +----+   | /    +------x gr
+			# |/         |/
+			# p1--------p2
+			queue.append(Cube(p3.gr, round_to_multiple(p3.gr + gr_halfGap, g_episilon/2), round_to_multiple(p3.ws - ws_halfGap, g_episilon), p3.ws, p3.pb, p7.pb))
+			#print("BL")
+		# si le coin avant/bas/gauche est isolé
+		if(sol1 != sol2 and sol1 != sol3 and sol1 != sol5):
 			# Construction d'un cube en bas à gauche devant
 			#     p7--------p8
 			#    /|         /|
 			#   / |        / |
-			#  /  |       /  |
-			# p3--------p4   |
-			# | +----+   |   |
-			# |/    /|---|--p6
-			# +----+ |   |  /
-			# |    | +   | /
+			#  /  |       /  | pb
+			# p5--------p6   |  x
+			# | +----+   |   |  |  x ws
+			# |/    /|---|--p4  | /
+			# +----+ |   |  /   |/
+			# |    | +   | /    +------x gr
 			# |    |/    |/
 			# p1---+----p2
-			queue.append(Cube(p1.gr, round_to_multiple(p1.gr + gr_halfGap), p1.ws, round_to_multiple(p1.ws + ws_halfGap), p1.pb, round_to_multiple(p1.pb + pb_halfGap)))
-		# si le coin avant/haut/gauche est isolé et qu'on peut encore découper sur au moins un des axes
-		if(sol3 != sol4 and sol3 != sol7 and sol3 != sol1 and (gr_halfGap >= decimal_episilon or ws_halfGap >= decimal_episilon or pb_halfGap >= decimal_episilon)):
+			queue.append(Cube(p1.gr, round_to_multiple(p1.gr + gr_halfGap, g_episilon/2), p1.ws, round_to_multiple(p1.ws + ws_halfGap, g_episilon), p1.pb, round_to_multiple(p1.pb + pb_halfGap, g_episilon)))
+			#print("FDL")
+		# si le coin avant/haut/gauche est isolé
+		if(sol5 != sol6 and sol5 != sol7 and sol5 != sol1):
 			# Construction d'un cube en haut à gauche devant
 			#     p7--------p8
 			#    /|         /|
 			#   +----+     / |
-			#  /    /|    /  |
-			# p3---+----p4   |
-			# |    | +   |   |
-			# |    |/----|--p6
-			# +----+     |  /
-			# | /        | /
+			#  /    /|    /  | pb
+			# p5---+----p6   |  x
+			# |    | +   |   |  |  x ws
+			# |    |/----|--p4  | /
+			# +----+     |  /   |/
+			# | /        | /    +------x gr
 			# |/         |/
 			# p1--------p2
-			queue.append(Cube(p3.gr, round_to_multiple(p3.gr + gr_halfGap), round_to_multiple(p1.ws + ws_halfGap + decimal_episilon), p3.ws, p3.pb, round_to_multiple(p3.pb + pb_halfGap)))
-		# si le coin avant/bas/droite est isolé et qu'on peut encore découper sur au moins un des axes
-		if(sol2 != sol1 and sol2 != sol6 and sol2 != sol4 and (gr_halfGap >= decimal_episilon or ws_halfGap >= decimal_episilon or pb_halfGap >= decimal_episilon)):
+			queue.append(Cube(p5.gr, round_to_multiple(p5.gr + gr_halfGap, g_episilon/2), p5.ws, round_to_multiple(p5.ws + ws_halfGap, g_episilon), round_to_multiple(p5.pb - pb_halfGap, g_episilon), p5.pb))
+			#print("FUL")
+		# si le coin avant/bas/droite est isolé
+		if(sol2 != sol1 and sol2 != sol6 and sol2 != sol4):
 			# Construction d'un cube en bas à droite devant
 			#     p7--------p8
 			#    /|         /|
 			#   / |        / |
-			#  /  |       /  |
-			# p3--------p4   |
-			# |   |   +--|-+ |
-			# |   p5-/   |/|p6
-			# |  /  +----+ |/
-			# | /   |    | +
+			#  /  |       /  | pb
+			# p5--------p6   |  x
+			# |   |   +--|-+ |  |  x ws
+			# |   p3-/   |/|p4  | /
+			# |  /  +----+ |/   |/
+			# | /   |    | +    +------x gr
 			# |/    |    |/
 			# p1----+---p2
-			queue.append(Cube(round_to_multiple(p1.gr + gr_halfGap + decimal_episilon), p2.gr, p2.ws, round_to_multiple(p2.ws + ws_halfGap), p2.pb, round_to_multiple(p2.pb + pb_halfGap)))
-		# si le coin avant/haut/droite est isolé et qu'on peut encore découper sur au moins un des axes
-		if(sol4 != sol3 and sol4 != sol2 and sol4 != sol8 and (gr_halfGap >= decimal_episilon or ws_halfGap >= decimal_episilon or pb_halfGap >= decimal_episilon)):
+			queue.append(Cube(round_to_multiple(p2.gr - gr_halfGap, g_episilon/2), p2.gr, p2.ws, round_to_multiple(p2.ws + ws_halfGap, g_episilon), p2.pb, round_to_multiple(p2.pb + pb_halfGap, g_episilon)))
+			#print("FDR")
+		# si le coin avant/haut/droite est isolé
+		if(sol6 != sol5 and sol6 != sol2 and sol6 != sol8):
 			# Construction d'un cube en haut à droite devant
 			#     p7--------p8
 			#    /|         /|
 			#   / |   +----+ |
-			#  /  |  /    /| |
-			# p3----+---p4 | |
-			# |   | |    | + |
-			# |   p5|    |/-p6
-			# |  /  +----+  /
-			# | /        | /
+			#  /  |  /    /| | pb
+			# p5----+---p6 | |  x
+			# |   | |    | + |  |  x ws
+			# |   p3|    |/-p4  | /
+			# |  /  +----+  /   |/
+			# | /        | /    +------x gr
 			# |/         |/
 			# p1--------p2
-			queue.append(Cube(round_to_multiple(p3.gr + gr_halfGap + decimal_episilon), p4.gr, round_to_multiple(p2.ws + ws_halfGap + decimal_episilon), p4.ws, p4.pb, round_to_multiple(p4.pb + pb_halfGap)))
-		# si le coin arrière/bas/gauche est isolé et qu'on peut encore découper sur au moins un des axes
-		if(sol5 != sol1 and sol5 != sol6 and sol5 != sol7 and (gr_halfGap >= decimal_episilon or ws_halfGap >= decimal_episilon or pb_halfGap >= decimal_episilon)):
+			queue.append(Cube(round_to_multiple(p6.gr - gr_halfGap, g_episilon/2), p6.gr, p6.ws, round_to_multiple(p6.ws + ws_halfGap, g_episilon), round_to_multiple(p6.pb - pb_halfGap, g_episilon), p6.pb))
+			#print("FUR")
+		# si le coin arrière/bas/gauche est isolé
+		if(sol3 != sol1 and sol3 != sol4 and sol3 != sol7):
 			# Construction d'un cube en bas à gauche derrière
 			#     p7--------p8
 			#    /|         /|
 			#   / |        / |
-			#  /  +----+  /  |
-			# p3--------p4   |
-			# | +----+ | |   |
-			# | |    |-+-|--p6
-			# | |    |/  |  /
-			# | +----+   | /
+			#  /  +----+  /  | pb
+			# p5--------p6   |  x
+			# | +----+ | |   |  |  x ws
+			# | |    |-+-|--p4  | /
+			# | |    |/  |  /   |/
+			# | +----+   | /    +------x gr
 			# |/         |/
 			# p1--------p2
-			queue.append(Cube(p5.gr, round_to_multiple(p5.gr + gr_halfGap), p5.ws, round_to_multiple(p5.ws + ws_halfGap), round_to_multiple(p1.pb + pb_halfGap + decimal_episilon), p5.pb))
-		# si le coin arrière/haut/gauche est isolé et qu'on peut encore découper sur au moins un des axes
-		if(sol7 != sol3 and sol7 != sol8 and sol7 != sol5 and (gr_halfGap >= decimal_episilon or ws_halfGap >= decimal_episilon or pb_halfGap >= decimal_episilon)):
+			queue.append(Cube(p3.gr, round_to_multiple(p3.gr + gr_halfGap, g_episilon/2), round_to_multiple(p3.ws - ws_halfGap, g_episilon), p3.ws, p3.pb, round_to_multiple(p3.pb + pb_halfGap, g_episilon)))
+			#print("BDL")
+		# si le coin arrière/haut/gauche est isolé
+		if(sol7 != sol3 and sol7 != sol8 and sol7 != sol5):
 			# Construction d'un cube en haut à gauche derrière
 			#     p7---+----p8
 			#    /    /|    /|
 			#   +----+ |   / |
-			#  /|    | +  /  |
-			# p3--------p4   |
-			# | +----+   |   |
-			# |   p5-----|--p6
-			# |  /       |  /
-			# | /        | /
+			#  /|    | +  /  | pb
+			# p5--------p6   |  x
+			# | +----+   |   |  |  x ws
+			# |   p3-----|--p4  | /
+			# |  /       |  /   |/
+			# | /        | /    +------x gr
 			# |/         |/
 			# p1--------p2
-			queue.append(Cube(p7.gr, round_to_multiple(p7.gr + gr_halfGap), round_to_multiple(p5.ws + ws_halfGap + decimal_episilon), p7.ws, round_to_multiple(p3.pb + pb_halfGap + decimal_episilon), p7.pb))
-		# si le coin arrière/bas/droite est isolé et qu'on peut encore découper sur au moins un des axes
-		if(sol6 != sol5 and sol6 != sol2 and sol6 != sol8 and (gr_halfGap >= decimal_episilon or ws_halfGap >= decimal_episilon or pb_halfGap >= decimal_episilon)):
+			queue.append(Cube(p7.gr, round_to_multiple(p7.gr + gr_halfGap, g_episilon/2), round_to_multiple(p7.ws - ws_halfGap, g_episilon), p7.ws, round_to_multiple(p7.pb - pb_halfGap, g_episilon), p7.pb))
+			#print("BUL")
+		# si le coin arrière/bas/droite est isolé
+		if(sol4 != sol3 and sol4 != sol2 and sol4 != sol8):
 			# Construction d'un cube en bas à droite derrière
 			#     p7--------p8
 			#    /|         /|
 			#   / |        / |
-			#  /  |     +-/--+
-			# p3--------p4  /|
-			# |   |   +--|-+ |
-			# |   p5--|  | |p6
-			# |  /    |  | |/
-			# | /     +--|-+
+			#  /  |     +-/--+ pb
+			# p5--------p6  /|  x
+			# |   |   +--|-+ |  |  x ws
+			# |   p3--|  | |p4  | /
+			# |  /    |  | |/   |/
+			# | /     +--|-+    +------x gr
 			# |/         |/
 			# p1--------p2
-			queue.append(Cube(round_to_multiple(p5.gr + gr_halfGap + decimal_episilon), p6.gr, p6.ws, round_to_multiple(p6.ws + ws_halfGap), round_to_multiple(p2.pb + pb_halfGap + decimal_episilon), p6.pb))
-		# si le coin arrière/haut/droite est isolé et qu'on peut encore découper sur au moins un des axes
-		if(sol8 != sol7 and sol8 != sol4 and sol8 != sol6 and (gr_halfGap >= decimal_episilon or ws_halfGap >= decimal_episilon or pb_halfGap >= decimal_episilon)):
+			queue.append(Cube(round_to_multiple(p4.gr - gr_halfGap, g_episilon/2), p4.gr, round_to_multiple(p4.ws - ws_halfGap, g_episilon), p4.ws, p4.pb, round_to_multiple(p4.pb + pb_halfGap, g_episilon)))
+			#print("BDR")
+		# si le coin arrière/haut/droite est isolé
+		if(sol8 != sol7 and sol8 != sol4 and sol8 != sol6):
 			# Construction d'un cube en haut à droite derrière
 			#     p7----+---p8
 			#    /|    /    /|
 			#   / |   +----+ |
-			#  /  |   |   /| +
-			# p3--------p4 |/|
-			# |   |   +--|-+ |
-			# |   p5-----|--p6
-			# |  /       |  /
-			# | /        | /
+			#  /  |   |   /| + pb
+			# p5--------p6 |/|  x
+			# |   |   +--|-+ |  |  x ws
+			# |   p3-----|--p4  | /
+			# |  /       |  /   |/
+			# | /        | /    +------x gr
 			# |/         |/
 			# p1--------p2
-			queue.append(Cube(round_to_multiple(p7.gr + gr_halfGap + decimal_episilon), p8.gr, round_to_multiple(p6.ws + ws_halfGap + decimal_episilon), p8.ws, round_to_multiple(p4.pb + pb_halfGap + decimal_episilon), p8.pb))
+			queue.append(Cube(round_to_multiple(p8.gr - gr_halfGap, g_episilon/2), p8.gr, round_to_multiple(p8.ws - ws_halfGap, g_episilon), p8.ws, round_to_multiple(p8.pb - pb_halfGap, g_episilon), p8.pb))
+			#print("BUR")
 
 
 # \brief Compresse les logs contenus dans le fichier "targetFileName" en explorant les paramètres gr, ws et pb.
@@ -582,11 +651,11 @@ def search_gr_ws_by_rect(targetFileName, l_solution=None):
 # @targetFileName : Nom du fichier log à compresser
 # @l_solution : représente la solution de référence sous la forme d'une liste. Si égale à None le résultat de la compression n'est pas comparé à la solution.
 def search_aveugle(targetFileName, l_solution=None):
-	global  g_episilon, g_tab_parametersToBestResultPos, g_tab_parametersToColorId, g_map_bestSolutionToColorId, g_colorId
+	global  g_episilon, g_tab_parametersToBestResultPos, g_tab_parametersToColorId, g_map_compressionToColorId, g_colorId
 	num_etape = int(1+(1/g_episilon))
 	g_tab_parametersToBestResultPos = np.zeros((num_etape, num_etape, num_etape))
 	g_tab_parametersToColorId = np.zeros((num_etape, num_etape, num_etape))
-	g_map_bestSolutionToColorId = {}
+	g_map_compressionToColorId = {}
 	g_colorId = 1
 	if(not os.path.exists("./result/aveugle/"+targetFileName)):
 		os.makedirs("./result/aveugle/"+targetFileName)
@@ -595,7 +664,7 @@ def search_aveugle(targetFileName, l_solution=None):
 			os.remove(os.path.join("./result/aveugle/"+targetFileName, f))
 	# boucle pour calculer les gr
 	for i in range(num_etape):
-		gr = Decimal(i*g_episilon).quantize(Decimal('1.00')) # pour être sûr de n'avoir que deux chiffres après la virgule
+		gr = Decimal(i*(g_episilon/2)).quantize(Decimal('1.00')) # pour être sûr de n'avoir que deux chiffres après la virgule
 		# boucle pour calculer les ws
 		for j in range(num_etape):
 			ws = Decimal(j*g_episilon).quantize(Decimal('1.00')) # pour être sûr de n'avoir que deux chiffres après la virgule
@@ -604,21 +673,22 @@ def search_aveugle(targetFileName, l_solution=None):
 				pb = Decimal(k*g_episilon).quantize(Decimal('1.00')) # pour être sûr de n'avoir que deux chiffres après la virgule
 				print("Call parser with parameters\tgr: "+str(gr)+"   \tws: "+str(ws)+"   \tpb: "+str(pb))
 				# appel du parser C++
-				file_exe = "myParserTest.exe "+ targetFileName+".log -sc 0.1 -gr " +str(gr) + " -ws "+str(ws)+" -pb "+str(pb)+" -disableLogs"
+				file_exe = "myParserTest.exe "+ targetFileName+".log -gr " +str(gr) + " -ws "+str(ws)+" -pb "+str(pb)+" -disableLogs"
 				child = subprocess.Popen(file_exe,shell=True)
 				child.wait()
 				# sauvegarde du résultat
 				shutil.copyfile("./debugParser.log", "./result/aveugle/"+targetFileName+"/debugParser_"+targetFileName+"_gr"+str(gr) + "_ws"+str(ws) + "_pb"+str(pb)+".log")
 				
+				compression = get_compressionResult("./debugParser.log")
+
 				# cas où on compare le résultat à la solution optimale
 				if(l_solution != None):
-					g_tab_parametersToBestResultPos[i][j][k]=getBestResultPosEqualToSolution("./debugParser.log", l_solution)
+					g_tab_parametersToBestResultPos[i][j][k]=isEqualToSolution(compression, l_solution)
 
-				bestSolution = get_bestSolution("./debugParser.log")
-				if(bestSolution in g_map_bestSolutionToColorId.keys()):
-					g_tab_parametersToColorId[i][j][k] = g_map_bestSolutionToColorId[bestSolution]
+				if(compression in g_map_compressionToColorId.keys()):
+					g_tab_parametersToColorId[i][j][k] = g_map_compressionToColorId[compression]
 				else:
-					g_map_bestSolutionToColorId[bestSolution] = g_colorId
+					g_map_compressionToColorId[compression] = g_colorId
 					g_tab_parametersToColorId[i][j][k] = g_colorId
 					g_colorId += 1
 	
@@ -631,7 +701,7 @@ def search_aveugle(targetFileName, l_solution=None):
 # @dichotomique : utilisation l'algorithme de dichotomique avec des rectangles pour réduire le nombre de test
 # @verification : True pour ajouter la partie de vérification de la solution avec une solution optimale, False pour sauter cette étape
 def run(dichotomique=True, verification=False):
-	global g_tab_parametersToBestResultPos, g_tab_parametersToColorId
+	global g_tab_parametersToBestResultPos, g_tab_parametersToColorId, g_tab_filledMap
 	l_solution = None
 	# Façon dichotomique
 	if (dichotomique):
@@ -643,6 +713,8 @@ def run(dichotomique=True, verification=False):
 			search_gr_ws_by_rect(targetFileName, l_solution)
 			# Mise en évidence en vert des paramètres permettant d'obtenir la meilleure solution
 			np.save("./files_npy/"+targetFileName+".npy",g_tab_parametersToBestResultPos)
+			# Idem que la précédente sauf que les trous de l'approche dicotomique sont remplis
+			np.save("./files_npy/filled_"+targetFileName+".npy", g_tab_filledMap)
 			# Chaque solution est mise en évidence par sa propre couleur (i.e. tous les points représentant le même résultat sont coloriés de la même façon)
 			np.save("./files_npy/possible_"+targetFileName+".npy", g_tab_parametersToColorId)
 			print("************************************************************\n\n")
@@ -684,4 +756,5 @@ if __name__ == "__main__":
 	else:
 		print("Lancement des tests...\n")
 		test_file = ["1_rienAFaire", "2_simpleBoucle", "3_simpleBoucleAvecDebut", "4_simpleBoucleAvecFin", "5_simpleBoucleAvecDebutEtFin", "6.01_simpleBoucleAvecIf", "6.02_simpleBoucleAvecIf", "6.03_simpleBoucleAvecIf", "6.04_simpleBoucleAvecIf", "6.05_simpleBoucleAvecIf", "6.06_simpleBoucleAvecIf", "6.07_simpleBoucleAvecIf", "6.08_simpleBoucleAvecIf", "6.09_simpleBoucleAvecIf", "6.10_simpleBoucleAvecIf", "6.11_simpleBoucleAvecIf", "6.12_simpleBoucleAvecIf", "6.13_simpleBoucleAvecIf", "6.14_simpleBoucleAvecIf", "7.01_bouclesEnSequence", "7.02_bouclesEnSequence", "8_bouclesEnSequenceAvecIf", "9.01_bouclesImbriquees", "9.02_bouclesImbriquees", "9.03_bouclesImbriquees"]
+		#test_file = ["6.01_simpleBoucleAvecIf"]
 		run(dichotomique=True,verification=True)

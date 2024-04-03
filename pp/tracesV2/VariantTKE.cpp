@@ -45,7 +45,7 @@ Episode::sp_episode VariantTKE::runAlgorithm(Sequence::sp_sequence data){
 		std::vector<Trace::sp_trace> events;
 		events.push_back(it->first);
 		// Création d'un épisode contenant ce vecteur de trace ainsi que ses positions d'apparition
-		Episode::sp_episode sp_epi(new Episode(events, mapItemLocationList.find(it->first)->second));
+		Episode::sp_episode sp_epi(new Episode(events, it->second));
 		
 		/*std::cout << " MINSUP:" << Episode::MIN_SUPPORT << " MAXSUP:" << Episode::MAX_SUPPORT << " MAXLENGTH:" << Episode::MAX_LENGTH << std::endl;
 		std::cout << "sc:" << sp_epi->getScore() << " sup:" << sp_epi->getSupport() << " pi:" << sp_epi->getInsideProximity() << " po:" << sp_epi->getOutsideProximity() << " ";
