@@ -1,12 +1,17 @@
 # File : pp.py
 # Author : Muratet.M
-# Date : January 3, 2015
+# Date : March 20, 2024
 #
-# Brief : Interface to interact with the game
+# Brief : Interface to connect with 32 bits library from Python x64
 #
 
-from ctypes import *
-pplib = CDLL("./pp-client-python.dll")
+import socket
+import subprocess
+import json
+
+pp_wrapper = None
+pp_client = None
+pp_socket = None
 
 ###################################
 # List of available coalition ids #
@@ -27,18 +32,19 @@ ENEMY_COALITION = 2
 
 # Represents a position.
 # Defines a position representing a location (x, y) coordinate space.
-class PP_Pos (Structure):
-    _fields_ = [("x", c_float),
-                ("y", c_float)]
+class PP_Pos:
+    def __init__(self, newX=0, newY=0):
+        self.x = newX
+        self.y = newY
 
 # Maximum number of parameters of a command.
 # PP_Cmd
 MAX_PARAMS = 3
 
-class PP_Cmd (Structure):
-    _fields_ = [("code", c_int),
-                ("nbParams", c_int),
-                ("param", c_float * MAX_PARAMS)]
+class PP_Cmd:
+    def __init__(self, code=0, params=[]):
+        self.code = code
+        self.params = params
 
 #################################
 # Functions to manage Prog&Play #
@@ -50,8 +56,21 @@ def PP_Open ():
     Returns 0 on success. -1 is returned on errors.
 
     """
-    # call C function and return result
-    return pplib.Python_Open()
+    global pp_socket
+    global pp_client
+    global pp_wrapper
+    pp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    pp_socket.bind(('127.0.0.1', 12012))
+    pp_wrapper = subprocess.Popen(["32bitWrapper.exe"])
+    pp_socket.listen()
+    pp_client, _address = pp_socket.accept()
+    # send request
+    request = "PP_Open"
+    pp_client.send(request.encode())
+    # get answer
+    msg = pp_client.recv(2048)
+    response = msg.decode()
+    return int(response)
 
 def PP_Close ():
     """ -> int
@@ -61,8 +80,19 @@ def PP_Close ():
     Returns 0 on success. -1 is returned on errors.
 
     """
-    # call C function and return result
-    return pplib.PP_Close()
+    # send request
+    global pp_socket
+    global pp_client
+    global pp_wrapper
+    request = "PP_Close"
+    pp_client.send(request.encode())
+    # get answer
+    msg = pp_client.recv(2048)
+    response = msg.decode()
+    pp_client.close()
+    pp_socket.close()
+    pp_wrapper.kill()
+    return int(response)
 
 #####################################
 # Functions to manage game elements #
@@ -76,7 +106,14 @@ def PP_IsGameOver ():
 
     """
     # call C function and return result
-    return pplib.PP_IsGameOver()
+    global pp_client
+    # send request
+    request = "PP_IsGameOver"
+    pp_client.send(request.encode())
+    # get answer
+    msg = pp_client.recv(2048)
+    response = msg.decode()
+    return int(response)
 
 def PP_IsGamePaused ():
     """ -> int
@@ -86,7 +123,14 @@ def PP_IsGamePaused ():
 
     """
     # call C function and return result
-    return pplib.PP_IsGamePaused()
+    global pp_client
+    # send request
+    request = "PP_IsGamePaused"
+    pp_client.send(request.encode())
+    # get answer
+    msg = pp_client.recv(2048)
+    response = msg.decode()
+    return int(response)
 
 def PP_GetMapSize ():
     """ -> PP_Pos
@@ -96,10 +140,15 @@ def PP_GetMapSize ():
             errors.
 
     """
-    # specify return type of C function
-    pplib.PP_GetMapSize.restype = PP_Pos
-    # call C function and return result
-    return pplib.PP_GetMapSize()
+    global pp_client
+    # send request
+    request = "PP_GetMapSize"
+    pp_client.send(request.encode())
+    # get answer
+    msg = pp_client.recv(2048)
+    responses = msg.decode().split("#")
+    pos = PP_Pos(float(responses[0]), float(responses[1]))
+    return pos
 
 def PP_GetStartPosition ():
     """ -> PP_Pos
@@ -109,10 +158,15 @@ def PP_GetStartPosition ():
     Returns start position on success. A position containing -1.0 is returned on errors.
 
     """
-    # specify return type of C function
-    pplib.PP_GetStartPosition.restype = PP_Pos
-    # call C function and return result
-    return pplib.PP_GetStartPosition()
+    global pp_client
+    # send request
+    request = "PP_GetStartPosition"
+    pp_client.send(request.encode())
+    # get answer
+    msg = pp_client.recv(2048)
+    responses = msg.decode().split("#")
+    pos = PP_Pos(float(responses[0]), float(responses[1]))
+    return pos
 
 def PP_GetNumSpecialAreas ():
     """ -> int
@@ -122,7 +176,14 @@ def PP_GetNumSpecialAreas ():
 
     """
     # call C function and return result
-    return pplib.PP_GetNumSpecialAreas ()
+    global pp_client
+    # send request
+    request = "PP_GetNumSpecialAreas"
+    pp_client.send(request.encode())
+    # get answer
+    msg = pp_client.recv(2048)
+    response = msg.decode()
+    return int(response)
 
 def PP_GetSpecialAreaPosition (specialAreaId):
     """ int -> PP_Pos
@@ -138,12 +199,15 @@ def PP_GetSpecialAreaPosition (specialAreaId):
     See PP_GetNumSpecialAreas
 
     """
-    # specify arg types of C function
-    pplib.PP_GetSpecialAreaPosition.argtypes = [c_int]
-    # specify return type of C function
-    pplib.PP_GetSpecialAreaPosition.restype = PP_Pos
-    # call C function and return result
-    return pplib.PP_GetSpecialAreaPosition(specialAreaId)
+    global pp_client
+    # send request
+    request = "PP_GetSpecialAreaPosition#"+str(specialAreaId)
+    pp_client.send(request.encode())
+    # get answer
+    msg = pp_client.recv(2048)
+    responses = msg.decode().split("#")
+    pos = PP_Pos(float(responses[0]), float(responses[1]))
+    return pos
 
 def PP_GetResource (resourceId):
     """ int -> int
@@ -156,10 +220,14 @@ def PP_GetResource (resourceId):
     See constantList_KP4_1.py - available resource ids list
 
     """
-    # specify arg types of C function
-    pplib.PP_GetResource.argtypes = [c_int]
-    # call C function and return result
-    return pplib.PP_GetResource(resourceId)
+    global pp_client
+    # send request
+    request = "PP_GetResource#"+str(resourceId)
+    pp_client.send(request.encode())
+    # get answer
+    msg = pp_client.recv(2048)
+    response = msg.decode()
+    return int(response)
 
 def PP_GetNumUnits (coalition) :
     """ int -> int
@@ -173,10 +241,14 @@ def PP_GetNumUnits (coalition) :
     See available coalition ids list
 
     """
-    # specify arg types of C function
-    pplib.PP_GetNumUnits.argtypes = [c_int]
-    # call C function and return result
-    return pplib.PP_GetNumUnits(coalition)
+    global pp_client
+    # send request
+    request = "PP_GetNumUnits#"+str(coalition)
+    pp_client.send(request.encode())
+    # get answer
+    msg = pp_client.recv(2048)
+    response = msg.decode()
+    return int(response)
 
 def PP_GetUnitAt (coalition, index):
     """ int * int -> int
@@ -193,14 +265,18 @@ def PP_GetUnitAt (coalition, index):
     See available coalition ids list
 
     """
-    # specify arg types of C function
-    pplib.PP_GetUnitAt.argtypes = [c_int, c_int]
-    # call C function and return result
-    return pplib.PP_GetUnitAt(coalition, index)
+    global pp_client
+    # send request
+    request = "PP_GetUnitAt#"+str(coalition)+"#"+str(index)
+    pp_client.send(request.encode())
+    # get answer
+    msg = pp_client.recv(2048)
+    response = msg.decode()
+    return int(response)
 
-###########################
-# Function to manage unit #
-###########################
+# ###########################
+# # Function to manage unit #
+# ###########################
 
 def PP_Unit_GetCoalition (unit):
     """ int -> int
@@ -213,10 +289,14 @@ def PP_Unit_GetCoalition (unit):
     See PP_GetUnitAt
 
     """
-    # specify arg types of C function
-    pplib.PP_Unit_GetCoalition.argtypes = [c_int]
-    # call C function and return result
-    return pplib.PP_Unit_GetCoalition(unit)
+    global pp_client
+    # send request
+    request = "PP_Unit_GetCoalition#"+str(unit)
+    pp_client.send(request.encode())
+    # get answer
+    msg = pp_client.recv(2048)
+    response = msg.decode()
+    return int(response)
 
 def PP_Unit_GetType (unit):
     """ int -> int
@@ -230,10 +310,14 @@ def PP_Unit_GetType (unit):
     See PP_GetUnitAt
 
     """
-    # specify arg types of C function
-    pplib.PP_Unit_GetType.argtypes = [c_int]
-    # call C function and return result
-    return pplib.PP_Unit_GetType(unit)
+    global pp_client
+    # send request
+    request = "PP_Unit_GetType#"+str(unit)
+    pp_client.send(request.encode())
+    # get answer
+    msg = pp_client.recv(2048)
+    response = msg.decode()
+    return int(response)
 
 def PP_Unit_GetPosition (unit):
     """ int -> PP_Pos
@@ -247,12 +331,15 @@ def PP_Unit_GetPosition (unit):
     See PP_GetUnitAt
 
     """
-    # specify arg types of C function
-    pplib.PP_Unit_GetPosition.argtypes = [c_int]
-    # specify return type of C function
-    pplib.PP_Unit_GetPosition.restype = PP_Pos
-    # call C function and return result
-    return pplib.PP_Unit_GetPosition(unit)
+    global pp_client
+    # send request
+    request = "PP_Unit_GetPosition#"+str(unit)
+    pp_client.send(request.encode())
+    # get answer
+    msg = pp_client.recv(2048)
+    responses = msg.decode().split("#")
+    pos = PP_Pos(float(responses[0]), float(responses[1]))
+    return pos
 
 def PP_Unit_GetHealth (unit):
     """ int -> float
@@ -265,12 +352,14 @@ def PP_Unit_GetHealth (unit):
     See PP_GetUnitAt
 
     """
-    # specify arg types of C function
-    pplib.PP_Unit_GetHealth.argtypes = [c_int]
-    # specify return type of C function
-    pplib.PP_Unit_GetHealth.restype = c_float
-    # call C function and return result
-    return pplib.PP_Unit_GetHealth(unit)
+    global pp_client
+    # send request
+    request = "PP_Unit_GetHealth#"+str(unit)
+    pp_client.send(request.encode())
+    # get answer
+    msg = pp_client.recv(2048)
+    response = msg.decode()
+    return float(response)
 
 def PP_Unit_GetMaxHealth (unit):
     """ int -> float
@@ -284,12 +373,14 @@ def PP_Unit_GetMaxHealth (unit):
     See PP_GetUnitAt
 
     """
-    # specify arg types of C function
-    pplib.PP_Unit_GetMaxHealth.argtypes = [c_int]
-    # specify return type of C function
-    pplib.PP_Unit_GetMaxHealth.restype = c_float
-    # call C function and return result
-    return pplib.PP_Unit_GetMaxHealth(unit)
+    global pp_client
+    # send request
+    request = "PP_Unit_GetMaxHealth#"+str(unit)
+    pp_client.send(request.encode())
+    # get answer
+    msg = pp_client.recv(2048)
+    response = msg.decode()
+    return float(response)
 
 def PP_Unit_GetGroup (unit):
     """ int -> int
@@ -303,10 +394,14 @@ def PP_Unit_GetGroup (unit):
     See PP_GetUnitAt
 
     """
-    # specify arg types of C function
-    pplib.PP_Unit_GetGroup.argtypes = [c_int]
-    # call C function and return result
-    return pplib.PP_Unit_GetGroup(unit)
+    global pp_client
+    # send request
+    request = "PP_Unit_GetGroup#"+str(unit)
+    pp_client.send(request.encode())
+    # get answer
+    msg = pp_client.recv(2048)
+    response = msg.decode()
+    return int(response)
     
 def PP_Unit_SetGroup (unit, groupId):
     """ int * int -> int
@@ -322,10 +417,14 @@ def PP_Unit_SetGroup (unit, groupId):
     See PP_GetUnitAt
 
     """
-    # specify arg types of C function
-    pplib.PP_Unit_SetGroup.argtypes = [c_int, c_int]
-    # call C function and return result
-    return pplib.PP_Unit_SetGroup(unit, groupId)
+    global pp_client
+    # send request
+    request = "PP_Unit_SetGroup#"+str(unit)+"#"+str(groupId)
+    pp_client.send(request.encode())
+    # get answer
+    msg = pp_client.recv(2048)
+    response = msg.decode()
+    return int(response)
 
 def PP_Unit_GetPendingCommands (unit):
     """int -> list[PP_Cmd]
@@ -341,32 +440,23 @@ def PP_Unit_GetPendingCommands (unit):
     See PP_Cmd
     
     """
-    
-    # Maximum number of pending command available for a unit in the Prog&Play API.
-    MAX_PDG_CMD = 10
-    # C type wrapper to get pending commands
-    class PP_PendingCommands (Structure):
-        _fields_ = [("nbCmds", c_int),
-                    ("cmd", PP_Cmd * MAX_PDG_CMD)]
-    # create local pending commands
-    c_cmds = PP_PendingCommands()
-    # get pointer on this set
-    p_cmds = pointer(c_cmds)
-
-    # specify arg types of C function
-    pplib.PP_Unit_GetPendingCommands.argtypes = [c_int, POINTER(PP_PendingCommands)]
-    # call c function
-    ret = pplib.PP_Unit_GetPendingCommands(unit, p_cmds)
-    if ret == -1:
+    global pp_client
+    # send request
+    request = "PP_Unit_GetPendingCommands#"+str(unit)
+    pp_client.send(request.encode())
+    # get answer
+    msg = pp_client.recv(2048)
+    response = msg.decode()
+    if response == "-1":
         return None
-    # parse all commands and store only defined commands
-    i = 0
-    cmds = []
-    while i < c_cmds.nbCmds:
-        cmds.append(c_cmds.cmd[i])
-        i += 1
-    # returns list of available commands
-    return cmds
+
+    result = json.loads(response)
+
+    pendingCmds = []
+    for r in result:
+        pendingCmds.append(PP_Cmd(r["code"], r["params"]))
+
+    return pendingCmds
 
 def PP_Unit_ActionOnUnit (unit, action, target, synchronized=False):
     """ int * int * int * bool -> int
@@ -389,10 +479,14 @@ def PP_Unit_ActionOnUnit (unit, action, target, synchronized=False):
     See PP_GetUnitAt
 
     """
-    # specify arg types of C function
-    pplib.PP_Unit_ActionOnUnit.argtypes = [c_int, c_int, c_int, c_int]
-    # call C function and return result
-    return pplib.PP_Unit_ActionOnUnit(unit, action, target, synchronized)
+    global pp_client
+    # send request
+    request = "PP_Unit_ActionOnUnit#"+str(unit)+"#"+str(action)+"#"+str(target)+"#"+("1" if synchronized else "0")
+    pp_client.send(request.encode())
+    # get answer
+    msg = pp_client.recv(2048)
+    response = msg.decode()
+    return int(response)    
     
 def PP_Unit_ActionOnPosition (unit, action, pos, synchronized=False):
     """ int * int * PP_Pos * bool -> int
@@ -413,10 +507,14 @@ def PP_Unit_ActionOnPosition (unit, action, pos, synchronized=False):
 
     See constantList_KP4_1.py - available unit actions depending on the unit type id.
     See PP_GetUnitAt"""
-    # specify arg types of C function
-    pplib.PP_Unit_ActionOnPosition.argtypes = [c_int, c_int, PP_Pos, c_int]
-    # call C function and return result
-    return pplib.PP_Unit_ActionOnPosition(unit, action, pos, synchronized)
+    global pp_client
+    # send request
+    request = "PP_Unit_ActionOnPosition#"+str(unit)+"#"+str(action)+"#"+str(pos.x)+"#"+str(pos.y)+"#"+("1" if synchronized else "0")
+    pp_client.send(request.encode())
+    # get answer
+    msg = pp_client.recv(2048)
+    response = msg.decode()
+    return int(response)
     
 def PP_Unit_UntargetedAction (unit, action, param=-1.0, synchronized=False):
     """ int * int * float * bool -> int
@@ -442,22 +540,31 @@ def PP_Unit_UntargetedAction (unit, action, param=-1.0, synchronized=False):
     See PP_GetUnitAt
 
     """
-    # specify arg types of C function
-    pplib.PP_Unit_UntargetedAction.argtypes = [c_int, c_int, c_float, c_int]
-    # call C function and return result
-    return pplib.PP_Unit_UntargetedAction(unit, action, param, synchronized)
+    global pp_client
+    # send request
+    request = "PP_Unit_UntargetedAction#"+str(unit)+"#"+str(action)+"#"+str(param)+"#"+("1" if synchronized else "0")
+    pp_client.send(request.encode())
+    # get answer
+    msg = pp_client.recv(2048)
+    response = msg.decode()
+    return int(response)
 
-#####################################################
-# Functions to manage errors generated by Prog&Play #
-#####################################################
+# #####################################################
+# # Functions to manage errors generated by Prog&Play #
+# #####################################################
 
 def PP_GetError ():
     """ -> string
     Returns last error generated by Prog&Play API.
 
     """
-    pplib.PP_GetError.restype = c_char_p
-    return pplib.PP_GetError().decode("utf-8")
+    global pp_client
+    # send request
+    request = "PP_GetError"
+    pp_client.send(request.encode())
+    # get answer
+    msg = pp_client.recv(2048)
+    return msg.decode()
 
 def PP_ClearError ():
     """ ->
@@ -465,4 +572,9 @@ def PP_ClearError ():
     if error has been processed.
 
     """
-    pplib.PP_ClearError()
+    global pp_client
+    # send request
+    request = "PP_ClearError"
+    pp_client.send(request.encode())
+    # get answer
+    pp_client.recv(2048)

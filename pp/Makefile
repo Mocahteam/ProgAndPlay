@@ -12,14 +12,14 @@ ifeq ($(OS),Windows_NT)
 PATH := C:\msys\1.0\bin;$(PATH)
 ENTETELIB = 
 LIB = .dll
-OPT = -std=c++11 -std=gnu++11
+OPT =
 OPTLIB_CLIENT = -L../$(SPRING_VERSION)/mingwlibs/lib -lboost_thread-mt -lboost_system-mt -Wl,--add-stdcall-alias,--output-def,$(LIB_NAME_CLIENT).def,--out-implib,lib$(LIB_NAME_CLIENT).a
 OPTLIB_SUPPLIER = -Wl,--add-stdcall-alias,--output-def,$(LIB_NAME_SUPPLIER).def,--out-implib,lib$(LIB_NAME_SUPPLIER).a
 INCLUDE_DIRS = . ../$(SPRING_VERSION)/mingwlibs/include
 else
 ENTETELIB = lib
 LIB = .so
-OPT = -fPIC -std=c++11 -std=gnu++11
+OPT = -fPIC
 OPTLIB_CLIENT = -lboost_thread -fPIC -lrt
 OPTLIB_SUPPLIER = $(OPTLIB_CLIENT)
 INCLUDE_DIRS = .
@@ -36,7 +36,7 @@ endif
 # Addition of "-I" in front of each source directories
 INCLUDES = $(foreach tmp, $(INCLUDE_DIRS),-I$(tmp)) 
 
-all: $(CIBLE_CLIENT) $(CIBLE_SUPPLIER) compile_traces
+all: $(CIBLE_CLIENT) $(CIBLE_SUPPLIER) #compile_traces
 
 $(CIBLE_CLIENT): PP_Client_Private.o PP_Error.o
 	g++ -shared -o $@ $^ $(OPTLIB_CLIENT)

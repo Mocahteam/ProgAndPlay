@@ -8,7 +8,7 @@ else
 BUILD_SCRATCH = do_not_compile_scratch
 endif
 
-all: compile_c compile_java compile_compalgo compile_ocaml compile_ada compile_python $(BUILD_SCRATCH)
+all: compile_c compile_ada compile_python #compile_java compile_compalgo compile_ocaml $(BUILD_SCRATCH)
 
 compile_c:
 	@echo ""
@@ -130,6 +130,6 @@ clean:
 	@echo "Python interface cleaning -----------------------------------------\
 --------------"
 	@(cd ./python && $(MAKE) $@)
-	@echo "Scratch interface cleaning -------------------------------------\
+	@echo "Python64 interface cleaning -------------------------------------\
 --------------"
 	@(cd ./scratch2.0/ProgAndPlayANE/lib/exportANE && $(MAKE) $@)

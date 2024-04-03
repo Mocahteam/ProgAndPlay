@@ -25,10 +25,12 @@
 #include "PP_Error_Private.h"
 #include "traces/TraceConstantList.h"
 
-#include <chrono>
-#include <thread>
+//#include <chrono>
+//#include <thread>
 #include <signal.h>
 #include <math.h>
+#include <boost/date_time/gregorian/gregorian.hpp>
+#include <boost/thread.hpp>
 #include <stdio.h>
 #include <fstream>
 #include <sstream>
@@ -137,8 +139,7 @@ static int checkParams(std::string fctName = "",
  * commandType : type of the command
  * setGroup : affectation group number
  */
-static void addCommand(PP_Unit unitId, int commandCode,
-		const std::vector<float>& params, int commandType, int setGroup = -2){
+static void addCommand(PP_Unit unitId, int commandCode, const std::vector<float>& params, int commandType, int setGroup = -2){
 	// builds a command
 	ShPendingCommand &tmp = (*(shd.pendingCommand))[unitId];
 	// Checks if this command is an affectation group number
@@ -177,7 +178,7 @@ void enterCriticalSection(){
 	if (locked == 0){
 		// make a pause every 8 call to avoid cpu consuming
 		if (nbCriticalCall > 8){
-			std::this_thread::sleep_for(std::chrono::milliseconds(1));
+			boost::this_thread::sleep(boost::posix_time::milliseconds(1));
 			nbCriticalCall = 0;
 		}
 		// intercept SIGINT signal in critical section
