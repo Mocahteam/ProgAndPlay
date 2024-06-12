@@ -608,7 +608,7 @@ std::vector<std::vector<int>> Sequence::computeLinearSequenceDistance(std::vecto
 	return D;
 }
 
-void Sequence::unstackSequence(std::vector<std::tuple<std::string, Trace::sp_trace, bool>> & stack, std::vector<Trace::sp_trace> & mergedSequence, std::string action, Trace::sp_trace trace){
+void Sequence::unstackBegin(std::vector<std::tuple<std::string, Trace::sp_trace, bool>> & stack, std::vector<Trace::sp_trace> & mergedSequence, std::string action, Sequence::sp_sequence begin){
 	// l'action à dépiler est la même que la tête de la pile, c'est parfait on n'a qu'à la dépiler
 	if (std::get<0>(stack.back()) == action)
 		stack.pop_back();
@@ -631,9 +631,9 @@ void Sequence::unstackSequence(std::vector<std::tuple<std::string, Trace::sp_tra
 		// on dépile la stack, soit un "l" soit un "c" (on est sûr que ce n'est par un "d" car sinon on serait rentré dans le tout premier cas de cette fonction)
 		stack.pop_back();
 		// maintenant la tête de la pile peux être un autre "l" ou "c" mais aussi pourquoi pas un "d". On fait donc un appel récursif pour gérer le dépilement de la seconde composante de notre action "d". On passe donc comme action le complément au "d" de l'action en cours de traitement, donc "l" si "c" et "c" si "l"
-		unstackSequence(stack, mergedSequence, (head == "c" ? "l" : "c"), trace);
+		unstackBegin(stack, mergedSequence, (head == "c" ? "l" : "c"), begin);
 		// on ajoute un clone additionnel pour intégrer cette double fermeture. Le second est ajouté comme pour les autres cas à l'extérieur de l'appel de cette fonction
-		mergedSequence.push_back(trace->clone());
+		mergedSequence.push_back(begin->clone());
 	}
 	// l'action est soit "l" soit "c" et la tête de la pile est l'opposée (cas de séquences qui se chevochent)
 	// exemple : A[BC] vs [AB]C => avec "A[BC]" sur les lignes de la matrice et "[AB]C" sur les colonnes. Sur la remontée on sera sur "B]C]". Les deux "]" ont été ajoutés une première fois en ligne puis en colonne (tête de la pile "c") et on cherche à ajouter "[" en ligne ce qui est pour l'instant pas possible puisque l'action à dépiler n'est pas cohérente avec la tête de la pile. On va donc passer les traces non incluses dans le chevauchement en optionnelle pour obtenir [*A[B]*C] qui est bien un moyen de fusionner les deux traces en exemple.
@@ -694,18 +694,19 @@ void Sequence::unstackSequence(std::vector<std::tuple<std::string, Trace::sp_tra
 	}
 }
 
-void Sequence::manageStack(std::vector<std::tuple<std::string, Trace::sp_trace, bool>> & stack, std::vector<Trace::sp_trace> & mergedSequence, std::string action, Trace::sp_trace selection, int step){
-	if (selection->getInfo() == "End"){
-		stack.push_back(std::make_tuple(action, selection, false)); // on enregistre qu'on rentre dans une séquence suite à une action "l", "c" ou "d" (pour rappel on remonte la trace donc on entre dans des séquences par des End et on en ressort par des Begin)
+void Sequence::manageStack(std::vector<std::tuple<std::string, Trace::sp_trace, bool>> & stack, std::vector<Trace::sp_trace> & mergedSequence, std::string action, Sequence::sp_sequence border, int step){
+	// Important : nous assumons ici que border est une trace modélisant uniquement une séquence taguée Begin ou End
+	if (border->getInfo() == "End"){
+		stack.push_back(std::make_tuple(action, border, false)); // on enregistre qu'on rentre dans une séquence suite à une action "l", "c" ou "d" (pour rappel on remonte la trace donc on entre dans des séquences par des End et on en ressort par des Begin)
 		if (step == 0){
 			// Sur cette étape (step == 0) on va se servir de l'attribut "optionnel" d'une séquence End pour coder le fait que cette séquence doit être mise en option lors de l'étape suivante (step == 1) si elle ne contient aucune trace alignée. Cette astuce sera aussi utilisée pour déterminer si un Call doit être mis en option sur un changement de ligne ou de colonne (pas la diagonale) en effet si le End de la séquence mère est tagué Optionnel alors il n'est pas nécessaire de noter les Call enfants comme optionnels.
 			// Donc à l'étape 0 on tague par défaut toutes les Séquences End comme optionnelle. Si ensuite en construisant la fusion on trouve des traces alignées, on annulera cette mise en option.
-			selection->setOptional(true);
+			border->setOptional(true);
 		}
 	}
 	// ici on est sur un Begin, il faut vérifier si on peut dépiler simplement ou s'il faut faire des opérations spécifiques
 	else{
-		unstackSequence(stack, mergedSequence, action, selection);
+		unstackBegin(stack, mergedSequence, action, border);
 	}
 }
 
@@ -835,7 +836,7 @@ void Sequence::mergeLinearSequences_local(std::vector<Trace::sp_trace> & s1, std
 
 			// Gestion de la pile si la sélection est une séquence
 			if (selection && selection->isSequence()){
-				manageStack(stack, mergedSequence, action, selection, step);
+				manageStack(stack, mergedSequence, action, std::dynamic_pointer_cast<Sequence>(selection), step);
 			}
 		}
 		// Ici les deux traces sont des séquences
@@ -901,7 +902,7 @@ void Sequence::mergeLinearSequences_local(std::vector<Trace::sp_trace> & s1, std
 			}
 
 			// Gestion de la pile si la sélection est une séquence
-			manageStack(stack, mergedSequence, action, selection, step);
+			manageStack(stack, mergedSequence, action, std::dynamic_pointer_cast<Sequence>(selection), step);
 		}
 	}
 }

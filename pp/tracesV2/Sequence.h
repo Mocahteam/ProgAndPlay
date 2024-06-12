@@ -527,12 +527,14 @@ protected:
 	/**
 	 * \brief Gère le dépilement de la pile en fonction du choix des Begin (haut, gauche ou diagonale)
 	*/
-	static void unstackSequence(std::vector<std::tuple<std::string, Trace::sp_trace, bool>> & stack, std::vector<Trace::sp_trace> & mergedSequence, std::string action, Trace::sp_trace trace);
+	static void unstackBegin(std::vector<std::tuple<std::string, Trace::sp_trace, bool>> & stack, std::vector<Trace::sp_trace> & mergedSequence, std::string action, Sequence::sp_sequence begin);
 	
 	/**
-	 * \brief Gère la pile d'imbrication des séquence. Les End sont empilés et les Begin dépilent les End. A l'étape 0 les End sont tous positionné comme optionnels. Pour les dépilement voir unstackSequence
+	 * \brief Gère la pile d'imbrication des séquences Begin et End. Les End sont empilés et les Begin dépilent les End. A l'étape 0 les End sont tous positionné comme optionnels. Pour les dépilement voir unstackBegin
+	 * 
+	 * \param border ne doit pas être autre chose qu'une séquence taguée Begin ou End
 	*/
-	static void manageStack(std::vector<std::tuple<std::string, Trace::sp_trace, bool>> & stack, std::vector<Trace::sp_trace> & mergedSequence, std::string action, Trace::sp_trace selection, int step);
+	static void manageStack(std::vector<std::tuple<std::string, Trace::sp_trace, bool>> & stack, std::vector<Trace::sp_trace> & mergedSequence, std::string action, Sequence::sp_sequence border, int step);
 	
 	/**
 	 * \brief Procède à la fusion de \p s1 et \p s2 à l'aide de la matrice de transformation \p transformationMatrix en deux étapes \p step.
